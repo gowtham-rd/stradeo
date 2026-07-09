@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { loadQuestions, getTopicQuestionCount } from '@/lib/questions'
+import { getLesson } from '@/lib/lessons'
 import { getTopicName, isPrimaryTopic, TOPICS } from '@/lib/topics'
 import { LANGUAGES, LANG_PROMPT, t } from '@/lib/i18n'
 import type { TheoryContent } from '@/types'
@@ -28,10 +29,15 @@ function TopicInner() {
     loadQuestions().then(all => setCount(getTopicQuestionCount(all)[tid] || 0))
   }, [tid])
 
-  // Reset / restore cached lesson when topic or language changes
+  // Show the pre-generated lesson for this topic immediately.
+  // A live regenerate (in another language) takes precedence via the session cache.
   useEffect(() => {
-    setTheory(cache[`${tid}-${lang}`] || null)
+    const key = `${tid}-${lang}`
+    if (cache[key]) { setTheory(cache[key]); setTheoryLoading(false); return }
+    let cancelled = false
     setTheoryLoading(false)
+    getLesson(tid).then(l => { if (!cancelled) setTheory(l) })
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tid, lang])
 
@@ -42,6 +48,7 @@ function TopicInner() {
   async function fetchTheory(force = false) {
     const key = `${tid}-${lang}`
     if (!force && cache[key]) { setTheory(cache[key]); return }
+    const previous = theory // pre-generated lesson to restore if a live regenerate fails
     setTheoryLoading(true)
     setTheory(null)
     const topic = TOPICS.find(x => x.id === tid)
@@ -51,11 +58,13 @@ function TopicInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topicNameIt: topic?.it, topicNameEn: topic?.en, language: LANG_PROMPT[lang] }),
       })
+      if (!res.ok) throw new Error('theory request failed')
       const data: TheoryContent = await res.json()
       setTheory(data)
       setCache(prev => ({ ...prev, [key]: data }))
     } catch {
-      setTheory({ title: topic?.en || '', keypoints: 'Could not load theory content.', details: '', traps: '', remember: '' })
+      // Keep the pre-generated lesson rather than wiping it (e.g. no Claude key yet)
+      setTheory(previous || (await getLesson(tid)) || { title: topic?.en || '', keypoints: 'Could not load theory content.', details: '', traps: '', remember: '' })
     }
     setTheoryLoading(false)
   }
