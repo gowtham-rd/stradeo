@@ -18,12 +18,57 @@ const DEFAULT_PROGRESS: UserProgress = {
 interface ProgressContextType {
   progress: UserProgress
   recordAnswer: (question: Question, correct: boolean) => void
+  recordAnswers: (entries: { question: Question; correct: boolean }[]) => void
   getDueReviews: () => Question[]
   getTopicAccuracy: (topicId: number) => number | null
   readiness: number
 }
 
 const ProgressContext = createContext<ProgressContextType | null>(null)
+
+// Pure fold of one answer into a progress snapshot (no mutation of prev).
+function applyAnswer(prev: UserProgress, question: Question, correct: boolean): UserProgress {
+  const topicId = question.t
+  const prevStats = prev.stats[topicId] || { c: 0, t: 0 }
+  const newStats = { ...prev.stats, [topicId]: { c: prevStats.c + (correct ? 1 : 0), t: prevStats.t + 1 } }
+
+  // Spaced repetition
+  const key = question.q.substring(0, 40)
+  const prevSR = prev.srData[key] || { interval: SR_INITIAL_INTERVAL, next: 0, reps: 0 }
+  const newInterval = correct ? Math.min(prevSR.interval * SR_MULTIPLIER, SR_MAX_INTERVAL) : SR_INITIAL_INTERVAL
+  const newSRData = { ...prev.srData, [key]: { interval: newInterval, next: Date.now() + newInterval, reps: prevSR.reps + 1 } }
+
+  // Wrong questions
+  let newWrong = [...prev.wrongQuestions]
+  if (!correct) {
+    if (!newWrong.find(w => w.q === question.q)) newWrong.push(question)
+  } else {
+    newWrong = newWrong.filter(w => w.q !== question.q)
+  }
+
+  // Streak (batched answers all share one study day)
+  const today = new Date().toLocaleDateString('sv')
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv')
+  let newStreak = prev.streak
+  if (prev.lastStudy !== today) {
+    newStreak = prev.lastStudy === yesterday ? prev.streak + 1 : 1
+  }
+
+  // Daily log — immutable nested update
+  const prevDay = prev.dailyLog[today] || { c: 0, w: 0, total: 0 }
+  const newDay = { c: prevDay.c + (correct ? 1 : 0), w: prevDay.w + (correct ? 0 : 1), total: prevDay.total + 1 }
+  const newDaily = { ...prev.dailyLog, [today]: newDay }
+
+  return {
+    stats: newStats,
+    totalDone: prev.totalDone + 1,
+    wrongQuestions: newWrong,
+    srData: newSRData,
+    streak: newStreak,
+    lastStudy: today,
+    dailyLog: newDaily,
+  }
+}
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -66,48 +111,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const recordAnswer = useCallback((question: Question, correct: boolean) => {
     setProgress(prev => {
-      const topicId = question.t
-      const prevStats = prev.stats[topicId] || { c: 0, t: 0 }
-      const newStats = { ...prev.stats, [topicId]: { c: prevStats.c + (correct ? 1 : 0), t: prevStats.t + 1 } }
+      const updated = applyAnswer(prev, question, correct)
+      saveProgress(updated)
+      return updated
+    })
+  }, [saveProgress])
 
-      // Spaced repetition
-      const key = question.q.substring(0, 40)
-      const prevSR = prev.srData[key] || { interval: SR_INITIAL_INTERVAL, next: 0, reps: 0 }
-      const newInterval = correct ? Math.min(prevSR.interval * SR_MULTIPLIER, SR_MAX_INTERVAL) : SR_INITIAL_INTERVAL
-      const newSRData = { ...prev.srData, [key]: { interval: newInterval, next: Date.now() + newInterval, reps: prevSR.reps + 1 } }
-
-      // Wrong questions
-      let newWrong = [...prev.wrongQuestions]
-      if (!correct) {
-        if (!newWrong.find(w => w.q === question.q)) newWrong.push(question)
-      } else {
-        newWrong = newWrong.filter(w => w.q !== question.q)
-      }
-
-      // Streak
-      const today = new Date().toLocaleDateString('sv') // YYYY-MM-DD in local TZ
-      const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv')
-      let newStreak = prev.streak
-      if (prev.lastStudy !== today) {
-        newStreak = prev.lastStudy === yesterday ? prev.streak + 1 : 1
-      }
-
-      // Daily log
-      const newDaily = { ...prev.dailyLog }
-      if (!newDaily[today]) newDaily[today] = { c: 0, w: 0, total: 0 }
-      newDaily[today].total++
-      newDaily[today][correct ? 'c' : 'w']++
-
-      const updated: UserProgress = {
-        stats: newStats,
-        totalDone: prev.totalDone + 1,
-        wrongQuestions: newWrong,
-        srData: newSRData,
-        streak: newStreak,
-        lastStudy: today,
-        dailyLog: newDaily,
-      }
-
+  // Record several answers at once (e.g. an exam) as a single state update + save.
+  const recordAnswers = useCallback((entries: { question: Question; correct: boolean }[]) => {
+    if (!entries.length) return
+    setProgress(prev => {
+      const updated = entries.reduce((acc, e) => applyAnswer(acc, e.question, e.correct), prev)
       saveProgress(updated)
       return updated
     })
@@ -133,7 +147,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const readiness = totalA > 0 ? Math.min(Math.round((totalC / totalA) * 100), 100) : 0
 
   return (
-    <ProgressContext.Provider value={{ progress, recordAnswer, getDueReviews, getTopicAccuracy, readiness }}>
+    <ProgressContext.Provider value={{ progress, recordAnswer, recordAnswers, getDueReviews, getTopicAccuracy, readiness }}>
       {children}
     </ProgressContext.Provider>
   )

@@ -2,6 +2,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useProgress } from '@/contexts/ProgressContext'
 import { loadQuestions, buildExamQuestions, getImageUrl } from '@/lib/questions'
 import { t } from '@/lib/i18n'
 import { EXAM_DURATION } from '@/lib/constants'
@@ -30,6 +31,7 @@ const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '
 export default function ExamPage() {
   const router = useRouter()
   const { lang } = useLanguage()
+  const { recordAnswers } = useProgress()
   const [state, dispatch] = useReducer(reducer, initialState)
   const [loading, setLoading] = useState(true)
   const [remaining, setRemaining] = useState(EXAM_DURATION)
@@ -61,6 +63,11 @@ export default function ExamPage() {
   function submit() {
     if (state.submitted) return
     dispatch({ type: 'SUBMIT' })
+    // Feed answered questions into progress so the dashboard reflects the exam.
+    const answered = state.questions
+      .map((q, i) => ({ question: q, correct: state.answers[i] === q.a }))
+      .filter((_, i) => i in state.answers)
+    recordAnswers(answered)
     try {
       sessionStorage.setItem('stradeo_exam_result', JSON.stringify({
         questions: state.questions,
