@@ -74,7 +74,7 @@ function TopicInner() {
       <div className="min-h-screen">
         <AdBanner /><NavBar />
         <div className="max-w-[640px] mx-auto px-4 pt-16 text-center">
-          <p className="text-gray-400 mb-6">Topic not found.</p>
+          <p className="text-stradeo-inkdim mb-6">Topic not found.</p>
           <Link href="/" className="inline-block px-5 py-3 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white font-bold">{t(lang, 'home')}</Link>
         </div>
       </div>
@@ -94,16 +94,16 @@ function TopicInner() {
           </div>
           <div>
             <h3 className="text-lg font-bold">{getTopicName(tid, lang)}</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{topic.it} · {count} {t(lang, 'questions')}</p>
+            <p className="text-xs text-stradeo-inkfaint mt-0.5">{topic.it} · {count} {t(lang, 'questions')}</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-5 bg-white/[0.03] rounded-xl p-1">
+        <div className="flex gap-1 mb-5 bg-stradeo-surface2 rounded-xl p-1">
           <button onClick={() => setMode('study')}
-            className={`flex-1 py-2.5 rounded-[10px] text-sm font-semibold ${mode === 'study' ? 'bg-green-500/[0.12] text-stradeo-green' : 'text-gray-500'}`}>📖 Study</button>
+            className={`flex-1 py-2.5 rounded-[10px] text-sm font-semibold ${mode === 'study' ? 'bg-green-500/[0.12] text-stradeo-green' : 'text-stradeo-inkfaint'}`}>📖 Study</button>
           <button onClick={() => setMode('quiz')}
-            className={`flex-1 py-2.5 rounded-[10px] text-sm font-semibold ${mode === 'quiz' ? 'bg-orange-500/[0.12] text-stradeo-accent' : 'text-gray-500'}`}>📝 Quiz</button>
+            className={`flex-1 py-2.5 rounded-[10px] text-sm font-semibold ${mode === 'quiz' ? 'bg-orange-500/[0.12] text-stradeo-accent' : 'text-stradeo-inkfaint'}`}>📝 Quiz</button>
         </div>
 
         {/* STUDY TAB */}
@@ -117,10 +117,10 @@ function TopicInner() {
             )}
 
             {theoryLoading && (
-              <div className="bg-stradeo-bg2 border border-white/10 rounded-[18px] p-10 text-center">
+              <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[18px] p-10 text-center">
                 <div className="w-7 h-7 border-[3px] border-green-500/20 border-t-stradeo-green rounded-full animate-spin-slow mx-auto mb-4" />
-                <p className="text-[15px] text-gray-300 m-0">Creating your lesson...</p>
-                <p className="text-xs text-gray-500 mt-1.5">Powered by AI · {LANGUAGES[lang]}</p>
+                <p className="text-[15px] text-stradeo-inkdim m-0">Creating your lesson...</p>
+                <p className="text-xs text-stradeo-inkfaint mt-1.5">Powered by AI · {LANGUAGES[lang]}</p>
               </div>
             )}
 
@@ -133,7 +133,7 @@ function TopicInner() {
 
                 {/* Key Points */}
                 {theory.keypoints && (
-                  <div className="bg-stradeo-bg2 border border-white/[0.06] rounded-2xl p-5 mb-3.5">
+                  <div className="bg-stradeo-bg2 border border-stradeo-line rounded-2xl p-5 mb-3.5">
                     <div className="text-xs font-bold text-stradeo-green uppercase tracking-[1px] mb-3">Key Points</div>
                     {theory.keypoints.split('\n').filter(l => l.trim()).map((line, i) => (
                       <div key={i} className="flex gap-2.5 mb-2 items-start">
@@ -146,10 +146,10 @@ function TopicInner() {
 
                 {/* Details */}
                 {theory.details && (
-                  <div className="bg-stradeo-bg2 border border-white/[0.06] rounded-2xl p-5 mb-3.5">
+                  <div className="bg-stradeo-bg2 border border-stradeo-line rounded-2xl p-5 mb-3.5">
                     <div className="text-xs font-bold text-stradeo-blue uppercase tracking-[1px] mb-3">Explained</div>
                     {theory.details.split('\n\n').filter(p => p.trim()).map((para, i) => (
-                      <p key={i} className={`text-sm leading-[1.7] text-gray-400 ${i > 0 ? 'mt-3' : ''}`}>{para}</p>
+                      <p key={i} className={`text-sm leading-[1.7] text-stradeo-inkdim ${i > 0 ? 'mt-3' : ''}`}>{para}</p>
                     ))}
                   </div>
                 )}
@@ -176,12 +176,8 @@ function TopicInner() {
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-2.5 mt-2">
-                  <button onClick={() => fetchTheory(true)}
-                    className="flex-1 py-3.5 rounded-xl border border-white/[0.06] text-gray-400 text-sm font-semibold">🔄 Regenerate</button>
-                  <button onClick={() => setMode('quiz')}
-                    className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white text-sm font-semibold">📝 Start Quiz →</button>
-                </div>
+                <button onClick={() => setMode('quiz')}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white text-sm font-semibold mt-2">📝 Start Quiz →</button>
               </div>
             )}
           </div>
@@ -190,10 +186,10 @@ function TopicInner() {
         {/* QUIZ TAB */}
         {mode === 'quiz' && (
           <div>
-            <div className="bg-stradeo-bg2 border border-white/[0.06] rounded-2xl p-5 text-center">
+            <div className="bg-stradeo-bg2 border border-stradeo-line rounded-2xl p-5 text-center">
               <div className="text-4xl mb-2">{isPri ? '🎯' : '📝'}</div>
               <h3 className="text-[17px] font-bold mb-1.5">{count} {t(lang, 'questions')}</h3>
-              <p className="text-[13px] text-gray-500">{isPri ? 'Primary topic · 2 questions per exam' : 'Integrative · 1 question per exam'}</p>
+              <p className="text-[13px] text-stradeo-inkfaint">{isPri ? 'Primary topic · 2 questions per exam' : 'Integrative · 1 question per exam'}</p>
               {accuracy !== null && (
                 <p className={`text-sm font-semibold mt-2 ${accuracy >= 80 ? 'text-stradeo-green' : accuracy >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>
                   Current accuracy: {accuracy}%

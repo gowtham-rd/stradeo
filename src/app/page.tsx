@@ -46,7 +46,7 @@ export default function HomePage() {
       <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
         {/* Welcome + Streak */}
         <div className="flex justify-between items-center mb-4">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-stradeo-inkdim">
             {t(lang, 'welcome')}, <strong className="text-stradeo-accent">{user.email?.split('@')[0]}</strong>
           </p>
           <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ export default function HomePage() {
             )}
             <button
               onClick={() => setShowStats(!showStats)}
-              className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] text-gray-400 text-xs font-semibold"
+              className="px-3 py-1.5 rounded-lg border border-stradeo-line bg-stradeo-surface2 text-stradeo-inkdim text-xs font-semibold"
             >📊</button>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function HomePage() {
         )}
 
         {/* Topics */}
-        <div className="text-[13px] font-bold text-gray-400 uppercase tracking-[1.5px] mb-3 mt-2.5">
+        <div className="text-[13px] font-bold text-stradeo-inkdim uppercase tracking-[1.5px] mb-3 mt-2.5">
           {t(lang, 'topicsTitle')}
         </div>
         {TOPICS.map(topic => (

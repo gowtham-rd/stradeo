@@ -1,7 +1,7 @@
 export default function AdBanner() {
   return (
-    <div id="admob-banner" className="h-[50px] bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-center">
-      <span className="text-[11px] text-gray-500">— Ad —</span>
+    <div id="admob-banner" className="h-[50px] bg-stradeo-surface2 border-b border-stradeo-line flex items-center justify-center">
+      <span className="text-[11px] text-stradeo-inkfaint">— Ad —</span>
     </div>
   )
 }

@@ -131,15 +131,15 @@ function QuizInner() {
       <NavBar />
       <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
         {loading ? (
-          <div className="bg-stradeo-bg2 border border-white/10 rounded-[18px] p-6 animate-pulse">
-            <div className="h-4 w-2/3 rounded bg-white/[0.06] mb-3" />
-            <div className="h-4 w-full rounded bg-white/[0.06] mb-3" />
-            <div className="h-4 w-1/2 rounded bg-white/[0.06]" />
+          <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[18px] p-6 animate-pulse">
+            <div className="h-4 w-2/3 rounded bg-stradeo-surface2 mb-3" />
+            <div className="h-4 w-full rounded bg-stradeo-surface2 mb-3" />
+            <div className="h-4 w-1/2 rounded bg-stradeo-surface2" />
           </div>
         ) : total === 0 ? (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">✓</div>
-            <p className="text-gray-300 mb-6">{t(lang, 'ready')}</p>
+            <p className="text-stradeo-inkdim mb-6">{t(lang, 'ready')}</p>
             <Link href="/" className="inline-block px-5 py-3 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white font-bold">{t(lang, 'home')}</Link>
           </div>
         ) : (
@@ -148,7 +148,7 @@ function QuizInner() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-[17px] font-bold">{title}</h3>
-                <p className="text-[13px] text-gray-500 mt-0.5">{state.currentIndex + 1}/{total}</p>
+                <p className="text-[13px] text-stradeo-inkfaint mt-0.5">{state.currentIndex + 1}/{total}</p>
               </div>
               <div className="flex gap-3 text-[15px] font-bold">
                 <span className="text-stradeo-green">✓{state.score.c}</span>
@@ -157,19 +157,19 @@ function QuizInner() {
             </div>
 
             {/* Progress bar */}
-            <div className="h-[4px] rounded bg-white/[0.06] mb-5 overflow-hidden">
+            <div className="h-[4px] rounded bg-stradeo-surface2 mb-5 overflow-hidden">
               <div className="h-full rounded bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 transition-all duration-300"
                 style={{ width: `${((state.currentIndex + 1) / total) * 100}%` }} />
             </div>
 
             {/* Question card */}
-            <div className={`bg-stradeo-bg2 border border-white/10 rounded-[18px] p-6 mb-4 ${
+            <div className={`bg-stradeo-bg2 border border-stradeo-line rounded-[18px] p-6 mb-4 ${
               state.animation === 'ok' ? 'animate-pulse-green' : state.animation === 'no' ? 'animate-shake' : ''
             }`}>
               <div className={`flex justify-end ${imgUrl ? '' : 'mb-2'}`}>
                 <TranslateButton question={q.q} />
               </div>
-              {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-white/[0.08]" />}
+              {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-stradeo-line" />}
               <p className={`text-[17px] leading-relaxed font-medium ${imgUrl ? 'mt-3.5' : ''}`}>{q.q}</p>
             </div>
 
@@ -178,7 +178,7 @@ function QuizInner() {
               {[true, false].map(val => {
                 const isCorrect = q.a === val
                 const isSelected = state.answer === val
-                let cls = 'border border-white/[0.06] bg-white/[0.03] text-white'
+                let cls = 'border border-stradeo-line bg-stradeo-surface2 text-stradeo-ink'
                 if (state.answer !== null) {
                   if (isCorrect) cls = 'border-2 border-stradeo-green bg-green-500/10 text-stradeo-green shadow-[0_0_20px_rgba(34,197,94,0.15)]'
                   else if (isSelected) cls = 'border-2 border-stradeo-accent2 bg-red-500/10 text-stradeo-accent2'
@@ -203,7 +203,7 @@ function QuizInner() {
                 {expLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-orange-500/30 border-t-stradeo-accent rounded-full animate-spin-slow" />
-                    <span className="text-sm text-gray-400">{t(lang, 'gettingExp')}</span>
+                    <span className="text-sm text-stradeo-inkdim">{t(lang, 'gettingExp')}</span>
                   </div>
                 ) : (
                   <p className="text-sm leading-relaxed text-[#d4956a]">{exp}</p>
@@ -221,20 +221,20 @@ function QuizInner() {
             {/* Next (not last) */}
             {state.answer !== null && !isLast && (
               <button onClick={() => dispatch({ type: 'NEXT' })}
-                className="w-full py-3.5 rounded-xl bg-white/[0.06] text-white text-[15px] font-semibold">
+                className="w-full py-3.5 rounded-xl bg-stradeo-surface2 text-stradeo-ink text-[15px] font-semibold">
                 {t(lang, 'next')} →
               </button>
             )}
 
             {/* Results (last answered) */}
             {state.answer !== null && isLast && (
-              <div className="bg-stradeo-bg2 border border-white/10 rounded-[18px] p-7 text-center mt-2 animate-fade-in-up">
+              <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[18px] p-7 text-center mt-2 animate-fade-in-up">
                 <div className="text-4xl font-extrabold">{state.score.c}/{total}</div>
                 <div className={`text-[15px] font-semibold mb-4 ${state.score.c / total >= 0.9 ? 'text-stradeo-green' : 'text-stradeo-accent'}`}>
                   {Math.round((state.score.c / total) * 100)}% {t(lang, 'correct')}
                 </div>
                 <div className="flex gap-2.5">
-                  <Link href="/" className="flex-1 py-3.5 rounded-xl border border-white/[0.06] text-gray-300 text-sm font-semibold">{t(lang, 'home')}</Link>
+                  <Link href="/" className="flex-1 py-3.5 rounded-xl border border-stradeo-line text-stradeo-inkdim text-sm font-semibold">{t(lang, 'home')}</Link>
                   <button onClick={restart} className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white text-sm font-semibold">{t(lang, 'again')}</button>
                 </div>
               </div>

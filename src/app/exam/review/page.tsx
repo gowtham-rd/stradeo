@@ -59,7 +59,7 @@ export default function ExamReviewPage() {
         <AdBanner /><NavBar />
         <div className="max-w-[640px] mx-auto px-4 pt-16 text-center">
           <div className="text-5xl mb-4">🎯</div>
-          <p className="text-gray-300 mb-6">{t(lang, 'examSim')}</p>
+          <p className="text-stradeo-inkdim mb-6">{t(lang, 'examSim')}</p>
           <Link href="/exam" className="inline-block px-5 py-3 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white font-bold">{t(lang, 'newExam')}</Link>
         </div>
       </div>
@@ -78,10 +78,10 @@ export default function ExamReviewPage() {
             {score}/{EXAM_QUESTIONS}
           </div>
           <div className="text-xl font-bold mt-1">{passed ? `${t(lang, 'passed')} 🎉` : t(lang, 'failed')}</div>
-          <div className="text-sm text-gray-400 mt-1.5">{EXAM_QUESTIONS - score} {t(lang, 'errors')} · {t(lang, 'max3')}</div>
+          <div className="text-sm text-stradeo-inkdim mt-1.5">{EXAM_QUESTIONS - score} {t(lang, 'errors')} · {t(lang, 'max3')}</div>
         </div>
 
-        <div className="text-[13px] font-bold text-gray-500 uppercase tracking-[1.5px] mb-3">{t(lang, 'review')}</div>
+        <div className="text-[13px] font-bold text-stradeo-inkfaint uppercase tracking-[1.5px] mb-3">{t(lang, 'review')}</div>
 
         {hist.map((h, i) => {
           const imgUrl = getImageUrl(h.q.i)
@@ -92,7 +92,7 @@ export default function ExamReviewPage() {
               <div className="flex gap-2.5 items-start">
                 <span className={`text-base ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>{h.ok ? '✓' : '✗'}</span>
                 <div className="flex-1">
-                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-white/[0.08]" />}
+                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-stradeo-line" />}
                   <p className="text-sm leading-[1.5] mb-1">{h.q.q}</p>
                   <p className={`text-xs ${h.ok ? 'text-green-500/70' : 'text-red-500/70'}`}>
                     {t(lang, 'correct')}: <strong>{h.q.a ? 'VERO' : 'FALSO'}</strong>
@@ -117,7 +117,7 @@ export default function ExamReviewPage() {
         })}
 
         <div className="flex gap-2.5 mt-5">
-          <Link href="/" className="flex-1 py-3.5 rounded-xl border border-white/[0.06] text-gray-300 text-sm font-semibold text-center">{t(lang, 'home')}</Link>
+          <Link href="/" className="flex-1 py-3.5 rounded-xl border border-stradeo-line text-stradeo-inkdim text-sm font-semibold text-center">{t(lang, 'home')}</Link>
           <Link href="/exam" className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white text-sm font-semibold text-center">{t(lang, 'newExam')}</Link>
         </div>
       </div>

@@ -6,8 +6,14 @@ const config: Config = {
     extend: {
       colors: {
         stradeo: {
-          bg: '#0a0e1a',
-          bg2: '#111827',
+          bg: 'var(--bg)',
+          bg2: 'var(--surface)',
+          surface2: 'var(--surface-2)',
+          line: 'var(--line)',
+          nav: 'var(--nav)',
+          ink: 'var(--ink)',
+          inkdim: 'var(--ink-dim)',
+          inkfaint: 'var(--ink-faint)',
           accent: '#f97316',
           accent2: '#ef4444',
           green: '#22c55e',

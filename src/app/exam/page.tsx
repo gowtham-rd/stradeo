@@ -78,9 +78,9 @@ export default function ExamPage() {
       <div className="min-h-screen">
         <AdBanner />
         <div className="max-w-[640px] mx-auto px-4 pt-10">
-          <div className="bg-stradeo-bg2 border border-white/10 rounded-[18px] p-6 animate-pulse">
-            <div className="h-4 w-2/3 rounded bg-white/[0.06] mb-3" />
-            <div className="h-4 w-full rounded bg-white/[0.06]" />
+          <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[18px] p-6 animate-pulse">
+            <div className="h-4 w-2/3 rounded bg-stradeo-surface2 mb-3" />
+            <div className="h-4 w-full rounded bg-stradeo-surface2" />
           </div>
         </div>
       </div>
@@ -94,19 +94,19 @@ export default function ExamPage() {
       <AdBanner />
       <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
         {/* Sticky timer + progress */}
-        <div className="sticky top-0 z-10 bg-[rgba(10,14,26,0.95)] backdrop-blur-[20px] py-4 mb-4">
+        <div className="sticky top-0 z-10 bg-stradeo-nav backdrop-blur-[20px] py-4 mb-4">
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-[17px] font-bold">{t(lang, 'examSim')}</h3>
-              <p className="text-xs text-gray-500 mt-0.5">{t(lang, 'examSimSub')}</p>
+              <p className="text-xs text-stradeo-inkfaint mt-0.5">{t(lang, 'examSimSub')}</p>
             </div>
-            <div className={`px-4 py-2 rounded-[10px] text-xl font-bold tabular-nums ${lowTime ? 'bg-red-500/[0.12] text-stradeo-accent2' : 'bg-white/[0.05] text-gray-300'}`}>
+            <div className={`px-4 py-2 rounded-[10px] text-xl font-bold tabular-nums ${lowTime ? 'bg-red-500/[0.12] text-stradeo-accent2' : 'bg-stradeo-surface2 text-stradeo-inkdim'}`}>
               {fmt(remaining)}
             </div>
           </div>
           <div className="flex gap-[3px] mt-3">
             {state.questions.map((_, i) => (
-              <div key={i} className={`flex-1 h-1 rounded ${i in state.answers ? 'bg-orange-500/50' : 'bg-white/[0.06]'}`} />
+              <div key={i} className={`flex-1 h-1 rounded ${i in state.answers ? 'bg-orange-500/50' : 'bg-stradeo-surface2'}`} />
             ))}
           </div>
         </div>
@@ -115,11 +115,11 @@ export default function ExamPage() {
         {state.questions.map((q, i) => {
           const imgUrl = getImageUrl(q.i)
           return (
-            <div key={i} className="bg-white/[0.03] border border-white/[0.06] rounded-[16px] p-4 mb-2">
+            <div key={i} className="bg-stradeo-surface2 border border-stradeo-line rounded-[16px] p-4 mb-2">
               <div className="flex gap-2.5 items-start">
-                <span className="text-gray-500 text-[13px] font-bold min-w-[24px]">{i + 1}.</span>
+                <span className="text-stradeo-inkfaint text-[13px] font-bold min-w-[24px]">{i + 1}.</span>
                 <div className="flex-1">
-                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-white/[0.08]" />}
+                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-stradeo-line" />}
                   <div className="flex justify-between items-start mb-1.5 gap-2">
                     <p className="text-sm leading-[1.55] flex-1">{q.q}</p>
                     <TranslateButton question={q.q} compact />
@@ -128,7 +128,7 @@ export default function ExamPage() {
                     {[true, false].map(val => (
                       <button key={String(val)} onClick={() => dispatch({ type: 'ANSWER', index: i, value: val })}
                         className={`px-5 py-2 rounded-lg text-[13px] font-semibold border ${
-                          state.answers[i] === val ? 'border-2 border-stradeo-accent bg-orange-500/10 text-stradeo-accent' : 'border-white/[0.08] bg-transparent text-gray-500'
+                          state.answers[i] === val ? 'border-2 border-stradeo-accent bg-orange-500/10 text-stradeo-accent' : 'border-stradeo-line bg-transparent text-stradeo-inkfaint'
                         }`}>
                         {val ? 'VERO' : 'FALSO'}
                       </button>
@@ -142,7 +142,7 @@ export default function ExamPage() {
 
         <button onClick={submit}
           className={`w-full mt-2 py-4 rounded-[14px] text-base font-bold ${
-            answeredCount === total ? 'bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white' : 'bg-white/[0.06] text-gray-400'
+            answeredCount === total ? 'bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white' : 'bg-stradeo-surface2 text-stradeo-inkdim'
           }`}>
           {t(lang, 'submit')} ({answeredCount}/{total})
         </button>
