@@ -12,6 +12,19 @@ import type { TheoryContent } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 
+// Render inline Markdown emphasis (**bold** and *italic*) as real elements.
+function renderMD(text: string) {
+  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-stradeo-ink">{part.slice(2, -2)}</strong>
+    }
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <em key={i}>{part.slice(1, -1)}</em>
+    }
+    return part
+  })
+}
+
 function TopicInner() {
   const params = useSearchParams()
   const tid = Number(params.get('id'))
@@ -138,7 +151,7 @@ function TopicInner() {
                     {theory.keypoints.split('\n').filter(l => l.trim()).map((line, i) => (
                       <div key={i} className="flex gap-2.5 mb-2 items-start">
                         <span className="text-stradeo-green text-sm mt-px">•</span>
-                        <p className="m-0 text-sm leading-relaxed">{line.replace(/^[•·\-]\s*/, '')}</p>
+                        <p className="m-0 text-sm leading-relaxed">{renderMD(line.replace(/^[•·\-]\s*/, ''))}</p>
                       </div>
                     ))}
                   </div>
@@ -149,7 +162,7 @@ function TopicInner() {
                   <div className="bg-stradeo-bg2 border border-stradeo-line rounded-2xl p-5 mb-3.5">
                     <div className="text-xs font-bold text-stradeo-blue uppercase tracking-[1px] mb-3">Explained</div>
                     {theory.details.split('\n\n').filter(p => p.trim()).map((para, i) => (
-                      <p key={i} className={`text-sm leading-[1.7] text-stradeo-inkdim ${i > 0 ? 'mt-3' : ''}`}>{para}</p>
+                      <p key={i} className={`text-sm leading-[1.7] text-stradeo-inkdim ${i > 0 ? 'mt-3' : ''}`}>{renderMD(para)}</p>
                     ))}
                   </div>
                 )}
@@ -161,7 +174,7 @@ function TopicInner() {
                     {theory.traps.split('\n').filter(l => l.trim()).map((line, i) => (
                       <div key={i} className="flex gap-2.5 mb-2 items-start">
                         <span className="text-stradeo-accent2 text-[13px]">⚠</span>
-                        <p className="m-0 text-sm leading-relaxed text-[#d4956a]">{line.replace(/^[⚠·\-]\s*/, '')}</p>
+                        <p className="m-0 text-sm leading-relaxed text-[#d4956a]">{renderMD(line.replace(/^[⚠·\-]\s*/, ''))}</p>
                       </div>
                     ))}
                   </div>
@@ -171,7 +184,7 @@ function TopicInner() {
                 {theory.remember && (
                   <div className="bg-orange-500/[0.06] border border-orange-500/[0.12] rounded-2xl p-[18px] mb-3.5 text-center">
                     <div className="text-xs font-bold text-stradeo-accent uppercase tracking-[1px] mb-2">💡 Remember</div>
-                    <p className="m-0 text-[15px] font-semibold leading-relaxed text-stradeo-accent">{theory.remember}</p>
+                    <p className="m-0 text-[15px] font-semibold leading-relaxed text-stradeo-accent">{renderMD(theory.remember)}</p>
                   </div>
                 )}
 
