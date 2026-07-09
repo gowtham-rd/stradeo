@@ -46,6 +46,11 @@ CREATE POLICY "Authenticated users read theory"
   TO authenticated
   USING (true);
 
+-- Table privileges for the logged-in ("authenticated") role.
+-- RLS policies above only take effect once the role also has table grants.
+GRANT SELECT, INSERT, UPDATE ON public.progress TO authenticated;
+GRANT SELECT ON public.theory_cache TO authenticated;
+
 -- Auto-create progress row on first login
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
