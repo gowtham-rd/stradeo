@@ -18,8 +18,8 @@ export default function TopicCard({ topic, count, accuracy, done }: Props) {
 
   return (
     <Link href={`/topic?id=${topic.id}`}
-      className="flex items-center gap-3.5 w-full px-4 py-3.5 mb-1.5 rounded-[14px] bg-stradeo-surface2 border border-stradeo-line text-left">
-      <div className={`min-w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-sm font-bold ${isPri ? 'bg-orange-500/[0.08] text-stradeo-accent' : 'bg-indigo-500/[0.08] text-stradeo-blue'}`}>
+      className="flex items-center gap-3.5 w-full px-4 py-3.5 mb-1.5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line text-left hover:border-stradeo-ink transition-colors">
+      <div className={`min-w-[38px] h-[38px] rounded-[10px] flex items-center justify-center font-mono text-sm ${isPri ? 'bg-stradeo-surface2 text-stradeo-ink' : 'bg-stradeo-surface2 text-stradeo-inkfaint'}`}>
         {String(topic.id).padStart(2, '0')}
       </div>
       <div className="flex-1 min-w-0">
@@ -34,11 +34,11 @@ export default function TopicCard({ topic, count, accuracy, done }: Props) {
       </div>
       <div className="flex flex-col items-end gap-0.5">
         {accuracy !== null && (
-          <span className={`text-[13px] font-bold ${accuracy >= 80 ? 'text-stradeo-green' : accuracy >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>
+          <span className={`font-mono text-[13px] ${accuracy >= 80 ? 'text-stradeo-green' : accuracy >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>
             {accuracy}%
           </span>
         )}
-        <span className="text-[11px] text-stradeo-inkdim">{done}/{count}</span>
+        <span className="font-mono text-[11px] text-stradeo-inkdim">{done}/{count}</span>
       </div>
     </Link>
   )

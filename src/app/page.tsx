@@ -47,13 +47,13 @@ export default function HomePage() {
         {/* Welcome + Streak */}
         <div className="flex justify-between items-center mb-4">
           <p className="text-sm text-stradeo-inkdim">
-            {t(lang, 'welcome')}, <strong className="text-stradeo-accent">{user.email?.split('@')[0]}</strong>
+            {t(lang, 'welcome')}, <strong className="font-semibold text-stradeo-ink">{user.email?.split('@')[0]}</strong>
           </p>
           <div className="flex items-center gap-3">
             {progress.streak > 0 && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-500/[0.08] border border-orange-500/[0.15]">
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-stradeo-line bg-stradeo-bg2">
                 <span className="text-base">🔥</span>
-                <span className="text-sm font-bold text-stradeo-accent">{progress.streak}</span>
+                <span className="font-mono text-sm text-stradeo-ink">{progress.streak}</span>
               </div>
             )}
             <button
@@ -77,19 +77,19 @@ export default function HomePage() {
         {/* Exam Button */}
         <a
           href="/exam"
-          className="block w-full p-4 rounded-[14px] text-center bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white text-[15px] font-bold shadow-[0_4px_24px_rgba(249,115,22,0.25)] mb-2.5"
+          className="block w-full p-4 rounded-[10px] text-center bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
         >🎯 {t(lang, 'examSim')}</a>
 
         {/* Smart Review */}
         {(progress.wrongQuestions.length > 0 || dueCount > 0) && (
           <a
             href="/quiz?mode=review"
-            className="block w-full p-4 rounded-[14px] text-center border-2 border-stradeo-blue bg-indigo-500/[0.06] text-stradeo-blue text-[15px] font-bold mb-2.5"
+            className="block w-full p-4 rounded-[10px] text-center border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink text-[15px] font-semibold mb-2.5"
           >🧠 {t(lang, 'smartReview')} ({dueCount || progress.wrongQuestions.length} {t(lang, 'qDue')})</a>
         )}
 
         {/* Topics */}
-        <div className="text-[13px] font-bold text-stradeo-inkdim uppercase tracking-[1.5px] mb-3 mt-2.5">
+        <div className="text-[13px] font-semibold text-stradeo-inkdim uppercase tracking-[1.5px] mb-3 mt-5">
           {t(lang, 'topicsTitle')}
         </div>
         {TOPICS.map(topic => (

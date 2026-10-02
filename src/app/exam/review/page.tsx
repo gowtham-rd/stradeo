@@ -60,7 +60,7 @@ export default function ExamReviewPage() {
         <div className="max-w-[640px] mx-auto px-4 pt-16 text-center">
           <div className="text-5xl mb-4">🎯</div>
           <p className="text-stradeo-inkdim mb-6">{t(lang, 'examSim')}</p>
-          <Link href="/exam" className="inline-block px-5 py-3 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white font-bold">{t(lang, 'newExam')}</Link>
+          <Link href="/exam" className="inline-block px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'newExam')}</Link>
         </div>
       </div>
     )
@@ -71,10 +71,10 @@ export default function ExamReviewPage() {
       <AdBanner /><NavBar />
       <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
         {/* Score card */}
-        <div className={`rounded-[20px] p-7 text-center mb-6 border-2 ${
-          passed ? 'bg-green-500/[0.06] border-green-500/20' : 'bg-red-500/[0.06] border-red-500/20'
+        <div className={`rounded-[14px] p-7 text-center mb-6 border-2 ${
+          passed ? 'bg-stradeo-green/[0.06] border-stradeo-green/20' : 'bg-stradeo-accent2/[0.06] border-stradeo-accent2/20'
         }`}>
-          <div className={`text-[52px] font-extrabold tracking-tight ${passed ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>
+          <div className={`font-mono text-[52px] leading-tight tracking-tight ${passed ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>
             {score}/{EXAM_QUESTIONS}
           </div>
           <div className="text-xl font-bold mt-1">{passed ? `${t(lang, 'passed')} 🎉` : t(lang, 'failed')}</div>
@@ -87,26 +87,26 @@ export default function ExamReviewPage() {
           const imgUrl = getImageUrl(h.q.i)
           return (
             <div key={i} className={`p-3.5 mb-2 rounded-[14px] border ${
-              h.ok ? 'bg-green-500/[0.03] border-green-500/[0.08]' : 'bg-red-500/[0.05] border-red-500/[0.12]'
+              h.ok ? 'bg-stradeo-green/[0.03] border-stradeo-green/[0.08]' : 'bg-stradeo-accent2/[0.05] border-stradeo-accent2/[0.12]'
             }`}>
               <div className="flex gap-2.5 items-start">
                 <span className={`text-base ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>{h.ok ? '✓' : '✗'}</span>
                 <div className="flex-1">
-                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-xl mx-auto my-3.5 border border-stradeo-line" />}
+                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
                   <p className="text-sm leading-[1.5] mb-1">{h.q.q}</p>
-                  <p className={`text-xs ${h.ok ? 'text-green-500/70' : 'text-red-500/70'}`}>
+                  <p className={`text-xs ${h.ok ? 'text-stradeo-green/70' : 'text-stradeo-accent2/70'}`}>
                     {t(lang, 'correct')}: <strong>{h.q.a ? 'VERO' : 'FALSO'}</strong>
                   </p>
                   {!h.ok && (exp[i] ? (
-                    <div className="bg-orange-500/[0.06] border border-orange-500/[0.12] rounded-[10px] p-3 mt-2">
-                      <div className="flex items-center gap-1.5 mb-1.5"><span>💡</span><span className="text-[11px] font-bold text-stradeo-accent">{t(lang, 'why')}</span></div>
-                      <p className="text-[13px] leading-relaxed text-[#d4956a]">{exp[i]}</p>
+                    <div className="bg-stradeo-surface2 rounded-[10px] p-3 mt-2">
+                      <div className="flex items-center gap-1.5 mb-1.5"><span>💡</span><span className="text-[11px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span></div>
+                      <p className="text-[13px] leading-relaxed text-stradeo-ink">{exp[i]}</p>
                     </div>
                   ) : (
                     <button onClick={() => fetchExp(i, h.q.q, h.q.a)} disabled={expLoading[i]}
-                      className="mt-2 px-4 py-2 rounded-lg border border-orange-500/20 bg-orange-500/[0.06] text-stradeo-accent text-xs font-semibold flex items-center gap-1.5">
+                      className="mt-2 px-4 py-2 rounded-lg border border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-xs font-semibold flex items-center gap-1.5">
                       {expLoading[i]
-                        ? <><div className="w-3 h-3 border-2 border-orange-500/30 border-t-stradeo-accent rounded-full animate-spin-slow" />{t(lang, 'loading')}</>
+                        ? <><div className="w-3 h-3 border-2 border-stradeo-line border-t-stradeo-ink rounded-full animate-spin-slow" />{t(lang, 'loading')}</>
                         : <>💡 {t(lang, 'explain')}</>}
                     </button>
                   ))}
@@ -117,8 +117,8 @@ export default function ExamReviewPage() {
         })}
 
         <div className="flex gap-2.5 mt-5">
-          <Link href="/" className="flex-1 py-3.5 rounded-xl border border-stradeo-line text-stradeo-inkdim text-sm font-semibold text-center">{t(lang, 'home')}</Link>
-          <Link href="/exam" className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 text-white text-sm font-semibold text-center">{t(lang, 'newExam')}</Link>
+          <Link href="/" className="flex-1 py-3.5 rounded-[10px] border border-stradeo-line text-stradeo-inkdim text-sm font-semibold text-center">{t(lang, 'home')}</Link>
+          <Link href="/exam" className="flex-1 py-3.5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-sm font-semibold text-center">{t(lang, 'newExam')}</Link>
         </div>
       </div>
     </div>

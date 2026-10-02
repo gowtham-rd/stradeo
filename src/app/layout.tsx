@@ -1,4 +1,8 @@
 import type { Metadata } from 'next'
+import '@fontsource/titillium-web/400.css'
+import '@fontsource/titillium-web/600.css'
+import '@fontsource/titillium-web/700.css'
+import '@fontsource/jetbrains-mono/400.css'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
@@ -10,12 +14,12 @@ export const metadata: Metadata = {
   description: 'Your Italian driving license companion. 7,139 official Ministry questions.',
 }
 
-// Applies the saved theme before first paint to avoid a flash of the wrong theme.
-const noFlashTheme = `try{var t=localStorage.getItem('stradeo-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}`
+// Applies a saved Light/Dark choice before first paint. No saved choice = Auto (follows the device).
+const noFlashTheme = `try{var t=localStorage.getItem('stradeo-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlashTheme }} />
       </head>

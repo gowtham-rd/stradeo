@@ -1,13 +1,15 @@
 'use client'
+import StradeoMark from './StradeoMark'
+
 export default function SplashScreen() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center animate-fade-in-up">
-      <img src="/logo/splash.png" alt="Stradeo" className="w-[120px] h-[120px] rounded-full mb-5" />
-      <h1 className="text-4xl font-extrabold tracking-tight text-center mb-2">Stradeo</h1>
-      <p className="text-sm text-stradeo-inkfaint text-center">Your Italian driving license companion</p>
+      <div className="mb-5"><StradeoMark size={96} /></div>
+      <h1 className="text-[40px] leading-tight font-bold tracking-tight text-center mb-2">Stradeo</h1>
+      <p className="text-base text-stradeo-inkdim text-center">Your Italian driving license companion</p>
       <div className="flex justify-center mt-8">
         <div className="w-10 h-1 rounded bg-stradeo-surface2 overflow-hidden">
-          <div className="w-full h-full bg-gradient-to-r from-stradeo-accent to-stradeo-accent2 animate-[loading_2s_ease-in-out]" />
+          <div className="w-full h-full bg-stradeo-ink animate-[loading_2s_ease-in-out]" />
         </div>
       </div>
       <style>{`@keyframes loading{from{transform:translateX(-100%)}to{transform:translateX(0)}}`}</style>
