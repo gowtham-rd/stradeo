@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { LANGUAGES, LANG_PROMPT } from '@/lib/i18n'
+import { aiPost } from '@/lib/api'
 
 interface Props {
   question: string
@@ -17,14 +18,11 @@ export default function TranslateButton({ question, compact }: Props) {
     if (lang === 'it') { setTranslation(question); return }
     setLoading(true)
     try {
-      const res = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, language: LANG_PROMPT[lang] }),
-      })
+      const res = await aiPost('/api/translate', ({ question, language: LANG_PROMPT[lang] }))
+      if (!res.ok) throw new Error('translate failed')
       const data = await res.json()
       setTranslation(data.translation || question)
-    } catch { setTranslation('Translation failed.') }
+    } catch { setTranslation('Translation unavailable right now.') }
     setLoading(false)
   }
 

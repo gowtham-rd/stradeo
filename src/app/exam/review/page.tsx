@@ -8,6 +8,7 @@ import { LANG_PROMPT, t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
+import { aiPost } from '@/lib/api'
 
 interface ExamResult {
   questions: Question[]
@@ -40,11 +41,8 @@ export default function ExamReviewPage() {
   async function fetchExp(idx: number, question: string, correctAnswer: boolean) {
     setExpLoading(p => ({ ...p, [idx]: true }))
     try {
-      const res = await fetch('/api/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, correctAnswer, language: LANG_PROMPT[lang] }),
-      })
+      const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
+      if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
       setExp(p => ({ ...p, [idx]: data.explanation || 'Unavailable.' }))
     } catch {

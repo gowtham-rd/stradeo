@@ -11,6 +11,7 @@ import { LANGUAGES, LANG_PROMPT, t } from '@/lib/i18n'
 import type { TheoryContent } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
+import { aiPost } from '@/lib/api'
 
 // Render inline Markdown emphasis (**bold** and *italic*) as real elements.
 function renderMD(text: string) {
@@ -66,11 +67,7 @@ function TopicInner() {
     setTheory(null)
     const topic = TOPICS.find(x => x.id === tid)
     try {
-      const res = await fetch('/api/theory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topicNameIt: topic?.it, topicNameEn: topic?.en, language: LANG_PROMPT[lang] }),
-      })
+      const res = await aiPost('/api/theory', ({ topicNameIt: topic?.it, topicNameEn: topic?.en, language: LANG_PROMPT[lang] }))
       if (!res.ok) throw new Error('theory request failed')
       const data: TheoryContent = await res.json()
       setTheory(data)

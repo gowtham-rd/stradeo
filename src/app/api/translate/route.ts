@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { guardAiRequest, isAllowedLanguage, isShortText } from '@/lib/serverAuth'
 
 export async function POST(req: NextRequest) {
+  const denied = await guardAiRequest(req)
+  if (denied) return denied
+
   const { question, language } = await req.json()
 
   if (!question || !language) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  }
+
+  if (!isAllowedLanguage(language) || !isShortText(question)) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
 
   if (language === 'Italian') {
@@ -28,6 +36,7 @@ export async function POST(req: NextRequest) {
     }),
   })
 
+  if (!res.ok) return NextResponse.json({ error: 'AI request failed' }, { status: 502 })
   const data = await res.json()
   const text = data.content?.find((c: any) => c.type === 'text')?.text || question
   return NextResponse.json({ translation: text })

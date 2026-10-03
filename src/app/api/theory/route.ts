@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { guardAiRequest, isAllowedLanguage, isShortText } from '@/lib/serverAuth'
 
 export async function POST(req: NextRequest) {
+  const denied = await guardAiRequest(req)
+  if (denied) return denied
+
   const { topicNameIt, topicNameEn, language } = await req.json()
 
   if (!topicNameIt || !topicNameEn || !language) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  }
+
+  if (!isAllowedLanguage(language) || !isShortText(topicNameIt, topicNameEn)) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -35,6 +43,7 @@ Be specific with Italian driving rules, numbers, and limits. Keep it concise but
     }),
   })
 
+  if (!res.ok) return NextResponse.json({ error: 'AI request failed' }, { status: 502 })
   const data = await res.json()
   const text = data.content?.find((c: any) => c.type === 'text')?.text || ''
 

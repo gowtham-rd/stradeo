@@ -11,6 +11,7 @@ import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
+import { aiPost } from '@/lib/api'
 
 const initialState: QuizState = {
   questions: [],
@@ -99,11 +100,8 @@ function QuizInner() {
     setExpLoading(true)
     setExp(null)
     try {
-      const res = await fetch('/api/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, correctAnswer, language: LANG_PROMPT[lang] }),
-      })
+      const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
+      if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
       setExp(data.explanation || 'Unavailable.')
     } catch {

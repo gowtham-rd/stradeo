@@ -1,7 +1,5 @@
+// Ad slot placeholder. Renders nothing until a real ad network is wired up,
+// so users don't see an empty "— Ad —" bar.
 export default function AdBanner() {
-  return (
-    <div id="admob-banner" className="h-[50px] bg-stradeo-surface2 border-b border-stradeo-line flex items-center justify-center">
-      <span className="text-[11px] text-stradeo-inkfaint">— Ad —</span>
-    </div>
-  )
+  return null
 }
