@@ -66,20 +66,25 @@ export default function HomePage() {
         {/* Exam Button */}
         <Link
           href="/exam"
-          className="flex w-full p-4 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
+          className="flex w-full items-center justify-center gap-2 p-4 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
         ><IconExam size={18} />{t(lang, 'examSim')}</Link>
 
-        {/* Smart Review */}
+        {/* Smart Review: title (+ due badge) on one line; when nothing is due, when the next one is */}
         {progress.wrongQuestions.length > 0 && (
           <Link
             href="/quiz?mode=review"
-            className="flex w-full p-4 rounded-[10px] inline-flex items-center justify-center gap-2 border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink text-[15px] font-semibold mb-2.5"
+            className="flex w-full flex-col items-center gap-1 px-4 py-3.5 rounded-[10px] border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink mb-2.5 hover:border-stradeo-ink"
           >
-            <IconReview size={18} />
-            {t(lang, 'smartReview')}
-            {dueCount > 0
-              ? <span className="font-mono text-[13px] px-1.5 py-0.5 rounded-md bg-stradeo-ink text-stradeo-bg">{dueCount} {t(lang, 'qDue')}</span>
-              : <span className="text-[13px] font-normal text-stradeo-inkdim">· {t(lang, 'nothingDue')}{nextReviewAt ? ` · ${t(lang, 'nextReview')} ${formatWhen(nextReviewAt, lang)}` : ''}</span>}
+            <span className="inline-flex items-center gap-2 text-[15px] font-semibold">
+              <IconReview size={18} />
+              {t(lang, 'smartReview')}
+              {dueCount > 0 && <span className="font-mono text-[13px] px-1.5 py-0.5 rounded-md bg-stradeo-ink text-stradeo-bg">{dueCount} {t(lang, 'qDue')}</span>}
+            </span>
+            {dueCount === 0 && (
+              <span className="text-[12px] text-stradeo-inkdim">
+                {capitalize(t(lang, 'nothingDue'))}{nextReviewAt ? ` · ${t(lang, 'nextReview')} ${formatWhen(nextReviewAt, lang)}` : ''}
+              </span>
+            )}
           </Link>
         )}
 
@@ -132,3 +137,5 @@ function Greeting({ name, lastStudy }: { name: string; lastStudy: string | null 
     </div>
   )
 }
+
+const capitalize = (x: string) => x.charAt(0).toLocaleUpperCase() + x.slice(1)
