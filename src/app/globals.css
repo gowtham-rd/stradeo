@@ -116,3 +116,12 @@ button:active {
 /* Hide the scrollbar on swipe tracks (still scrollable) */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Text-size slider: solid track, square thumb (Hashtag Labs: no gradients, square-cut) */
+.stradeo-range { -webkit-appearance: none; appearance: none; height: 16px; background: transparent; cursor: pointer; }
+.stradeo-range:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 4px; }
+.stradeo-range::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, rgb(var(--ink)) var(--fill, 0%), rgb(var(--surface-2)) var(--fill, 0%)); }
+.stradeo-range::-moz-range-track { height: 6px; border-radius: 3px; background: rgb(var(--surface-2)); }
+.stradeo-range::-moz-range-progress { height: 6px; border-radius: 3px; background: rgb(var(--ink)); }
+.stradeo-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 4px; background: rgb(var(--ink)); border: 2px solid rgb(var(--surface)); }
+.stradeo-range::-moz-range-thumb { width: 16px; height: 16px; border-radius: 4px; background: rgb(var(--ink)); border: 2px solid rgb(var(--surface)); }

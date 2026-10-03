@@ -110,6 +110,23 @@ export const IconRoadworks = (p: P) => (
   </Svg>
 )
 
+/** This week: square calendar. */
+export const IconCalendar = (p: P) => (
+  <Svg {...p}>
+    <path fillRule="evenodd" d="M2.5 4h19v17.5h-19zM5 9.5v9.5h14V9.5z" />
+    <path d="M6.5 1.5H9v5H6.5zM15 1.5h2.5v5H15zM7 11.5h2.5V14H7zM10.75 11.5h2.5V14h-2.5zM14.5 11.5H17V14h-2.5zM7 15.25h2.5v2.5H7zM10.75 15.25h2.5v2.5h-2.5z" />
+  </Svg>
+)
+
+/** Accuracy: square crosshair. */
+export const IconAccuracy = (p: P) => (
+  <Svg {...p}>
+    <path d="M10.75 1.5h2.5v6.5h-2.5zM10.75 16h2.5v6.5h-2.5zM1.5 10.75h6.5v2.5H1.5zM16 10.75h6.5v2.5H16z" />
+    <path fillRule="evenodd" d="M4.5 4.5h15v15h-15zM7 7v10h10V7z" />
+    <path d="M10.5 10.5h3v3h-3z" />
+  </Svg>
+)
+
 /** Settings: square-toothed gear. */
 export const IconSettings = (p: P) => (
   <Svg {...p}>
@@ -163,6 +180,8 @@ export const ICONS = {
   finish: IconFinish,
   roadworks: IconRoadworks,
   settings: IconSettings,
+  calendar: IconCalendar,
+  accuracy: IconAccuracy,
   check: IconCheck,
   cross: IconCross,
   arrowRight: IconArrowRight,

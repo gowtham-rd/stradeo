@@ -9,6 +9,7 @@ import type { Language } from '@/types'
 import NavBar from '@/components/NavBar'
 import ThemeToggle from '@/components/ThemeToggle'
 import HashtagMark from '@/components/HashtagMark'
+import TextSizeSlider from '@/components/TextSizeSlider'
 import { IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip, IconStudy } from '@/components/icons'
 
 export default function SettingsPage() {
@@ -28,6 +29,7 @@ export default function SettingsPage() {
           <Section title={t(lang, 'appearance')} flush>
             <ThemeToggle />
             <p className="text-[12px] text-stradeo-inkfaint mt-2.5">{t(lang, 'themeHint')}</p>
+            <div className="mt-4 pt-4 border-t border-stradeo-line"><TextSizeSlider /></div>
           </Section>
         </div>
 
@@ -118,11 +120,12 @@ function Upcoming({ icon, title, body }: { icon: React.ReactNode; title: UIKey; 
 function NameEditor() {
   const { user, updateName } = useAuth()
   const { lang } = useLanguage()
-  const fallback = user?.email?.split('@')[0] ?? ''
-  const [value, setValue] = useState(user?.name ?? '')
+  // Show the name actually in use (saved name, or the start of the email) as real text, not a placeholder.
+  const current = user?.name || user?.email?.split('@')[0] || ''
+  const [value, setValue] = useState(current)
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  useEffect(() => { setValue(user?.name ?? '') }, [user?.name])
-  const dirty = value.trim() !== (user?.name ?? '')
+  useEffect(() => { setValue(current) }, [current])
+  const dirty = value.trim() !== current && value.trim().length > 0
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
@@ -137,10 +140,10 @@ function NameEditor() {
       <label htmlFor="display-name" className="sr-only">{t(lang, 'yourName')}</label>
       <div className="flex gap-2">
         <input id="display-name" value={value} maxLength={40} autoComplete="nickname"
-          onChange={e => { setValue(e.target.value); setState('idle') }} placeholder={fallback}
+          onChange={e => { setValue(e.target.value); setState('idle') }} enterKeyHint="done"
           className="min-w-0 flex-1 h-8 px-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-sm outline-none focus:border-stradeo-ink" />
         <button type="submit" disabled={!dirty || state === 'saving'}
-          className="h-8 px-3 rounded-lg bg-stradeo-ink text-stradeo-bg text-[13px] font-semibold disabled:opacity-40">
+          className="h-8 px-3 rounded-lg bg-stradeo-ink text-stradeo-bg text-[13px] font-semibold disabled:bg-stradeo-surface2 disabled:text-stradeo-inkfaint">
           {t(lang, 'save')}
         </button>
       </div>

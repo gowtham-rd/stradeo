@@ -10,6 +10,7 @@ import { ProgressProvider } from '@/contexts/ProgressContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import AuthGate from '@/components/AuthGate'
 import ServiceWorker from '@/components/ServiceWorker'
+import { noFlashTextSize } from '@/lib/textSize'
 
 export const metadata: Metadata = {
   title: 'Stradeo — Patente B Quiz',
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: noFlashTheme }} />
+        <script dangerouslySetInnerHTML={{ __html: noFlashTheme + noFlashTextSize }} />
       </head>
       <body>
         <ThemeProvider>
