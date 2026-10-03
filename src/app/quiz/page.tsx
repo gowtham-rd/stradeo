@@ -57,7 +57,7 @@ function QuizInner() {
   const isReview = mode === 'review'
 
   const { lang } = useLanguage()
-  const { progress, getDueReviews, recordAnswer } = useProgress()
+  const { progress, loaded: progressLoaded, getDueReviews, recordAnswer } = useProgress()
   const [state, dispatch] = useReducer(reducer, initialState)
   const [loading, setLoading] = useState(true)
 
@@ -79,6 +79,8 @@ function QuizInner() {
   }
 
   useEffect(() => {
+    // Review questions come from saved progress, so wait until it has loaded.
+    if (isReview && !progressLoaded) return
     let cancelled = false
     buildQuestions().then(qs => {
       if (cancelled) return
@@ -87,7 +89,7 @@ function QuizInner() {
     })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReview, topicId])
+  }, [isReview, topicId, progressLoaded])
 
   // Reset explanation whenever the question changes
   useEffect(() => { setExp(null); setExpLoading(false); setReviewNote(null) }, [state.currentIndex])
@@ -156,7 +158,7 @@ function QuizInner() {
         ) : total === 0 ? (
           <div className="text-center py-16">
             <IconCheck size={48} className="text-stradeo-green mb-4" />
-            <p className="text-stradeo-inkdim mb-6">{t(lang, 'ready')}</p>
+            <p className="text-stradeo-inkdim mb-6">{isReview ? t(lang, 'allCaughtUp') : t(lang, 'ready')}</p>
             <Link href="/" className="inline-block px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'home')}</Link>
           </div>
         ) : (

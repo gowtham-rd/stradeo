@@ -18,6 +18,8 @@ const DEFAULT_PROGRESS: UserProgress = {
 
 interface ProgressContextType {
   progress: UserProgress
+  /** True once the user's saved progress has been fetched. */
+  loaded: boolean
   recordAnswer: (question: Question, correct: boolean) => void
   recordAnswers: (entries: { question: Question; correct: boolean }[]) => void
   getDueReviews: () => Question[]
@@ -129,10 +131,12 @@ export function applyAnswer(prev: UserProgress, question: Question, correct: boo
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS)
+  const [loaded, setLoaded] = useState(false)
 
   // Load progress from Supabase
   useEffect(() => {
-    if (!user) { setProgress(DEFAULT_PROGRESS); return }
+    if (!user) { setProgress(DEFAULT_PROGRESS); setLoaded(false); return }
+    setLoaded(false)
     supabase.from('progress').select('*').eq('user_id', user.id).single()
       .then(({ data }) => {
         if (data) {
@@ -145,6 +149,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             dailyLog: data.daily_log || {},
           })
         }
+        setLoaded(true)
       })
   }, [user])
 
@@ -202,7 +207,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const { readiness, topicsCovered } = computeReadiness(progress.stats)
 
   return (
-    <ProgressContext.Provider value={{ progress, recordAnswer, recordAnswers, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered }}>
+    <ProgressContext.Provider value={{ progress, loaded, recordAnswer, recordAnswers, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered }}>
       {children}
     </ProgressContext.Provider>
   )
