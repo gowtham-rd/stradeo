@@ -127,6 +127,23 @@ export const IconAccuracy = (p: P) => (
   </Svg>
 )
 
+/** Remaining questions: stack of cards. */
+export const IconStack = (p: P) => (
+  <Svg {...p}>
+    <path d="M2 8.5h13.5V22H2z" />
+    <path d="M5 5.5h13.5v13.5H16.5V7.5H5z" />
+    <path d="M8 2.5h13.5V16h-2V4.5H8z" />
+  </Svg>
+)
+
+/** Info: square-cut "i". */
+export const IconInfo = (p: P) => (
+  <Svg {...p}>
+    <path fillRule="evenodd" d="M2 2h20v20H2zM4.5 4.5v15h15v-15z" />
+    <path d="M10.75 6.5h2.5V9h-2.5zM10.75 10.5h2.5v7h-2.5z" />
+  </Svg>
+)
+
 /** Settings: square-toothed gear. */
 export const IconSettings = (p: P) => (
   <Svg {...p}>
@@ -181,6 +198,8 @@ export const ICONS = {
   roadworks: IconRoadworks,
   settings: IconSettings,
   calendar: IconCalendar,
+  stack: IconStack,
+  info: IconInfo,
   accuracy: IconAccuracy,
   check: IconCheck,
   cross: IconCross,

@@ -41,7 +41,7 @@ export default function StatsPanel() {
   }, [progress.stats, getTopicAccuracy])
 
   return (
-    <div className="h-full flex flex-col bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
+    <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-4 text-center">{t(lang, 'stats')}</div>
       {/* Three headline figures, each with its icon tile */}
       <div className="grid grid-cols-3 gap-2 mb-5">
@@ -51,7 +51,7 @@ export default function StatsPanel() {
         <Stat tone="text-stradeo-brandorange bg-stradeo-brandorange/10" icon={<IconStreak size={18} />} value={<span className="text-stradeo-ink">{streak}</span>} label={t(lang, 'streak')} />
       </div>
 
-      <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-2.5">{t(lang, 'last7')}</div>
+      <div className="text-[11px] font-bold text-stradeo-inkdim uppercase tracking-[2px] mb-2.5">{t(lang, 'last7')}</div>
       <div className="flex items-end gap-1.5 h-20 mb-1">
         {dayData.map((d, i) => {
           const h = maxTotal > 0 ? (d.total / maxTotal) * 60 : 0
@@ -74,7 +74,7 @@ export default function StatsPanel() {
 
       {weakestTopics.length > 0 && (
         <>
-          <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mt-auto pt-5 mb-2.5">{t(lang, 'weakest')}</div>
+          <div className="text-[11px] font-bold text-stradeo-inkdim uppercase tracking-[2px] mt-5 mb-2.5">{t(lang, 'weakest')}</div>
           {weakestTopics.map(wt => (
             <div key={wt.id} className="flex items-center gap-2.5 mb-1.5">
               <span className={`font-mono text-xs min-w-[32px] ${(wt.pct || 0) >= 80 ? 'text-stradeo-green' : (wt.pct || 0) >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{wt.pct}%</span>

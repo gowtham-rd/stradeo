@@ -50,7 +50,7 @@ export default function HomePage() {
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} />
 
         {/* Readiness → Stats (swipe) */}
-        <HomeCards cards={[
+        <HomeCards className="mb-4" cards={[
           { label: t(lang, 'readinessCard'), content: (
             <ReadinessScore
               readiness={readiness}

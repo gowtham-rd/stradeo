@@ -10,6 +10,7 @@ import HomeCards from './HomeCards'
 import { TOPICS } from '@/lib/topics'
 import { TOPIC_COUNTS } from '@/lib/questionCounts'
 import { useCountUp } from '@/lib/useCountUp'
+import { IconCheck, IconCross, IconStack, IconInfo } from './icons'
 
 // Square colour for one topic: untouched, weak, getting there, ready (≥90% ≈ pass mark).
 function cellClass(score: number, answered: number): string {
@@ -38,20 +39,23 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
     setPicked(id)
     setJump(j => ({ index: next ? 1 : 0, seq: (j?.seq ?? 0) + 1 }))
   }
-  const topicSlide = (id: number, label: string) => {
+  const topicSlide = (id: number, label: string, hint?: string) => {
     const meta = TOPICS.find(x => x.id === id)!
     return {
       label,
       content: (
-        <div className="text-left px-px">
-          <div className="text-[10px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim mb-1.5 pl-0.5">{label}</div>
-          <TopicCard topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
+        <div className="text-left">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{label}</span>
+            {hint && <span className="text-[11px] text-stradeo-inkfaint">{hint}</span>}
+          </div>
+          <TopicCard compact topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
         </div>
       ),
     }
   }
   const slides = [
-    ...(next ? [topicSlide(next, t(lang, 'nextUp'))] : []),
+    ...(next ? [topicSlide(next, t(lang, 'nextUp'), picked ? undefined : t(lang, 'tapSquareShort'))] : []),
     ...(picked ? [topicSlide(picked, t(lang, 'selectedTopic'))] : []),
   ]
   const hasStarted = totalCorrect + totalWrong > 0
@@ -70,16 +74,31 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
     : readiness >= 50 ? t(lang, 'good')
     : t(lang, 'keep')
 
+  const [showInfo, setShowInfo] = useState(false)
+
   return (
-    <div className="h-full flex flex-col text-center py-6 px-5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line">
-      <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'readiness')}</div>
-      <div className={`font-mono text-[52px] leading-tight tracking-tight tabular-nums transition-colors duration-300 ${scoreClass}`}
-        aria-live="off" aria-label={`${readiness}%`}>
-        {Math.round(shown)}%
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5">
+      {/* Header: title + info toggle */}
+      <div className="relative flex items-center justify-center">
+        <h2 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'readiness')}</h2>
+        <button type="button" onClick={() => setShowInfo(v => !v)} aria-expanded={showInfo} aria-label={t(lang, 'howScoreWorks')}
+          className={`absolute right-0 flex h-7 w-7 items-center justify-center rounded-lg ${showInfo ? 'text-stradeo-ink bg-stradeo-surface2' : 'text-stradeo-inkfaint hover:text-stradeo-ink'}`}>
+          <IconInfo size={14} />
+        </button>
+      </div>
+      {showInfo && <p className="mt-2 text-[12px] leading-snug text-stradeo-inkdim text-center">{t(lang, 'readinessHint')}</p>}
+
+      {/* Score + status */}
+      <div className="mt-2 text-center">
+        <div className={`font-mono text-[48px] leading-none tracking-tight tabular-nums transition-colors duration-300 ${scoreClass}`}
+          aria-live="off" aria-label={`${readiness}%`}>
+          {Math.round(shown)}%
+        </div>
+        <div className="mt-1.5 text-[13px] text-stradeo-inkdim">{label}</div>
       </div>
 
-      {/* Readiness meter: solid band colour, square ends, notch at the 90% pass line. */}
-      <div className="mx-auto mt-3 w-full max-w-[300px]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readiness}
+      {/* Meter: solid band colour, square ends, notch at the 90% pass line */}
+      <div className="mx-auto mt-3 w-full max-w-[320px]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readiness}
         aria-label={t(lang, 'readiness')}>
         <div className="relative h-2 rounded-[3px] bg-stradeo-surface2 overflow-hidden">
           <div className={`absolute inset-y-0 left-0 rounded-[3px] transition-colors duration-300 ${hasStarted ? fillClass : ''}`}
@@ -87,25 +106,28 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
           <div className="absolute inset-y-0 left-1/2 w-px bg-stradeo-bg2" aria-hidden="true" />
           <div className="absolute inset-y-0 left-[90%] w-[2px] bg-stradeo-ink" aria-hidden="true" />
         </div>
-        <div className="relative h-4 mt-1 font-mono text-[10px] text-stradeo-inkfaint" aria-hidden="true">
+        <div className="relative h-3.5 mt-1 font-mono text-[10px] leading-none text-stradeo-inkfaint" aria-hidden="true">
           <span className="absolute left-0">0</span>
           <span className="absolute left-1/2 -translate-x-1/2">50</span>
           <span className="absolute left-[90%] -translate-x-[60%] text-stradeo-ink whitespace-nowrap">90 · {t(lang, 'passMark')}</span>
         </div>
       </div>
-      <div className="text-[13px] text-stradeo-inkdim mt-1">{label}</div>
-      <div className="font-mono text-[12px] text-stradeo-inkdim mt-2">{topicsCovered}/25 {t(lang, 'topicsCovered')}</div>
-      <div className="flex justify-center gap-6 mt-4">
-        <div><div className="font-mono text-xl text-stradeo-green">{totalCorrect}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'correct')}</div></div>
-        <div><div className="font-mono text-xl text-stradeo-accent2">{totalWrong}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'wrong')}</div></div>
-        <div><div className="font-mono text-xl text-stradeo-ink">{totalRemaining}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'remaining')}</div></div>
+
+      {/* Counts with icons */}
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <Count icon={<IconCheck size={13} />} tone="text-stradeo-green" value={totalCorrect} label={t(lang, 'correct')} />
+        <Count icon={<IconCross size={11} />} tone="text-stradeo-accent2" value={totalWrong} label={t(lang, 'wrong')} />
+        <Count icon={<IconStack size={13} />} tone="text-stradeo-inkdim" value={totalRemaining} label={t(lang, 'remaining')} />
       </div>
 
-      {/* Topic map: one square per topic, coloured by its readiness. Tap to open. */}
-      <div className="mt-5">
-        <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'topicMap')}</div>
+      {/* Topic map: one square per topic; tap to show it below */}
+      <div className="mt-4 pt-4 border-t border-stradeo-line">
+        <div className="flex items-baseline justify-between mb-2.5">
+          <h3 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'topicMap')}</h3>
+          <span className="font-mono text-[11px] text-stradeo-inkdim">{topicsCovered}/25 {t(lang, 'covered')}</span>
+        </div>
         {/* Row 1: topics 1–15 (2 exam questions each). Row 2: topics 16–25 (1 each), centred. */}
-        <div className="max-w-[360px] mx-auto space-y-[4px]">
+        <div className="space-y-[4px]">
           {[[1, 15], [16, 25]].map(([from, to]) => (
             <div key={from} className="flex justify-center gap-[4px]">
               {Array.from({ length: to - from + 1 }, (_, i) => from + i).map(id => {
@@ -115,13 +137,13 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
                   <button key={id} type="button" onClick={() => pick(id)} aria-pressed={picked === id}
                     title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
                     aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
-                    className={`w-[calc((100%-56px)/15)] aspect-square rounded-[3px] ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`} />
+                    className={`w-[calc((100%-56px)/15)] max-w-[22px] aspect-square rounded-[3px] ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`} />
                 )
               })}
             </div>
           ))}
         </div>
-        <div className="flex justify-center gap-3 mt-2 text-[10px] text-stradeo-inkdim">
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2.5 text-[10px] text-stradeo-inkdim">
           <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent2" />&lt;50%</span>
           <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent" />50–89%</span>
           <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-green" />90%+</span>
@@ -133,9 +155,17 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
       {slides.length > 0 && (
         <HomeCards key={slides.map(x => x.label).join('|')} cards={slides} goTo={jump} className="mt-4" />
       )}
-      {!picked && <p className="text-[11px] text-stradeo-inkfaint mt-2">{t(lang, 'tapSquare')}</p>}
+    </div>
+  )
+}
 
-      <p className="text-[11px] leading-snug text-stradeo-inkfaint mt-auto pt-4 max-w-[360px] mx-auto">{t(lang, 'readinessHint')}</p>
+function Count({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className={`inline-flex items-center gap-1.5 font-mono text-[18px] leading-none ${tone}`}>
+        <span aria-hidden="true">{icon}</span>{value}
+      </span>
+      <span className="mt-1 text-[11px] text-stradeo-inkdim">{label}</span>
     </div>
   )
 }
