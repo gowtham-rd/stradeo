@@ -61,7 +61,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
       {showInfo && <p className="mt-2 text-[12px] leading-snug text-stradeo-inkdim text-center">{t(lang, 'readinessHint')}</p>}
 
       {/* Score + status */}
-      <div className="mt-2 text-center">
+      <div className="mt-1 text-center">
         <div className={`font-mono text-[48px] leading-none tracking-tight tabular-nums transition-colors duration-300 ${scoreClass}`}
           aria-live="off" aria-label={`${readiness}%`}>
           {Math.round(shown)}%
@@ -87,7 +87,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
       </div>
 
       {/* Counts with icons */}
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-3 grid grid-cols-3 gap-2">
         <Count icon={<IconCheck size={16} />} tone="text-stradeo-green bg-stradeo-green/10" valueTone="text-stradeo-green" value={totalCorrect} label={t(lang, 'correct')} />
         <Count icon={<IconCross size={13} />} tone="text-stradeo-accent2 bg-stradeo-accent2/10" valueTone="text-stradeo-accent2" value={totalWrong} label={t(lang, 'wrong')} />
         <Count icon={<IconStack size={16} />} tone="text-stradeo-inkdim bg-stradeo-surface2" valueTone="text-stradeo-ink" value={totalRemaining} label={t(lang, 'remaining')} />
@@ -149,7 +149,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
           <span className="font-mono text-[11px] text-stradeo-inkdim">{topicsCovered}/25 {t(lang, 'covered')}</span>
         </div>
         {/* Row 1: topics 1–15 (2 exam questions each). Row 2: topics 16–25 (1 each), centred. */}
-        <div className="space-y-[4px]">
+        <div className="space-y-[5px]">
           {[[1, 15], [16, 25]].map(([from, to]) => (
             <div key={from} className="flex justify-center gap-[4px]">
               {Array.from({ length: to - from + 1 }, (_, i) => from + i).map(id => {
@@ -159,7 +159,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
                   <button key={id} type="button" onClick={() => pick(id)} aria-pressed={picked === id}
                     title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
                     aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
-                    className={`w-[calc((100%-56px)/15)] max-w-[30px] h-8 rounded-[4px] flex items-center justify-center font-mono text-[9px] leading-none ${answered === 0 ? 'text-stradeo-inkfaint' : 'text-stradeo-bg/80 font-bold'} ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`}>
+                    className={`w-[calc((100%-56px)/15)] max-w-[30px] h-10 rounded-[4px] flex items-center justify-center font-mono text-[9px] leading-none ${answered === 0 ? 'text-stradeo-inkfaint' : 'text-stradeo-bg/80 font-bold'} ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`}>
                     {id}
                   </button>
                 )

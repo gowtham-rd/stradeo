@@ -32,7 +32,7 @@ export default function ExamHistoryCard() {
             <p className="text-[13px] leading-snug text-stradeo-inkdim">{t(lang, 'noExamsYet')}</p>
           </div>
           {/* Empty chart: shows where scores will appear and where the pass line is */}
-          <ExamHistoryChart exams={[]} max={8} height={104} />
+          <ExamHistoryChart exams={[]} max={8} height={120} />
         </div>
       ) : (
         <>
@@ -42,7 +42,7 @@ export default function ExamHistoryCard() {
             <Figure value={`${best}/${last.total}`} label={t(lang, 'best')} />
           </div>
           <div className="flex-1 flex flex-col justify-end">
-            <ExamHistoryChart exams={exams} max={8} height={104} selected={last.at}
+            <ExamHistoryChart exams={exams} max={8} height={120} selected={last.at}
               onSelect={at => router.push(`/exam/review?at=${at}`)} />
           </div>
         </>
