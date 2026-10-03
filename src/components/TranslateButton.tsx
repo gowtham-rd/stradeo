@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { LANGUAGES, LANG_PROMPT } from '@/lib/i18n'
-import { aiPost } from '@/lib/api'
+import { LANGUAGES, LANG_PROMPT, t } from '@/lib/i18n'
+import { aiPost, AI_NOT_READY } from '@/lib/api'
 
 interface Props {
   question: string
@@ -19,6 +19,7 @@ export default function TranslateButton({ question, compact }: Props) {
     setLoading(true)
     try {
       const res = await aiPost('/api/translate', ({ question, language: LANG_PROMPT[lang] }))
+      if (res.status === AI_NOT_READY) { setTranslation(t(lang, 'aiSoon')); setLoading(false); return }
       if (!res.ok) throw new Error('translate failed')
       const data = await res.json()
       setTranslation(data.translation || question)

@@ -134,6 +134,12 @@ function TopicInner() {
               </div>
             )}
 
+            {theory && lang !== 'en' && !cache[`${tid}-${lang}`] && (
+              <div className="mb-3.5 rounded-[10px] border border-stradeo-accent/30 bg-stradeo-accent/[0.08] px-4 py-3 text-[13px] text-stradeo-ink">
+                {t(lang, 'lessonLangSoon')}
+              </div>
+            )}
+
             {theory && (
               <div className="animate-fade-in">
                 {/* Title */}

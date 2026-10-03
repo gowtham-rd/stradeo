@@ -18,7 +18,7 @@ import LoginForm from '@/components/LoginForm'
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, getDueReviews, getTopicAccuracy, readiness } = useProgress()
+  const { progress, getDueReviews, getTopicAccuracy, readiness, topicsCovered } = useProgress()
   const [questions, setQuestions] = useState<Question[]>([])
   const [showStats, setShowStats] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
@@ -72,6 +72,7 @@ export default function HomePage() {
           totalCorrect={totalC}
           totalWrong={totalW}
           totalRemaining={totalRemaining}
+          topicsCovered={topicsCovered}
         />
 
         {/* Exam Button */}

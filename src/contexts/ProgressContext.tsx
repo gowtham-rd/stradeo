@@ -22,6 +22,27 @@ interface ProgressContextType {
   getDueReviews: () => Question[]
   getTopicAccuracy: (topicId: number) => number | null
   readiness: number
+  topicsCovered: number
+}
+
+// Exam readiness, modelled on the real exam: topics 1–15 supply 2 questions each,
+// topics 16–25 supply 1 each. Each topic scores correct / max(answered, MIN), so a
+// topic you have barely practised can't look mastered. The total is the
+// exam-weighted average across all 25 topics; 90%+ ≈ the pass mark (max 3 errors / 30).
+export const READINESS_MIN_ANSWERS = 20
+
+export function computeReadiness(stats: UserProgress['stats']): { readiness: number; topicsCovered: number } {
+  let score = 0
+  let weight = 0
+  let covered = 0
+  for (let t = 1; t <= 25; t++) {
+    const w = t <= 15 ? 2 : 1
+    const s = stats[t] || { c: 0, t: 0 }
+    score += w * (s.c / Math.max(s.t, READINESS_MIN_ANSWERS))
+    weight += w
+    if (s.t >= READINESS_MIN_ANSWERS) covered++
+  }
+  return { readiness: Math.min(100, Math.round((score / weight) * 100)), topicsCovered: covered }
 }
 
 const ProgressContext = createContext<ProgressContextType | null>(null)
@@ -142,12 +163,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return Math.round((s.c / s.t) * 100)
   }, [progress.stats])
 
-  const totalC = Object.values(progress.stats).reduce((a, s) => a + s.c, 0)
-  const totalA = Object.values(progress.stats).reduce((a, s) => a + s.t, 0)
-  const readiness = totalA > 0 ? Math.min(Math.round((totalC / totalA) * 100), 100) : 0
+  const { readiness, topicsCovered } = computeReadiness(progress.stats)
 
   return (
-    <ProgressContext.Provider value={{ progress, recordAnswer, recordAnswers, getDueReviews, getTopicAccuracy, readiness }}>
+    <ProgressContext.Provider value={{ progress, recordAnswer, recordAnswers, getDueReviews, getTopicAccuracy, readiness, topicsCovered }}>
       {children}
     </ProgressContext.Provider>
   )

@@ -1,6 +1,9 @@
 import { supabase } from './supabase'
 
 // POST to one of Stradeo's AI routes with the user's session token attached.
+/** True when the server says the Claude key isn't set up yet. */
+export const AI_NOT_READY = 503
+
 export async function aiPost(path: string, body: unknown): Promise<Response> {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token

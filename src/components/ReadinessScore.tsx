@@ -7,14 +7,15 @@ interface Props {
   totalCorrect: number
   totalWrong: number
   totalRemaining: number
+  topicsCovered: number
 }
 
-export default function ReadinessScore({ readiness, totalCorrect, totalWrong, totalRemaining }: Props) {
+export default function ReadinessScore({ readiness, totalCorrect, totalWrong, totalRemaining, topicsCovered }: Props) {
   const { lang } = useLanguage()
   const hasStarted = totalCorrect + totalWrong > 0
 
   const scoreClass = !hasStarted ? 'text-stradeo-inkfaint'
-    : readiness >= 80 ? 'text-stradeo-green'
+    : readiness >= 90 ? 'text-stradeo-green'
     : readiness >= 50 ? 'text-stradeo-accent'
     : 'text-stradeo-accent2'
 
@@ -31,11 +32,13 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
         {readiness}%
       </div>
       <div className="text-[13px] text-stradeo-inkdim mt-1">{label}</div>
+      <div className="font-mono text-[12px] text-stradeo-inkdim mt-2">{topicsCovered}/25 {t(lang, 'topicsCovered')}</div>
       <div className="flex justify-center gap-6 mt-4">
         <div><div className="font-mono text-xl text-stradeo-green">{totalCorrect}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'correct')}</div></div>
         <div><div className="font-mono text-xl text-stradeo-accent2">{totalWrong}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'wrong')}</div></div>
         <div><div className="font-mono text-xl text-stradeo-ink">{totalRemaining}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'remaining')}</div></div>
       </div>
+      <p className="text-[11px] leading-snug text-stradeo-inkfaint mt-4 max-w-[360px] mx-auto">{t(lang, 'readinessHint')}</p>
     </div>
   )
 }

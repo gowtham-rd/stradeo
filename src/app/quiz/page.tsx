@@ -11,7 +11,7 @@ import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
-import { aiPost } from '@/lib/api'
+import { aiPost, AI_NOT_READY } from '@/lib/api'
 
 const initialState: QuizState = {
   questions: [],
@@ -101,6 +101,7 @@ function QuizInner() {
     setExp(null)
     try {
       const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
+      if (res.status === AI_NOT_READY) { setExp(t(lang, 'aiSoon')); setExpLoading(false); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
       setExp(data.explanation || 'Unavailable.')
