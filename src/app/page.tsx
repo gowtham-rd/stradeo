@@ -15,7 +15,7 @@ import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
 import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
-import { IconExam, IconReview, IconStudy, IconArrowRight } from '@/components/icons'
+import { IconExam, IconReview, IconStudy } from '@/components/icons'
 import { getLastTopic } from '@/lib/lastTopic'
 import { nextBestTopic } from '@/lib/progress'
 import HomeCards from '@/components/HomeCards'
@@ -74,7 +74,7 @@ export default function HomePage() {
         {/* Exam Button */}
         <Link
           href="/exam"
-          className="flex w-full items-center justify-center gap-2 p-4 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
+          className="flex w-full min-h-[56px] items-center justify-center gap-2 px-4 py-2 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
         ><IconExam size={18} />{t(lang, 'examSim')}</Link>
 
         {/* Continue / start studying: the topic opened last (or the one worth most) */}
@@ -139,15 +139,11 @@ function StudyButton() {
   const acc = getTopicAccuracy(topic)
   return (
     <Link href={`/topic?id=${topic}`}
-      className={`flex w-full items-center gap-3 px-4 py-3 rounded-[10px] border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink mb-2.5 hover:border-stradeo-ink transition-opacity duration-300 ${last === undefined ? 'opacity-0' : 'opacity-100'}`}>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-brandorange/[0.12] text-stradeo-brandorange"><IconStudy size={17} /></span>
-      <span className="flex-1 min-w-0">
-        <span className="block text-[15px] font-semibold">{t(lang, started ? 'continueStudying' : 'startStudying')}</span>
-        <span className="block text-[12px] text-stradeo-inkdim truncate">
-          <span className="font-mono">{String(topic).padStart(2, '0')}</span> · {getTopicName(topic, lang)}{acc !== null ? ` · ${acc}%` : ''}
-        </span>
+      className={`flex w-full min-h-[56px] flex-col items-center justify-center px-4 py-2 rounded-[10px] bg-stradeo-green text-stradeo-bg mb-2.5 transition-opacity duration-300 ${last === undefined ? 'opacity-0' : 'opacity-100'}`}>
+      <span className="inline-flex items-center gap-2 text-[15px] font-bold"><IconStudy size={18} />{t(lang, started ? 'continueStudying' : 'startStudying')}</span>
+      <span className="max-w-full truncate text-[12px] opacity-80 mt-0.5">
+        <span className="font-mono">{String(topic).padStart(2, '0')}</span> · {getTopicName(topic, lang)}{acc !== null ? ` · ${acc}%` : ''}
       </span>
-      <IconArrowRight size={14} className="text-stradeo-inkfaint" />
     </Link>
   )
 }
