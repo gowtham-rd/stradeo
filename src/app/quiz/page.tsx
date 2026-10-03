@@ -154,7 +154,7 @@ function QuizInner() {
     <div className="min-h-screen">
       <AdBanner />
       <NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
+      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10">
         {loading ? (
           <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 animate-pulse">
             <div className="h-4 w-2/3 rounded bg-stradeo-surface2 mb-3" />
@@ -192,7 +192,8 @@ function QuizInner() {
                 style={{ width: `${((state.currentIndex + 1) / total) * 100}%` }} />
             </div>
 
-            {/* Question card */}
+            {/* Question card (slides in for each new question) */}
+            <div key={state.currentIndex} className="animate-slide-from-right">
             <div className={`bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 mb-4 ${
               state.animation === 'ok' ? 'animate-pulse-green' : state.animation === 'no' ? 'animate-shake' : ''
             }`}>
@@ -220,10 +221,11 @@ function QuizInner() {
                 )
               })}
             </div>
+            </div>
 
             {/* Wrong → explanation */}
             {state.answer !== null && state.answer !== q.a && (
-              <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-4">
+              <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-4 animate-rise">
                 <div className="flex items-center gap-2 mb-2">
                   <IconTip size={16} className="text-stradeo-brandorange" />
                   <span className="text-[13px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span>
@@ -241,7 +243,7 @@ function QuizInner() {
 
             {/* Correct badge */}
             {state.answer !== null && state.answer === q.a && (
-              <div className="bg-stradeo-green/[0.06] border border-stradeo-green/[0.12] rounded-[14px] px-4 py-3.5 mb-4 text-center">
+              <div className="bg-stradeo-green/[0.06] border border-stradeo-green/[0.12] rounded-[14px] px-4 py-3.5 mb-4 text-center animate-rise">
                 <span className="text-sm text-stradeo-green font-semibold inline-flex items-center gap-1.5"><IconCheck size={14} />{t(lang, 'correctBadge')}</span>
               </div>
             )}

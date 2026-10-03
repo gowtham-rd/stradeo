@@ -98,7 +98,7 @@ function TopicInner() {
   return (
     <div className="min-h-screen">
       <AdBanner /><NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
+      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-5">
           <div className={`min-w-[38px] h-[38px] rounded-[10px] flex items-center justify-center font-mono text-sm ${isPri ? 'bg-stradeo-surface2 text-stradeo-ink' : 'bg-stradeo-surface2 text-stradeo-inkfaint'}`}>
@@ -110,17 +110,19 @@ function TopicInner() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-5 bg-stradeo-surface2 rounded-[10px] p-1" role="tablist">
-          <button onClick={() => setMode('study')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'study' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconStudy size={16} />{t(lang, 'study')}</button>
-          <button onClick={() => setMode('quiz')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'quiz' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconQuiz size={15} />{t(lang, 'quiz')}</button>
+        {/* Tabs: the white pill slides to the selected one */}
+        <div className="relative grid grid-cols-2 gap-1 mb-5 bg-stradeo-surface2 rounded-[10px] p-1" role="tablist">
+          <span aria-hidden="true"
+            className={`absolute top-1 bottom-1 left-1 w-[calc(50%-6px)] rounded-lg bg-stradeo-bg2 border border-stradeo-line transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.24,1)] ${mode === 'quiz' ? 'translate-x-[calc(100%+4px)]' : ''}`} />
+          <button role="tab" aria-selected={mode === 'study'} onClick={() => setMode('study')}
+            className={`relative py-2.5 rounded-lg text-sm font-semibold transition-colors ${mode === 'study' ? 'text-stradeo-ink' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconStudy size={16} />{t(lang, 'study')}</button>
+          <button role="tab" aria-selected={mode === 'quiz'} onClick={() => setMode('quiz')}
+            className={`relative py-2.5 rounded-lg text-sm font-semibold transition-colors ${mode === 'quiz' ? 'text-stradeo-ink' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconQuiz size={15} />{t(lang, 'quiz')}</button>
         </div>
 
         {/* STUDY TAB */}
         {mode === 'study' && (
-          <div>
+          <div key="study" className="animate-page-in">
             {!theory && !theoryLoading && (
               <button onClick={() => fetchTheory()}
                 className="w-full p-5 rounded-[14px] border border-dashed border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-[15px] font-semibold mb-4 inline-flex items-center justify-center gap-2">
@@ -143,7 +145,7 @@ function TopicInner() {
             )}
 
             {theory && (
-              <div className="animate-fade-in">
+              <div className="[&>*]:animate-rise [&>*:nth-child(2)]:[animation-delay:60ms] [&>*:nth-child(3)]:[animation-delay:120ms] [&>*:nth-child(4)]:[animation-delay:180ms] [&>*:nth-child(5)]:[animation-delay:240ms] [&>*:nth-child(6)]:[animation-delay:300ms]">
                 {/* Title */}
                 <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
                   <h3 className="text-xl font-bold text-stradeo-ink m-0 leading-snug">{theory.title}</h3>
@@ -203,7 +205,7 @@ function TopicInner() {
 
         {/* QUIZ TAB */}
         {mode === 'quiz' && (
-          <div>
+          <div key="quiz" className="animate-page-in">
             <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 text-center">
               <div className="mb-2 flex justify-center">{isPri ? <IconExam size={36} /> : <IconQuiz size={34} />}</div>
               <h3 className="text-[17px] font-bold mb-1.5">{count} {t(lang, 'questions')}</h3>

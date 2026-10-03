@@ -39,7 +39,7 @@ export default function ExamHistoryCard() {
             <Figure value={`${best}/${last.total}`} label={t(lang, 'best')} />
           </div>
           <div className="flex-1 flex flex-col justify-end">
-            <ExamHistoryChart exams={exams} max={8} height={96} selected={last.at}
+            <ExamHistoryChart exams={exams} max={8} height={128} selected={last.at}
               onSelect={at => router.push(`/exam/review?at=${at}`)} />
           </div>
           <Link href={`/exam/review?at=${last.at}`}

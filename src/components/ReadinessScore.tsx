@@ -48,7 +48,8 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
   const [showInfo, setShowInfo] = useState(false)
 
   return (
-    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5">
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col justify-between">
+      <div>
       {/* Header: title + info toggle */}
       <div className="relative flex items-center justify-center">
         <h2 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'readiness')}</h2>
@@ -68,6 +69,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
         <div className="mt-1.5 text-[13px] text-stradeo-inkdim">{label}</div>
       </div>
 
+      </div>
       {/* Meter: solid band colour, square ends, notch at the 90% pass line */}
       <div className="mx-auto mt-3 w-full max-w-[320px]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readiness}
         aria-label={t(lang, 'readiness')}>
@@ -139,7 +141,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
   ]
 
   return (
-    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5">
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col justify-between">
       {/* Topic map: one square per topic; tap to show it below */}
       <div>
         <div className="flex items-baseline justify-between mb-2.5">

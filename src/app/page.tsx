@@ -50,7 +50,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       <AdBanner />
       <NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-4 pb-10 animate-fade-in">
+      <div className="max-w-[640px] mx-auto px-4 pt-4 pb-10">
         {/* Greeting: name, then a line for the time of day / how it's going */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak} />
 
@@ -121,7 +121,7 @@ function Greeting({ name, lastStudy, readiness, streak }: { name: string; lastSt
   const when = days === null ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
   return (
     <div className="mb-4 min-h-[64px]">
-      <h1 className="text-[26px] leading-tight font-bold tracking-tight truncate">{name ? `${name}!` : 'Ciao!'}</h1>
+      <h1 className="text-[26px] leading-tight font-bold tracking-tight truncate">{name ? `${name.replace(/[\s!.?,]+$/, '')}!` : 'Ciao!'}</h1>
       <p className={`text-[15px] text-stradeo-inkdim mt-0.5 transition-opacity duration-300 ${line ? 'opacity-100' : 'opacity-0'}`}>
         {line ? t(lang, line.key).replace('{n}', String(line.n ?? '')) : '\u00a0'}
         {when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}

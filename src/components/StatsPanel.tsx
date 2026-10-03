@@ -2,14 +2,12 @@
 import { useMemo } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { TOPICS, getTopicName } from '@/lib/topics'
 import { t } from '@/lib/i18n'
-import Link from 'next/link'
 import { IconStreak, IconCalendar, IconAccuracy } from '@/components/icons'
 
 export default function StatsPanel() {
   const { lang } = useLanguage()
-  const { progress, getTopicAccuracy, streak } = useProgress()
+  const { progress, streak } = useProgress()
 
   const { days, dayData, dayLabels, weekTotal, weekAcc } = useMemo(() => {
     const d: string[] = []
@@ -32,25 +30,18 @@ export default function StatsPanel() {
   const maxTotal = Math.max(...dayData.map(d => d.total), 1)
   const todayStr = new Date().toLocaleDateString('sv')
 
-  const weakestTopics = useMemo(() => {
-    return TOPICS
-      .map(topic => ({ ...topic, pct: getTopicAccuracy(topic.id), done: progress.stats[topic.id]?.t || 0 }))
-      .filter(t => t.pct !== null)
-      .sort((a, b) => (a.pct || 0) - (b.pct || 0))
-      .slice(0, 3)
-  }, [progress.stats, getTopicAccuracy])
-
   return (
-    <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
+    <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 flex flex-col justify-between">
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-4 text-center">{t(lang, 'stats')}</div>
       {/* Three headline figures, each with its icon tile */}
-      <div className="grid grid-cols-3 gap-2 mb-5">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         <Stat tone="text-stradeo-blue bg-stradeo-blue/10" icon={<IconCalendar size={18} />} value={<span className="text-stradeo-ink">{weekTotal}</span>} label={t(lang, 'thisWeek')} />
         <Stat tone={weekTotal === 0 ? 'text-stradeo-inkdim bg-stradeo-surface2' : weekAcc >= 90 ? 'text-stradeo-green bg-stradeo-green/10' : weekAcc >= 50 ? 'text-stradeo-accent bg-stradeo-accent/10' : 'text-stradeo-accent2 bg-stradeo-accent2/10'}
           icon={<IconAccuracy size={18} />} value={<span className={weekTotal === 0 ? 'text-stradeo-inkdim' : weekAcc >= 90 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}>{weekAcc}%</span>} label={t(lang, 'accuracy')} />
         <Stat tone="text-stradeo-brandorange bg-stradeo-brandorange/10" icon={<IconStreak size={18} />} value={<span className="text-stradeo-ink">{streak}</span>} label={t(lang, 'streak')} />
       </div>
 
+      <div>
       <div className="text-[11px] font-bold text-stradeo-inkdim uppercase tracking-[2px] mb-2.5">{t(lang, 'last7')}</div>
       <div className="flex items-end gap-1.5 h-20 mb-1">
         {dayData.map((d, i) => {
@@ -71,34 +62,16 @@ export default function StatsPanel() {
           <div key={i} className={`flex-1 text-center text-[10px] font-semibold ${days[i] === todayStr ? 'text-stradeo-ink font-bold' : 'text-stradeo-inkdim'}`}>{l}</div>
         ))}
       </div>
-
-      {weakestTopics.length > 0 && (
-        <>
-          <div className="text-[11px] font-bold text-stradeo-inkdim uppercase tracking-[2px] mt-5 mb-2.5">{t(lang, 'weakest')}</div>
-          {weakestTopics.map(wt => (
-            <div key={wt.id} className="flex items-center gap-2.5 mb-1.5">
-              <span className={`font-mono text-xs min-w-[32px] ${(wt.pct || 0) >= 80 ? 'text-stradeo-green' : (wt.pct || 0) >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{wt.pct}%</span>
-              <div className="flex-1">
-                <div className="text-[13px]">{getTopicName(wt.id, lang)}</div>
-                <div className="h-[3px] rounded bg-stradeo-surface2 mt-1">
-                  <div className={`h-full rounded ${(wt.pct || 0) >= 80 ? 'bg-stradeo-green' : (wt.pct || 0) >= 50 ? 'bg-stradeo-accent' : 'bg-stradeo-accent2'}`}
-                    style={{ width: `${wt.pct}%` }} />
-                </div>
-              </div>
-              <Link href={`/topic?id=${wt.id}`} className="px-2.5 py-1 rounded-md border border-stradeo-line text-stradeo-ink text-[11px] font-semibold hover:border-stradeo-ink">{t(lang, 'practice')}</Link>
-            </div>
-          ))}
-        </>
-      )}
+      </div>
     </div>
   )
 }
 
 function Stat({ icon, value, label, tone }: { icon: React.ReactNode; value: React.ReactNode; label: string; tone: string }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 rounded-[10px] border border-stradeo-line py-3">
-      <span className={`flex h-8 w-8 items-center justify-center rounded-[8px] ${tone}`} aria-hidden="true">{icon}</span>
-      <span className="font-mono text-[22px] leading-none">{value}</span>
+    <div className="flex flex-col items-center gap-1 rounded-[10px] border border-stradeo-line py-2.5">
+      <span className={`flex h-7 w-7 items-center justify-center rounded-[8px] ${tone}`} aria-hidden="true">{icon}</span>
+      <span className="font-mono text-[20px] leading-none">{value}</span>
       <span className="text-[11px] text-stradeo-inkdim text-center leading-tight px-1">{label}</span>
     </div>
   )
