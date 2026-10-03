@@ -168,3 +168,18 @@ test('exam history: record, replay is idempotent, capped, survives a row round-t
   assert.equal(applyAnswer(p, A, true, T0).exams.length, EXAM_HISTORY_MAX)
   assert.deepEqual(fromRow({ stats: {} }).exams, [])
 })
+
+test('plan: days until the exam and the daily goal', async () => {
+  const { daysUntil, dailyGoal, GOAL_DEFAULT, GOAL_MIN, GOAL_MAX } = await import('../src/lib/plan')
+  const now = new Date('2026-10-04T23:30:00')
+  assert.equal(daysUntil('2026-10-04', now), 0)
+  assert.equal(daysUntil('2026-10-22', now), 18)
+  assert.equal(daysUntil('2026-10-01', now), -3)
+  assert.equal(daysUntil(null, now), null)
+  assert.equal(daysUntil('soon', now), null)
+  assert.equal(dailyGoal(6776, null), GOAL_DEFAULT)
+  assert.equal(dailyGoal(6776, 0), GOAL_DEFAULT)
+  assert.equal(dailyGoal(6776, 10), GOAL_MAX)
+  assert.equal(dailyGoal(100, 30), GOAL_MIN)
+  assert.equal(dailyGoal(2000, 30), 70) // 66.7 → 70
+})

@@ -6,12 +6,20 @@ import type { User } from '@supabase/supabase-js'
 
 function toSession(u: User | null | undefined): UserSession | null {
   if (!u) return null
-  const name = typeof u.user_metadata?.display_name === 'string' ? u.user_metadata.display_name.trim() : ''
-  return { id: u.id, email: u.email || '', ...(name ? { name } : {}) }
+  const m = u.user_metadata || {}
+  const name = typeof m.display_name === 'string' ? m.display_name.trim() : ''
+  const examDate = typeof m.exam_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.exam_date) ? m.exam_date : ''
+  return {
+    id: u.id, email: u.email || '',
+    ...(name ? { name } : {}),
+    ...(examDate ? { examDate } : {}),
+    onboarded: m.onboarded === true,
+  }
 }
 
 /** Keep the same object while nothing visible changed (token refreshes fire hourly). */
-const same = (a: UserSession | null, b: UserSession | null) => a?.id === b?.id && a?.name === b?.name && a?.email === b?.email
+const same = (a: UserSession | null, b: UserSession | null) =>
+  a?.id === b?.id && a?.name === b?.name && a?.email === b?.email && a?.examDate === b?.examDate && a?.onboarded === b?.onboarded
 
 interface AuthContextType {
   user: UserSession | null
@@ -20,6 +28,8 @@ interface AuthContextType {
   signOut: () => Promise<void>
   /** Save a display name (empty string clears it). */
   updateName: (name: string) => Promise<{ error?: string }>
+  /** Save profile fields to the account (synced across devices). `examDate: null` clears it. */
+  updateProfile: (patch: { name?: string; examDate?: string | null; onboarded?: boolean }) => Promise<{ error?: string }>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -65,13 +75,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {}
   }
 
+  const updateProfile = async (patch: { name?: string; examDate?: string | null; onboarded?: boolean }) => {
+    const data: Record<string, unknown> = {}
+    if (patch.name !== undefined) data.display_name = patch.name.trim().slice(0, 40)
+    if (patch.examDate !== undefined) data.exam_date = patch.examDate ?? ''
+    if (patch.onboarded !== undefined) data.onboarded = patch.onboarded
+    const { data: res, error } = await supabase.auth.updateUser({ data })
+    if (error) return { error: 'connError' }
+    const next = toSession(res.user)
+    setUser(prev => (same(prev, next) ? prev : next))
+    return {}
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, updateName }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, updateName, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

@@ -83,7 +83,7 @@ export default function HomeCards({ cards, goTo, autoPlay, className = '' }: {
   }, [held, heldUntil])
 
   const height = autoPlay
-    ? (heights.length ? Math.max(...heights) : undefined)
+    ? (heights.length ? Math.max(...heights) + 2 : undefined) // +2: never clip a card's border to rounding
     : heights[active]
 
   // ── Dragging ──────────────────────────────────────────────────────────────

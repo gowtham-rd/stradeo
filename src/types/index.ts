@@ -22,6 +22,10 @@ export interface UserSession {
   email: string
   /** Display name chosen in Settings (Supabase user_metadata.display_name). */
   name?: string
+  /** Theory exam date, YYYY-MM-DD (user_metadata.exam_date). */
+  examDate?: string
+  /** Finished (or skipped) the first-time setup (user_metadata.onboarded). */
+  onboarded?: boolean
   role?: string
 }
 

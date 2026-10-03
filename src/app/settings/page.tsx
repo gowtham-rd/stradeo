@@ -10,7 +10,8 @@ import NavBar from '@/components/NavBar'
 import ThemeToggle from '@/components/ThemeToggle'
 import HashtagMark from '@/components/HashtagMark'
 import TextSizeSlider from '@/components/TextSizeSlider'
-import { IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip, IconStudy } from '@/components/icons'
+import { localDay } from '@/lib/plan'
+import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip, IconStudy } from '@/components/icons'
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -31,6 +32,10 @@ export default function SettingsPage() {
             <p className="text-[12px] text-stradeo-inkfaint mt-2.5">{t(lang, 'themeHint')}</p>
             <div className="mt-4 pt-4 border-t border-stradeo-line"><TextSizeSlider /></div>
           </Section>
+        </div>
+
+        <div id="exam-date" className="scroll-mt-20">
+          <Section title={t(lang, 'examDate')}><ExamDateEditor /></Section>
         </div>
 
         <Section title={t(lang, 'learnThrough')}>
@@ -153,6 +158,43 @@ function NameEditor() {
           : t(lang, 'nameHint')}
       </p>
     </form>
+  )
+}
+
+function ExamDateEditor() {
+  const { user, updateProfile } = useAuth()
+  const { lang } = useLanguage()
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const value = user?.examDate || ''
+
+  async function save(next: string | null) {
+    setState('saving')
+    const { error } = await updateProfile({ examDate: next })
+    setState(error ? 'error' : 'saved')
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2">
+        <label className="flex-1 min-w-0 flex items-center gap-2.5 h-10 px-3 rounded-lg border border-stradeo-line bg-stradeo-bg focus-within:border-stradeo-ink">
+          <IconCalendar size={15} className="text-stradeo-blue shrink-0" />
+          <span className="sr-only">{t(lang, 'examDate')}</span>
+          <input type="date" value={value} min={localDay()} onChange={e => save(e.target.value || null)}
+            className="flex-1 min-w-0 bg-transparent text-sm font-semibold text-stradeo-ink outline-none" />
+        </label>
+        {value && (
+          <button type="button" onClick={() => save(null)} disabled={state === 'saving'}
+            className="h-10 px-3 rounded-lg border border-stradeo-line text-[13px] font-semibold text-stradeo-inkdim hover:text-stradeo-ink">
+            {t(lang, 'clear')}
+          </button>
+        )}
+      </div>
+      <p className={`text-[12px] mt-2.5 ${state === 'error' ? 'text-stradeo-accent2' : 'text-stradeo-inkfaint'}`}>
+        {state === 'saved' ? <span className="inline-flex items-center gap-1"><IconCheck size={11} />{t(lang, 'saved')}</span>
+          : state === 'error' ? t(lang, 'connError')
+          : t(lang, 'examDateHint')}
+      </p>
+    </div>
   )
 }
 

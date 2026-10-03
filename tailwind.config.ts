@@ -35,12 +35,12 @@ const config: Config = {
         'spin-slow': 'spin 0.8s linear infinite',
         'pulse-green': 'pulseGreen 0.4s',
         'shake': 'shake 0.3s',
-        'page-in': 'pageIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both',
-        'slide-from-right': 'slideFromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both',
-        'slide-from-left': 'slideFromLeft 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'page-in': 'pageIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'slide-from-right': 'slideFromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'slide-from-left': 'slideFromLeft 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'sheet-up': 'sheetUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both',
         'backdrop-in': 'backdropIn 0.2s ease both',
-        'rise': 'rise 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rise': 'rise 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
       },
       keyframes: {
         fadeIn: {

@@ -19,6 +19,8 @@ import { IconExam, IconReview, IconStudy } from '@/components/icons'
 import { getLastTopic } from '@/lib/lastTopic'
 import { nextBestTopic } from '@/lib/progress'
 import HomeCards from '@/components/HomeCards'
+import Onboarding from '@/components/Onboarding'
+import TodayPlan from '@/components/TodayPlan'
 import ExamHistoryCard from '@/components/ExamHistoryCard'
 
 // How long each home card stays before the next slides in.
@@ -29,6 +31,7 @@ export default function HomePage() {
   const { lang } = useLanguage()
   const { progress, seenCount, getDueReviews, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
   const [showSplash, setShowSplash] = useState(true)
+  const [setupDone, setSetupDone] = useState(false)
 
   useEffect(() => {
     // Show the splash once per browser session, not every time Home opens.
@@ -42,6 +45,7 @@ export default function HomePage() {
   if (showSplash) return <SplashScreen />
   if (authLoading) return <SplashScreen />
   if (!user) return <LoginForm />
+  if (!user.onboarded && !setupDone) return <Onboarding onDone={() => setSetupDone(true)} />
 
   const dueCount = getDueReviews().length
   const totalC = Object.values(progress.stats).reduce((a, s) => a + s.c, 0)
@@ -55,6 +59,9 @@ export default function HomePage() {
       <div className="max-w-[640px] mx-auto px-4 pt-4 pb-10">
         {/* Greeting: name, then a line for the time of day / how it's going */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak} />
+
+        {/* Exam countdown + today's goal */}
+        <TodayPlan />
 
         {/* Readiness → Topic map → Stats → Exam history: auto-advances, swipe or tap the dots */}
         <HomeCards className="mb-4" autoPlay={HOME_CARD_MS} cards={[
