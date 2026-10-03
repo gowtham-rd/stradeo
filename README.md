@@ -110,4 +110,7 @@ MIT
 - `npm run data` — after editing `public/data/questions.json`, regenerates the per-topic files in `public/data/topics/` and `src/lib/questionCounts.ts`.
 - Database: run `supabase/schema.sql` for a fresh project, then every file in `supabase/migrations/` in order.
 - Question reports from users land in the `question_reports` table (Supabase → Table Editor).
+- Exam history lives in the `exams` column (migration 003). Without it the app still works and keeps exam history on the device only.
+- iOS launch screens: `NODE_PATH=$(npm root -g) node scripts/build-splash.mjs` regenerates `public/splash/*` (needs sharp).
+- New UI strings: `node scripts/add-i18n.mjs keys.json` with `{en:{…}, it:{…}, ta:{…}, hi:{…}}`.
 - AI features need `CLAUDE_API_KEY` in Vercel; each user gets 60 AI requests per day (`bump_ai_usage` in migration 002).

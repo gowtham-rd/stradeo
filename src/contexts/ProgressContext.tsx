@@ -94,7 +94,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const fetchRow = useCallback(async (id: string) => {
     const { data, error } = await supabase.from('progress').select('*').eq('user_id', id).maybeSingle()
     if (error) throw error
-    return { data: fromRow(data), version: (data?.version as number | undefined) ?? 0, exists: !!data }
+    const parsed = fromRow(data)
+    if (data && !('exams' in data)) {
+      // Database not migrated yet (003): keep the exam history this device has.
+      examsColumn = false
+      parsed.exams = readStore(id)?.data.exams ?? []
+    }
+    return { data: parsed, version: (data?.version as number | undefined) ?? 0, exists: !!data }
   }, [])
 
   // Load on sign-in / user change / retry.
