@@ -6,6 +6,7 @@ import { LANGUAGES, t } from '@/lib/i18n'
 import type { Language } from '@/types'
 import NavBar from '@/components/NavBar'
 import ThemeToggle from '@/components/ThemeToggle'
+import HashtagMark from '@/components/HashtagMark'
 import { IconSettings, IconCheck, IconArrowRight } from '@/components/icons'
 
 export default function SettingsPage() {
@@ -51,6 +52,16 @@ export default function SettingsPage() {
           <Link href="/privacy" className="flex items-center justify-between rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-ink hover:border-stradeo-ink">
             {t(lang, 'privacyLink')} <IconArrowRight size={13} />
           </Link>
+          <a href="https://quattroventi.xyz" target="_blank" rel="noopener"
+            className="mt-2 flex items-center gap-3 rounded-[10px] border border-stradeo-line px-4 py-3 hover:border-stradeo-ink">
+            <HashtagMark size={36} />
+            <span className="flex-1 min-w-0">
+              <span className="block text-[12px] text-stradeo-inkdim">{t(lang, 'madeBy')}</span>
+              <span className="block text-sm font-bold text-stradeo-ink">Hashtag Labs</span>
+            </span>
+            <span className="font-mono text-[12px] text-stradeo-inkdim hidden min-[360px]:inline">quattroventi.xyz</span>
+            <IconArrowRight size={13} />
+          </a>
           <p className="font-mono text-[12px] text-stradeo-inkfaint mt-3">Stradeo · {t(lang, 'appVersion')} {process.env.NEXT_PUBLIC_APP_VERSION}</p>
         </Section>
       </main>
