@@ -9,7 +9,7 @@ import { LANG_PROMPT, t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
-import { aiPost, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
+import { aiPost, AI_ENABLED, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
 import { IconExam, IconFinish, IconCheck, IconCross, IconTip, IconRoadworks } from '@/components/icons'
 
 interface ExamResult {
@@ -41,10 +41,11 @@ export default function ExamReviewPage() {
   const passed = score >= EXAM_QUESTIONS - MAX_ERRORS
 
   async function fetchExp(idx: number, question: string, correctAnswer: boolean) {
+    if (!AI_ENABLED) { setExp(p => ({ ...p, [idx]: t(lang, 'explainSoon') })); return }
     setExpLoading(p => ({ ...p, [idx]: true }))
     try {
       const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
-      if (res.status === AI_NOT_READY) { setExp(p => ({ ...p, [idx]: t(lang, 'aiSoon') })); setExpLoading(p => ({ ...p, [idx]: false })); return }
+      if (res.status === AI_NOT_READY) { setExp(p => ({ ...p, [idx]: t(lang, 'explainSoon') })); setExpLoading(p => ({ ...p, [idx]: false })); return }
       if (res.status === AI_LIMIT) { setExp(p => ({ ...p, [idx]: t(lang, 'aiLimit') })); setExpLoading(p => ({ ...p, [idx]: false })); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
@@ -106,7 +107,7 @@ export default function ExamReviewPage() {
                   {!h.ok && (exp[i] ? (
                     <div className="bg-stradeo-surface2 rounded-[10px] p-3 mt-2">
                       <div className="flex items-center gap-1.5 mb-1.5"><IconTip size={13} className="text-stradeo-brandorange" /><span className="text-[11px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span></div>
-                      <p className="text-[13px] leading-relaxed text-stradeo-ink">{exp[i] === t(lang, 'aiSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={15} className="text-stradeo-brandorange mt-0.5" />{exp[i]}</span> : exp[i]}</p>
+                      <p className="text-[13px] leading-relaxed text-stradeo-ink">{exp[i] === t(lang, 'explainSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={15} className="text-stradeo-brandorange mt-0.5" />{exp[i]}</span> : exp[i]}</p>
                     </div>
                   ) : (
                     <button onClick={() => fetchExp(i, h.q.q, h.q.a)} disabled={expLoading[i]}

@@ -24,7 +24,6 @@ export default function PrivacyPage() {
           <li><b>Your account:</b> your email address. Your password is handled by our login provider (Supabase) and is never visible to us.</li>
           <li><b>Your study progress:</b> which questions you answered, right or wrong, your Smart Review schedule, your daily activity and streak.</li>
           <li><b>Questions you report</b> as wrong or unclear, with the optional note you write.</li>
-          <li><b>How many AI requests you made today</b>, only to apply the daily limit.</li>
         </ul>
       </Section>
 
@@ -35,9 +34,8 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Where it lives">
-        Data is stored with Supabase (database and login) and the app is hosted on Vercel. If you use the
-        AI features (translations, explanations), the question text and your chosen language are sent to
-        Anthropic to generate the answer; your email is not sent.
+        Data is stored with Supabase (database and login) and the app is hosted on Vercel. Nothing is
+        sent to any other service.
       </Section>
 
       <Section title="On your device">

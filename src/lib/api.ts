@@ -1,6 +1,10 @@
 import { supabase } from './supabase'
 
 // POST to one of Stradeo's AI routes with the user's session token attached.
+/** Live AI (translate / explain via Claude) is switched off: question translations will be
+ *  shipped as static files instead. Set to true to use the /api routes again. */
+export const AI_ENABLED = false
+
 /** True when the server says the Claude key isn't set up yet. */
 export const AI_NOT_READY = 503
 /** The user has used today's AI allowance. */

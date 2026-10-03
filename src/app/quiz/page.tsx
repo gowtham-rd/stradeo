@@ -13,7 +13,7 @@ import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
 import ReportQuestion from '@/components/ReportQuestion'
-import { aiPost, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
+import { aiPost, AI_ENABLED, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
 import { IconReview, IconCheck, IconCross, IconTip, IconRoadworks, IconArrowRight } from '@/components/icons'
 
 const initialState: QuizState = {
@@ -108,11 +108,12 @@ function QuizInner() {
     : topicId ? getTopicName(topicId, lang) : t(lang, 'randomQuiz')
 
   async function fetchExplanation(question: string, correctAnswer: boolean) {
+    if (!AI_ENABLED) { setExp(t(lang, 'explainSoon')); setExpLoading(false); return }
     setExpLoading(true)
     setExp(null)
     try {
       const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
-      if (res.status === AI_NOT_READY) { setExp(t(lang, 'aiSoon')); setExpLoading(false); return }
+      if (res.status === AI_NOT_READY) { setExp(t(lang, 'explainSoon')); setExpLoading(false); return }
       if (res.status === AI_LIMIT) { setExp(t(lang, 'aiLimit')); setExpLoading(false); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
@@ -235,7 +236,7 @@ function QuizInner() {
                     <span className="text-sm text-stradeo-inkdim">{t(lang, 'gettingExp')}</span>
                   </div>
                 ) : (
-                  <p className="text-sm leading-relaxed text-stradeo-ink">{exp === t(lang, 'aiSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={16} className="text-stradeo-brandorange mt-0.5" />{exp}</span> : exp}</p>
+                  <p className="text-sm leading-relaxed text-stradeo-ink">{exp === t(lang, 'aiSoon') || exp === t(lang, 'explainSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={16} className="text-stradeo-brandorange mt-0.5" />{exp}</span> : exp}</p>
                 )}
               </div>
             )}
