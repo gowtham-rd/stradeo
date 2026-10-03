@@ -259,29 +259,29 @@ export default function ExamPage() {
         <div key={current} className={`${dir > 0 ? 'animate-slide-from-right' : 'animate-slide-from-left'}`}>
           <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
             {imgUrl && (
-              <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[220px] max-h-[180px] rounded-[10px] mx-auto mb-4 border border-stradeo-line" />
+              <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[160px] rounded-[10px] mx-auto mb-4 border border-stradeo-line" />
             )}
             <p lang="it" className="text-[17px] leading-relaxed">{q.q}</p>
             <TranslateButton key={current} question={q.q} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-3" role="radiogroup" aria-label={t(lang, 'yourAnswer')}>
-            {[true, false].map(val => (
-              <button key={String(val)} role="radio" aria-checked={answer === val}
-                onClick={() => dispatch({ type: 'ANSWER', index: current, value: val })}
-                className={`h-14 rounded-[10px] text-[15px] font-bold tracking-[1px] border transition-colors duration-150 ${
-                  answer === val ? 'border-stradeo-ink bg-stradeo-ink text-stradeo-bg' : 'border-stradeo-line bg-stradeo-bg2 text-stradeo-ink hover:border-stradeo-ink'
-                }`}>
-                {val ? 'VERO' : 'FALSO'}
-              </button>
-            ))}
-          </div>
         </div>
       </main>
 
-      {/* Previous / Next (Submit on the last question) */}
+      {/* Answer + Previous / Next (Submit on the last question), always within thumb reach */}
       <div className="sticky bottom-0 z-20 bg-stradeo-nav backdrop-blur-[20px] border-t border-stradeo-line">
-        <div className="max-w-[640px] mx-auto px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[auto_1fr_auto] gap-2.5 items-center">
+        <div className="max-w-[640px] mx-auto px-4 pt-3 grid grid-cols-2 gap-2.5" role="radiogroup" aria-label={t(lang, 'yourAnswer')}>
+          {[true, false].map(val => (
+            <button key={String(val)} role="radio" aria-checked={answer === val}
+              onClick={() => dispatch({ type: 'ANSWER', index: current, value: val })}
+              className={`h-14 rounded-[10px] text-[15px] font-bold tracking-[1px] border transition-colors duration-150 ${
+                answer === val ? 'border-stradeo-ink bg-stradeo-ink text-stradeo-bg' : 'border-stradeo-line bg-stradeo-bg2 text-stradeo-ink hover:border-stradeo-ink'
+              }`}>
+              {val ? 'VERO' : 'FALSO'}
+            </button>
+          ))}
+        </div>
+        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[auto_1fr_auto] gap-2.5 items-center">
           <button onClick={() => go(current - 1)} disabled={current === 0} aria-label={t(lang, 'prev')}
             className="h-12 px-4 rounded-[10px] border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center gap-1.5 disabled:opacity-35 disabled:active:scale-100">
             <IconChevronLeft size={14} /><span className="hidden min-[380px]:inline">{t(lang, 'prev')}</span>
