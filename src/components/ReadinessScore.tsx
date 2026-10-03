@@ -141,7 +141,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
   ]
 
   return (
-    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col justify-between">
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col justify-around">
       {/* Topic map: one square per topic; tap to show it below */}
       <div>
         <div className="flex items-baseline justify-between mb-2.5">

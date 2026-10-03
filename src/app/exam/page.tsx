@@ -102,8 +102,10 @@ export default function ExamPage() {
 
   // Keep the current number visible in the strip.
   useEffect(() => {
-    const el = stripRef.current?.children[current] as HTMLElement | undefined
-    el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    // Scroll only the strip (scrollIntoView could also move the page).
+    const strip = stripRef.current
+    const el = strip?.children[current] as HTMLElement | undefined
+    if (strip && el) strip.scrollTo({ left: el.offsetLeft - strip.clientWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' })
   }, [current])
 
   const total = state.questions.length

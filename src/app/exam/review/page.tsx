@@ -167,7 +167,7 @@ function ResultsInner() {
           <div className="flex items-center gap-2 mb-4">
             <IconHistory size={15} className="text-stradeo-blue" />
             <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">
-              {t(lang, 'lastExams').replace('{n}', String(Math.min(10, exams.length)))}
+              {exams.length > 1 ? t(lang, 'lastExams').replace('{n}', String(Math.min(10, exams.length))) : t(lang, 'examHistory')}
             </div>
           </div>
           <ExamHistoryChart exams={exams} selected={result.at} onSelect={at => router.replace(`/exam/review?at=${at}`, { scroll: false })} />
