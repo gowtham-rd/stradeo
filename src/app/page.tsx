@@ -14,13 +14,13 @@ import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
 import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
-import { IconStreak, IconSettings, IconExam, IconReview } from '@/components/icons'
+import { IconExam, IconReview } from '@/components/icons'
 import HomeCards from '@/components/HomeCards'
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, streak, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
+  const { progress, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
@@ -46,23 +46,8 @@ export default function HomePage() {
       <AdBanner />
       <NavBar />
       <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
-        {/* Welcome + Streak */}
-        <div className="flex justify-between items-center mb-4">
-          <p className="text-sm text-stradeo-inkdim">
-            {t(lang, 'welcome')}, <strong className="font-semibold text-stradeo-ink">{user.name || user.email?.split('@')[0]}</strong>
-          </p>
-          <div className="flex items-center gap-3">
-            {streak > 0 && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-stradeo-line bg-stradeo-bg2">
-                <IconStreak size={16} className="text-stradeo-brandorange" />
-                <span className="font-mono text-sm text-stradeo-ink">{streak}</span>
-              </div>
-            )}
-            <Link href="/settings" aria-label={t(lang, 'settings')}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-stradeo-line bg-stradeo-bg2 text-stradeo-inkdim hover:text-stradeo-ink"
-            ><IconSettings size={16} /></Link>
-          </div>
-        </div>
+        {/* Greeting: changes with how long it's been since the last practice */}
+        <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} />
 
         {/* Readiness → Stats (swipe) */}
         <HomeCards cards={[
@@ -112,6 +97,38 @@ export default function HomePage() {
           />
         ))}
       </div>
+    </div>
+  )
+}
+
+// Calendar days between the last study day (YYYY-MM-DD, local) and today.
+function daysSince(lastStudy: string | null): number | null {
+  if (!lastStudy) return null
+  const [y, m, d] = lastStudy.split('-').map(Number)
+  const then = new Date(y, m - 1, d)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.max(0, Math.round((today.getTime() - then.getTime()) / 86_400_000))
+}
+
+function Greeting({ name, lastStudy }: { name: string; lastStudy: string | null }) {
+  const { lang } = useLanguage()
+  const days = daysSince(lastStudy)
+  const key = days === null ? 'greetNew'
+    : days === 0 ? 'greetToday'
+    : days === 1 ? 'greetYesterday'
+    : days < 7 ? 'greetDays'
+    : days < 30 ? 'greetWeeks'
+    : 'greetLong'
+  const when = days === null ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
+  return (
+    <div className="mb-4">
+      <p className="text-[15px] text-stradeo-inkdim">
+        {t(lang, key)}, <strong className="font-semibold text-stradeo-ink">{name}</strong>
+      </p>
+      <p className="text-[12px] text-stradeo-inkfaint mt-0.5">
+        {when ? `${t(lang, 'lastPractice')}: ${when}` : t(lang, 'firstPractice')}
+      </p>
     </div>
   )
 }

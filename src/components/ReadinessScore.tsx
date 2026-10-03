@@ -1,11 +1,14 @@
 'use client'
-import Link from 'next/link'
+import { useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { t } from '@/lib/i18n'
 import { getTopicName } from '@/lib/topics'
 import { topicScore, nextBestTopic } from '@/lib/progress'
-import { IconArrowRight } from './icons'
+import TopicCard from './TopicCard'
+import HomeCards from './HomeCards'
+import { TOPICS } from '@/lib/topics'
+import { TOPIC_COUNTS } from '@/lib/questionCounts'
 import { useCountUp } from '@/lib/useCountUp'
 
 // Square colour for one topic: untouched, weak, getting there, ready (≥90% ≈ pass mark).
@@ -26,8 +29,31 @@ interface Props {
 
 export default function ReadinessScore({ readiness, totalCorrect, totalWrong, totalRemaining, topicsCovered }: Props) {
   const { lang } = useLanguage()
-  const { progress } = useProgress()
+  const { progress, getTopicAccuracy, seenCount } = useProgress()
   const next = nextBestTopic(progress.stats)
+  // Topic tapped on the map: shown as a card beside "Biggest gain next".
+  const [picked, setPicked] = useState<number | null>(null)
+  const [jump, setJump] = useState<{ index: number; seq: number } | undefined>()
+  const pick = (id: number) => {
+    setPicked(id)
+    setJump(j => ({ index: next ? 1 : 0, seq: (j?.seq ?? 0) + 1 }))
+  }
+  const topicSlide = (id: number, label: string) => {
+    const meta = TOPICS.find(x => x.id === id)!
+    return {
+      label,
+      content: (
+        <div className="text-left">
+          <div className="text-[10px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim mb-1.5">{label}</div>
+          <TopicCard topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
+        </div>
+      ),
+    }
+  }
+  const slides = [
+    ...(next ? [topicSlide(next, t(lang, 'nextUp'))] : []),
+    ...(picked ? [topicSlide(picked, t(lang, 'selectedTopic'))] : []),
+  ]
   const hasStarted = totalCorrect + totalWrong > 0
 
   // Count up from 0; number and meter take the colour of the band the *animated* value is in,
@@ -86,10 +112,10 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
                 const answered = progress.stats[id]?.t ?? 0
                 const sc = topicScore(progress.stats, id)
                 return (
-                  <Link key={id} href={`/topic?id=${id}`}
+                  <button key={id} type="button" onClick={() => pick(id)} aria-pressed={picked === id}
                     title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
                     aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
-                    className={`w-[calc((100%-56px)/15)] aspect-square rounded-[3px] ${cellClass(sc, answered)} hover:outline hover:outline-2 hover:outline-stradeo-ink`} />
+                    className={`w-[calc((100%-56px)/15)] aspect-square rounded-[3px] ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`} />
                 )
               })}
             </div>
@@ -103,18 +129,11 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
         </div>
       </div>
 
-      {/* Biggest gain next */}
-      {next && (
-        <Link href={`/topic?id=${next}`}
-          className="mt-4 flex items-center gap-3 rounded-[10px] border border-stradeo-line px-3.5 py-2.5 text-left hover:border-stradeo-ink">
-          <span className="font-mono text-[12px] text-stradeo-inkdim">{String(next).padStart(2, '0')}</span>
-          <span className="flex-1 min-w-0">
-            <span className="block text-[10px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim">{t(lang, 'nextUp')}</span>
-            <span className="block truncate text-[13px] font-semibold text-stradeo-ink">{getTopicName(next, lang)}</span>
-          </span>
-          <IconArrowRight size={13} />
-        </Link>
+      {/* Biggest gain next + tapped topic, as swipeable cards */}
+      {slides.length > 0 && (
+        <HomeCards key={slides.map(x => x.label).join('|')} cards={slides} goTo={jump} className="mt-4" />
       )}
+      {!picked && <p className="text-[11px] text-stradeo-inkfaint mt-2">{t(lang, 'tapSquare')}</p>}
 
       <p className="text-[11px] leading-snug text-stradeo-inkfaint mt-auto pt-4 max-w-[360px] mx-auto">{t(lang, 'readinessHint')}</p>
     </div>

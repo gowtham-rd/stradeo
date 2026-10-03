@@ -9,6 +9,7 @@ import { EXAM_DURATION } from '@/lib/constants'
 import type { ExamState, ExamAction } from '@/types'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
+import { IconCross } from '@/components/icons'
 
 const initialState: ExamState = { questions: [], answers: {}, submitted: false, endTime: 0 }
 
@@ -37,7 +38,8 @@ export default function ExamPage() {
   const [remaining, setRemaining] = useState(EXAM_DURATION)
   const [loadFailed, setLoadFailed] = useState(false)
   const [confirmSubmit, setConfirmSubmit] = useState(false)
-  const [confirmLeave, setConfirmLeave] = useState(false)
+  // Exit dialog: opened by the Exit button or the browser Back button.
+  const [confirmLeave, setConfirmLeave] = useState<false | 'button' | 'back'>(false)
   const leavingRef = useRef(false)
   // Latest state for the timer callback (an interval would otherwise see stale answers).
   const stateRef = useRef(state)
@@ -72,15 +74,22 @@ export default function ExamPage() {
     window.history.pushState({ ...window.history.state, stradeoExam: true }, '')
     const onPop = () => {
       if (leavingRef.current || submittedRef.current) return
-      setConfirmLeave(true)
+      setConfirmLeave('back')
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [loading, state.submitted])
 
   function stay() {
+    // Back already consumed our guard entry: put it back so the next Back asks again.
+    if (confirmLeave === 'back') window.history.pushState({ ...window.history.state, stradeoExam: true }, '')
     setConfirmLeave(false)
-    window.history.pushState({ ...window.history.state, stradeoExam: true }, '')
+  }
+
+  function saveAndFinish() {
+    leavingRef.current = true
+    setConfirmLeave(false)
+    submit()
   }
 
   function leave() {
@@ -164,8 +173,14 @@ export default function ExamPage() {
               <h3 className="text-[17px] font-bold">{t(lang, 'examSim')}</h3>
               <p className="text-xs text-stradeo-inkfaint mt-0.5">{t(lang, 'examSimSub')}</p>
             </div>
-            <div className={`px-4 py-2 rounded-[10px] font-mono text-xl tabular-nums ${lowTime ? 'bg-stradeo-accent2/[0.12] text-stradeo-accent2' : 'bg-stradeo-surface2 text-stradeo-inkdim'}`}>
-              {fmt(remaining)}
+            <div className="flex items-center gap-2">
+              <div className={`px-4 py-2 rounded-[10px] font-mono text-xl tabular-nums ${lowTime ? 'bg-stradeo-accent2/[0.12] text-stradeo-accent2' : 'bg-stradeo-surface2 text-stradeo-inkdim'}`}>
+                {fmt(remaining)}
+              </div>
+              <button onClick={() => setConfirmLeave('button')} aria-label={t(lang, 'exitExam')}
+                className="h-11 px-3 rounded-[10px] border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink hover:border-stradeo-ink text-sm font-semibold inline-flex items-center gap-1.5">
+                <IconCross size={11} /><span className="hidden min-[380px]:inline">{t(lang, 'exitExam')}</span>
+              </button>
             </div>
           </div>
           <div className="flex gap-[3px] mt-3">
@@ -219,10 +234,21 @@ export default function ExamPage() {
             className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/40 p-4">
             <div className="w-full max-w-[400px] rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5">
               <h2 id="leave-title" className="text-lg font-bold mb-1">{t(lang, 'leaveExamTitle')}</h2>
-              <p className="text-sm text-stradeo-inkdim mb-5">{t(lang, 'leaveExamBody')}</p>
-              <div className="flex gap-2.5">
-                <button onClick={leave} className="flex-1 py-3 rounded-[10px] border border-stradeo-line text-stradeo-inkdim font-semibold">{t(lang, 'leave')}</button>
-                <button onClick={stay} autoFocus className="flex-1 py-3 rounded-[10px] bg-stradeo-ink text-stradeo-bg font-semibold">{t(lang, 'stay')}</button>
+              <p className="text-sm text-stradeo-inkdim mb-5">
+                {answeredCount > 0 ? t(lang, 'exitExamBody').replace('{n}', String(answeredCount)) : t(lang, 'exitExamBodyNone')}
+              </p>
+              <div className="grid gap-2">
+                {answeredCount > 0 && (
+                  <button onClick={saveAndFinish} className="py-3 rounded-[10px] bg-stradeo-ink text-stradeo-bg font-semibold">
+                    {t(lang, 'saveAndFinish')}
+                  </button>
+                )}
+                <button onClick={leave} className="py-3 rounded-[10px] border border-stradeo-line text-stradeo-accent2 font-semibold hover:border-stradeo-accent2">
+                  {t(lang, 'discardAttempt')}
+                </button>
+                <button onClick={stay} autoFocus className="py-3 rounded-[10px] text-stradeo-inkdim font-semibold hover:text-stradeo-ink">
+                  {t(lang, 'keepGoing')}
+                </button>
               </div>
             </div>
           </div>
