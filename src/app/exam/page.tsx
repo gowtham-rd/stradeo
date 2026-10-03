@@ -8,6 +8,7 @@ import { t } from '@/lib/i18n'
 import { EXAM_DURATION } from '@/lib/constants'
 import type { ExamState, ExamAction } from '@/types'
 import TranslateButton from '@/components/TranslateButton'
+import { PULL_GUARD_ATTR, PULL_EVENT } from '@/components/PullToRefresh'
 import { IconCross, IconChevronLeft, IconChevronRight, IconWarning, IconFinish } from '@/components/icons'
 
 const initialState: ExamState = { questions: [], answers: {}, submitted: false, endTime: 0 }
@@ -84,6 +85,16 @@ export default function ExamPage() {
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
+  }, [loading, state.submitted])
+
+  // Pull-to-refresh would lose the exam: pulling down asks to leave instead.
+  useEffect(() => {
+    if (loading || state.submitted) return
+    const root = document.documentElement
+    root.setAttribute(PULL_GUARD_ATTR, 'exam')
+    const onPull = () => setConfirmLeave(c => c || 'button')
+    window.addEventListener(PULL_EVENT, onPull)
+    return () => { root.removeAttribute(PULL_GUARD_ATTR); window.removeEventListener(PULL_EVENT, onPull) }
   }, [loading, state.submitted])
 
   // Wall-clock countdown (survives tab backgrounding)

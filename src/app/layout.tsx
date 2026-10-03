@@ -10,6 +10,7 @@ import { ProgressProvider } from '@/contexts/ProgressContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import AuthGate from '@/components/AuthGate'
 import ServiceWorker from '@/components/ServiceWorker'
+import PullToRefresh from '@/components/PullToRefresh'
 import { noFlashTextSize } from '@/lib/textSize'
 import StartupImages from '@/components/StartupImages'
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ProgressProvider>
                 <AuthGate>{children}</AuthGate>
                 <ServiceWorker />
+                <PullToRefresh />
               </ProgressProvider>
             </LanguageProvider>
           </AuthProvider>
