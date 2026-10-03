@@ -43,8 +43,8 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
     return {
       label,
       content: (
-        <div className="text-left">
-          <div className="text-[10px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim mb-1.5">{label}</div>
+        <div className="text-left px-px">
+          <div className="text-[10px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim mb-1.5 pl-0.5">{label}</div>
           <TopicCard topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
         </div>
       ),

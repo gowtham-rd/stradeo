@@ -21,15 +21,18 @@ export default function HomeCards({ cards, goTo, className = 'mb-5' }: {
     setActive(Math.round(el.scrollLeft / el.clientWidth))
   }, [])
 
-  const go = (i: number) => {
+  const go = (i: number, smooth = true) => {
     const el = track.current
     if (!el) return
     const n = Math.max(0, Math.min(cards.length - 1, i))
-    el.scrollTo({ left: n * el.clientWidth, behavior: 'smooth' })
+    if (smooth) el.scrollTo({ left: n * el.clientWidth, behavior: 'smooth' })
+    // Programmatic jumps land in one step: smooth scrolling + snap inside a zoomed page
+    // (text size) can stall between cards in Chromium.
+    else { el.scrollLeft = n * el.clientWidth; setActive(n) }
   }
 
   useEffect(() => {
-    if (goTo) requestAnimationFrame(() => go(goTo.index))
+    if (goTo) requestAnimationFrame(() => go(goTo.index, false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goTo?.seq])
 
