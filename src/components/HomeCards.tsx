@@ -140,8 +140,13 @@ export default function HomeCards({ cards, goTo, autoPlay, className = '' }: {
 
   return (
     <div className={className} role="region" aria-roledescription="carousel" aria-label={cards.map(c => c.label).join(' / ')}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false) }}>
+      // Pause only for a real mouse hovering and for keyboard focus. On a phone, a tap
+      // leaves "hover" and focus stuck, which would freeze the cards; touches use the
+      // timed hold instead (resumes after RESUME_AFTER_MS).
+      onPointerEnter={e => { if (e.pointerType === 'mouse') setHovered(true) }}
+      onPointerLeave={e => { if (e.pointerType === 'mouse') setHovered(false) }}
+      onFocus={e => { if ((e.target as HTMLElement).matches?.(':focus-visible')) setFocused(true) }}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false) }}>
       <div ref={viewport} tabIndex={0} onKeyDown={onKey}
         className="overflow-hidden -mx-1 px-1 transition-[height] duration-300 ease-out focus-visible:outline-offset-4"
         style={{ height }}>
