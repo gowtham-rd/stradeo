@@ -41,7 +41,7 @@ function TopicInner() {
   const [cache, setCache] = useState<Record<string, TheoryContent>>({})
 
   useEffect(() => {
-    loadQuestions().then(all => setCount(getTopicQuestionCount(all)[tid] || 0))
+    loadQuestions().then(all => setCount(getTopicQuestionCount(all)[tid] || 0), () => { /* count stays 0 */ })
   }, [tid])
 
   // Show the pre-generated lesson for this topic immediately.
@@ -51,7 +51,7 @@ function TopicInner() {
     if (cache[key]) { setTheory(cache[key]); setTheoryLoading(false); return }
     let cancelled = false
     setTheoryLoading(false)
-    getLesson(tid).then(l => { if (!cancelled) setTheory(l) })
+    getLesson(tid).then(l => { if (!cancelled) setTheory(l) }, () => { /* the 'Generate lesson' button stays available */ })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tid, lang])
@@ -75,9 +75,12 @@ function TopicInner() {
       setCache(prev => ({ ...prev, [key]: data }))
     } catch {
       // Keep the pre-generated lesson rather than wiping it (e.g. no Claude key yet)
-      setTheory(previous || (await getLesson(tid)) || { title: topic?.en || '', keypoints: t(lang, 'lessonFailed'), details: '', traps: '', remember: '' })
+      let fallback: TheoryContent | null = previous
+      if (!fallback) { try { fallback = await getLesson(tid) } catch { /* offline */ } }
+      setTheory(fallback || { title: topic?.en || '', keypoints: t(lang, 'lessonFailed'), details: '', traps: '', remember: '' })
+    } finally {
+      setTheoryLoading(false)
     }
-    setTheoryLoading(false)
   }
 
   if (!valid) {
@@ -123,7 +126,7 @@ function TopicInner() {
             {!theory && !theoryLoading && (
               <button onClick={() => fetchTheory()}
                 className="w-full p-5 rounded-[14px] border border-dashed border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-[15px] font-semibold mb-4 inline-flex items-center justify-center gap-2">
-                <IconStudy size={16} />Generate lesson in {LANGUAGES[lang]}
+                <IconStudy size={16} />{t(lang, 'generateLesson')} · {LANGUAGES[lang]}
               </button>
             )}
 
@@ -131,7 +134,7 @@ function TopicInner() {
               <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-10 text-center">
                 <div className="w-7 h-7 border-[3px] border-stradeo-line border-t-stradeo-ink rounded-full animate-spin-slow mx-auto mb-4" />
                 <p className="text-[15px] text-stradeo-inkdim m-0">{t(lang, 'creatingLesson')}</p>
-                <p className="text-xs text-stradeo-inkfaint mt-1.5">Powered by AI · {LANGUAGES[lang]}</p>
+                <p className="text-xs text-stradeo-inkfaint mt-1.5">{t(lang, 'poweredByAi')} · {LANGUAGES[lang]}</p>
               </div>
             )}
 

@@ -30,7 +30,7 @@ export const TOPICS: TopicMeta[] = [
 
 export function getTopicName(id: number, lang: string): string {
   const topic = TOPICS.find(t => t.id === id)
-  if (!topic) return `Topic ${id}`
+  if (!topic) return `#${id}`
   return (topic as any)[lang] || topic.en
 }
 

@@ -165,6 +165,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     loadedFor.current = null
     setLoaded(false)
     setLoadError(false)
+    setSaveError(false)
     if (!userId) { setProgress(DEFAULT_PROGRESS); return }
     let cancelled = false
     supabase.from('progress').select('*').eq('user_id', userId).maybeSingle()

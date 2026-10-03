@@ -103,7 +103,10 @@ export default function ExamPage() {
     return (
       <div className="min-h-screen max-w-[640px] mx-auto px-4 pt-16 text-center">
         <p className="text-stradeo-inkdim mb-6">{t(lang, 'questionsFailed')}</p>
-        <button onClick={() => window.location.reload()} className="px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'retry')}</button>
+        <div className="flex justify-center gap-2.5">
+          <a href="/" className="px-5 py-3 rounded-[10px] border border-stradeo-line text-stradeo-inkdim font-semibold">{t(lang, 'home')}</a>
+          <button onClick={() => window.location.reload()} className="px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'retry')}</button>
+        </div>
       </div>
     )
   }
