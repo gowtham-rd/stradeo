@@ -143,7 +143,7 @@ export default function HomeCards({ cards, goTo, autoPlay, className = '' }: {
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false) }}>
       <div ref={viewport} tabIndex={0} onKeyDown={onKey}
-        className="overflow-hidden rounded-[14px] transition-[height] duration-300 ease-out focus-visible:outline-offset-4"
+        className="overflow-hidden -mx-1 px-1 transition-[height] duration-300 ease-out focus-visible:outline-offset-4"
         style={{ height }}>
         <div
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerCancel={endDrag}

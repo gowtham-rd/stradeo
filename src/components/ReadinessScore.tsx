@@ -48,7 +48,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
   const [showInfo, setShowInfo] = useState(false)
 
   return (
-    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col justify-between">
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-4 flex flex-col justify-between">
       <div>
       {/* Header: title + info toggle */}
       <div className="relative flex items-center justify-center">
@@ -141,7 +141,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
   ]
 
   return (
-    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col justify-around">
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-4 flex flex-col justify-between">
       {/* Topic map: one square per topic; tap to show it below */}
       <div>
         <div className="flex items-baseline justify-between mb-2.5">
@@ -175,7 +175,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
 
       {/* Biggest gain next + tapped topic, as swipeable cards */}
       {slides.length > 0 && (
-        <HomeCards key={slides.map(x => x.label).join('|')} cards={slides} goTo={jump} className="mt-4" />
+        <HomeCards key={slides.map(x => x.label).join('|')} cards={slides} goTo={jump} className="mt-3" />
       )}
     </div>
   )

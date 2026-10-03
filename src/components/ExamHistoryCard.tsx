@@ -20,30 +20,34 @@ export default function ExamHistoryCard() {
   const last = exams[exams.length - 1]
 
   return (
-    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5 flex flex-col">
-      <div className="flex items-center justify-center gap-2 mb-4">
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-4 flex flex-col">
+      <div className="flex items-center justify-center gap-2 mb-3">
         <IconHistory size={13} className="text-stradeo-blue" />
         <h2 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'examHistory')}</h2>
       </div>
 
       {exams.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 py-2">
-          <span className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-stradeo-surface2 text-stradeo-inkdim"><IconExam size={22} /></span>
-          <p className="text-[13px] text-stradeo-inkdim max-w-[260px]">{t(lang, 'noExamsYet')}</p>
+        <div className="flex-1 flex flex-col justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-stradeo-surface2 text-stradeo-inkdim"><IconExam size={18} /></span>
+            <p className="text-[13px] leading-snug text-stradeo-inkdim">{t(lang, 'noExamsYet')}</p>
+          </div>
+          {/* Empty chart: shows where scores will appear and where the pass line is */}
+          <ExamHistoryChart exams={[]} max={8} height={104} />
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <Figure value={exams.length} label={t(lang, 'examsTaken')} />
             <Figure value={passedN} label={t(lang, 'passRate')} tone={passedN > 0 ? 'text-stradeo-green' : undefined} icon={passedN > 0 ? <IconFinish size={13} /> : undefined} />
             <Figure value={`${best}/${last.total}`} label={t(lang, 'best')} />
           </div>
           <div className="flex-1 flex flex-col justify-end">
-            <ExamHistoryChart exams={exams} max={8} height={128} selected={last.at}
+            <ExamHistoryChart exams={exams} max={8} height={104} selected={last.at}
               onSelect={at => router.push(`/exam/review?at=${at}`)} />
           </div>
           <Link href={`/exam/review?at=${last.at}`}
-            className="mt-3 inline-flex items-center justify-center gap-1.5 self-center text-[12px] font-semibold text-stradeo-inkdim hover:text-stradeo-ink">
+            className="mt-2 inline-flex items-center justify-center gap-1.5 self-center text-[12px] font-semibold text-stradeo-inkdim hover:text-stradeo-ink">
             {t(lang, 'openResults')}<IconArrowRight size={11} />
           </Link>
         </>
