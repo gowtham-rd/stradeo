@@ -7,14 +7,14 @@ import { useProgress } from '@/contexts/ProgressContext'
 import { getImageUrl, loadQuestions, questionKey } from '@/lib/questions'
 import { seenId } from '@/lib/progress'
 import ReportQuestion from '@/components/ReportQuestion'
+import QuestionHelp from '@/components/QuestionHelp'
 import { MAX_ERRORS } from '@/lib/constants'
-import { LANG_PROMPT, t } from '@/lib/i18n'
+import { t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import ExamHistoryChart from '@/components/ExamHistoryChart'
 import { useCountUp } from '@/lib/useCountUp'
-import { aiPost, AI_ENABLED, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
-import { IconExam, IconFinish, IconCheck, IconCross, IconTip, IconHistory, IconHome } from '@/components/icons'
+import { IconExam, IconFinish, IconCheck, IconCross, IconHistory, IconHome } from '@/components/icons'
 
 interface Result {
   at: number
@@ -35,8 +35,6 @@ function ResultsInner() {
   const [result, setResult] = useState<Result | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading')
   const [filter, setFilter] = useState<'all' | 'errors'>('all')
-  const [exp, setExp] = useState<Record<number, string>>({})
-  const [expLoading, setExpLoading] = useState<Record<number, boolean>>({})
 
   const exams = progress.exams || []
 
@@ -45,7 +43,6 @@ function ResultsInner() {
   useEffect(() => {
     let cancelled = false
     setFilter('all')
-    setExp({})
     try {
       const raw = sessionStorage.getItem('stradeo_exam_result')
       if (raw) {
@@ -89,19 +86,6 @@ function ResultsInner() {
   const shownScore = Math.round(useCountUp(state === 'ready' ? score : 0, 900))
   const visible = filter === 'errors' ? rows.filter(r => !r.ok) : rows
 
-  async function fetchExp(idx: number, question: string, correctAnswer: boolean) {
-    setExpLoading(p => ({ ...p, [idx]: true }))
-    try {
-      const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
-      if (res.status === AI_NOT_READY) setExp(p => ({ ...p, [idx]: t(lang, 'explainSoon') }))
-      else if (res.status === AI_LIMIT) setExp(p => ({ ...p, [idx]: t(lang, 'aiLimit') }))
-      else if (!res.ok) throw new Error('explain failed')
-      else { const data = await res.json(); setExp(p => ({ ...p, [idx]: data.explanation || t(lang, 'unavailable') })) }
-    } catch {
-      setExp(p => ({ ...p, [idx]: t(lang, 'unavailable') }))
-    }
-    setExpLoading(p => ({ ...p, [idx]: false }))
-  }
 
   if (state === 'missing') {
     return (
@@ -212,18 +196,7 @@ function ResultsInner() {
                     <div className="mt-0.5 text-[13px] font-bold text-stradeo-ink">{q.a ? 'VERO' : 'FALSO'}</div>
                   </div>
                 </div>
-                {/* "Why" only when explanations are available */}
-                {!ok && AI_ENABLED && (exp[i] ? (
-                  <div className="bg-stradeo-surface2 rounded-[10px] p-3 mt-2">
-                    <div className="flex items-center gap-1.5 mb-1.5"><IconTip size={13} className="text-stradeo-brandorange" /><span className="text-[11px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span></div>
-                    <p className="text-[13px] leading-relaxed text-stradeo-ink">{exp[i]}</p>
-                  </div>
-                ) : (
-                  <button onClick={() => fetchExp(i, q.q, q.a)} disabled={expLoading[i]}
-                    className="mt-2 px-3 py-2 rounded-lg border border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-xs font-semibold inline-flex items-center gap-1.5">
-                    <IconTip size={13} />{expLoading[i] ? t(lang, 'loading') : t(lang, 'why')}
-                  </button>
-                ))}
+                <QuestionHelp question={q} showWhy={!ok} />
                 {!ok && <ReportQuestion key={questionKey(q)} question={q} />}
               </div>
             </div>
