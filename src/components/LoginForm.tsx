@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import StradeoMark from './StradeoMark'
-import ThemeToggle from './ThemeToggle'
 import { LANGUAGES, t } from '@/lib/i18n'
 import type { Language } from '@/types'
 
@@ -25,8 +24,7 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-5 pt-20 pb-10 animate-fade-in-up">
-      <div className="absolute top-4 right-4"><ThemeToggle /></div>
+    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 animate-fade-in-up">
       <div className="w-full max-w-[380px]">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4"><StradeoMark size={72} /></div>

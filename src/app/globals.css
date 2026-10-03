@@ -112,3 +112,7 @@ button:active {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Hide the scrollbar on swipe tracks (still scrollable) */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

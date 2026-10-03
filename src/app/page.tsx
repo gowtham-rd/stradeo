@@ -14,13 +14,13 @@ import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
 import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
-import { IconStreak, IconStats, IconExam, IconReview } from '@/components/icons'
+import { IconStreak, IconSettings, IconExam, IconReview } from '@/components/icons'
+import HomeCards from '@/components/HomeCards'
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
   const { progress, streak, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
-  const [showStats, setShowStats] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
@@ -58,25 +58,25 @@ export default function HomePage() {
                 <span className="font-mono text-sm text-stradeo-ink">{streak}</span>
               </div>
             )}
-            <button
-              onClick={() => setShowStats(!showStats)}
-              aria-label={t(lang, 'stats')} aria-pressed={showStats}
-              className="px-2.5 py-1.5 rounded-lg border border-stradeo-line bg-stradeo-surface2 text-stradeo-inkdim hover:text-stradeo-ink"
-            ><IconStats size={16} /></button>
+            <Link href="/settings" aria-label={t(lang, 'settings')}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-stradeo-line bg-stradeo-bg2 text-stradeo-inkdim hover:text-stradeo-ink"
+            ><IconSettings size={16} /></Link>
           </div>
         </div>
 
-        {/* Stats Panel */}
-        {showStats && <StatsPanel />}
-
-        {/* Readiness Score */}
-        <ReadinessScore
-          readiness={readiness}
-          totalCorrect={totalC}
-          totalWrong={totalW}
-          totalRemaining={totalRemaining}
-          topicsCovered={topicsCovered}
-        />
+        {/* Readiness → Stats (swipe) */}
+        <HomeCards cards={[
+          { label: t(lang, 'readinessCard'), content: (
+            <ReadinessScore
+              readiness={readiness}
+              totalCorrect={totalC}
+              totalWrong={totalW}
+              totalRemaining={totalRemaining}
+              topicsCovered={topicsCovered}
+            />
+          ) },
+          { label: t(lang, 'stats'), content: <StatsPanel /> },
+        ]} />
 
         {/* Exam Button */}
         <Link

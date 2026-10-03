@@ -41,7 +41,8 @@ export default function StatsPanel() {
   }, [progress.stats, getTopicAccuracy])
 
   return (
-    <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-5 animate-fade-in">
+    <div className="h-full bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
+      <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-4 text-center">{t(lang, 'stats')}</div>
       <div className="flex justify-around mb-5">
         <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink">{weekTotal}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'thisWeek')}</div></div>
         <div className="text-center"><div className={`font-mono text-[22px] ${weekAcc >= 80 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{weekAcc}%</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'accuracy')}</div></div>

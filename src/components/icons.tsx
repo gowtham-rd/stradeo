@@ -110,6 +110,15 @@ export const IconRoadworks = (p: P) => (
   </Svg>
 )
 
+/** Settings: square-toothed gear. */
+export const IconSettings = (p: P) => (
+  <Svg {...p}>
+    <path fillRule="evenodd" d="M19.02 14.91L14.91 19.02H9.09L4.98 14.91V9.09L9.09 4.98H14.91L19.02 9.09ZM9.4 9.4h5.2v5.2H9.4z" />
+    <path d="M10 1.25h4v4h-4zM10 18.75h4v4h-4zM1.25 10h4v4h-4zM18.75 10h4v4h-4z" />
+    <path transform="rotate(45 12 12)" d="M10 1.25h4v4h-4zM10 18.75h4v4h-4zM1.25 10h4v4h-4zM18.75 10h4v4h-4z" />
+  </Svg>
+)
+
 // ── Glyphs ──────────────────────────────────────────────────────────────────
 export const IconCheck = (p: P) => (
   <Svg {...p}>
@@ -153,6 +162,7 @@ export const ICONS = {
   tip: IconTip,
   finish: IconFinish,
   roadworks: IconRoadworks,
+  settings: IconSettings,
   check: IconCheck,
   cross: IconCross,
   arrowRight: IconArrowRight,

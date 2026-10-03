@@ -4,6 +4,7 @@
 const STATIC_CACHE = 'public, max-age=86400, stale-while-revalidate=604800'
 
 const nextConfig = {
+  env: { NEXT_PUBLIC_APP_VERSION: require('./package.json').version },
   images: {
     unoptimized: true,
   },

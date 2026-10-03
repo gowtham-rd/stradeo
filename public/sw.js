@@ -1,12 +1,12 @@
 // Stradeo service worker — makes the app installable and lets practice work offline.
 // Bump VERSION to drop old caches after a release that changes cached files' format.
-const VERSION = 'v2'
+const VERSION = 'v3'
 const SHELL = `stradeo-shell-${VERSION}`
 const DATA = `stradeo-data-${VERSION}`
 
 // App pages and the question/lesson data needed to practise offline.
 const PRECACHE = [
-  '/', '/quiz', '/topic', '/exam', '/exam/review', '/login', '/privacy',
+  '/', '/quiz', '/topic', '/exam', '/exam/review', '/login', '/privacy', '/settings',
   '/data/questions.json', '/data/theory_lessons.json',
   '/data/lessons/it.json', '/data/lessons/ta.json', '/data/lessons/hi.json',
   ...Array.from({ length: 25 }, (_, i) => `/data/topics/${i + 1}.json`),

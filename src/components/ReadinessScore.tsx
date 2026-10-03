@@ -26,7 +26,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
     : t(lang, 'keep')
 
   return (
-    <div className="text-center py-6 px-5 mb-5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line">
+    <div className="h-full text-center py-6 px-5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line">
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'readiness')}</div>
       <div className={`font-mono text-[52px] leading-tight tracking-tight ${scoreClass}`}>
         {readiness}%
