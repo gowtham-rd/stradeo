@@ -12,6 +12,7 @@ import type { TheoryContent } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import { aiPost } from '@/lib/api'
+import { setLastTopic } from '@/lib/lastTopic'
 import { IconStudy, IconQuiz, IconRoadworks, IconWarning, IconTip, IconArrowRight, IconExam } from '@/components/icons'
 
 // Render inline Markdown emphasis (**bold** and *italic*) as real elements.
@@ -55,6 +56,7 @@ function TopicInner() {
   }, [tid, lang])
 
   const valid = TOPICS.some(x => x.id === tid)
+  useEffect(() => { if (valid) setLastTopic(tid) }, [valid, tid])
   const isPri = isPrimaryTopic(tid)
   const accuracy = getTopicAccuracy(tid)
 

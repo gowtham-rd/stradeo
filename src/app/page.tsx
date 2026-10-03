@@ -5,8 +5,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
-import { TOPICS, getTopicName, isPrimaryTopic } from '@/lib/topics'
-import { t, formatWhen, type UIKey } from '@/lib/i18n'
+import { TOPICS, getTopicName } from '@/lib/topics'
+import { t, type UIKey } from '@/lib/i18n'
 import { daysSince, greetingLine } from '@/lib/greeting'
 import NavBar from '@/components/NavBar'
 import ReadinessScore, { TopicMapCard } from '@/components/ReadinessScore'
@@ -15,7 +15,9 @@ import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
 import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
-import { IconExam, IconReview } from '@/components/icons'
+import { IconExam, IconReview, IconStudy, IconArrowRight } from '@/components/icons'
+import { getLastTopic } from '@/lib/lastTopic'
+import { nextBestTopic } from '@/lib/progress'
 import HomeCards from '@/components/HomeCards'
 import ExamHistoryCard from '@/components/ExamHistoryCard'
 
@@ -25,7 +27,7 @@ const HOME_CARD_MS = 2500
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
+  const { progress, seenCount, getDueReviews, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
@@ -75,22 +77,18 @@ export default function HomePage() {
           className="flex w-full items-center justify-center gap-2 p-4 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
         ><IconExam size={18} />{t(lang, 'examSim')}</Link>
 
-        {/* Smart Review: title (+ due badge) on one line; when nothing is due, when the next one is */}
-        {progress.wrongQuestions.length > 0 && (
+        {/* Continue / start studying: the topic opened last (or the one worth most) */}
+        <StudyButton />
+
+        {/* Smart Review: only when missed questions are due again */}
+        {dueCount > 0 && (
           <Link
             href="/quiz?mode=review"
-            className="flex w-full flex-col items-center gap-1 px-4 py-3.5 rounded-[10px] border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink mb-2.5 hover:border-stradeo-ink"
+            className="flex w-full items-center gap-3 px-4 py-3 rounded-[10px] border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink mb-2.5 hover:border-stradeo-ink animate-rise"
           >
-            <span className="inline-flex items-center gap-2 text-[15px] font-semibold">
-              <IconReview size={18} />
-              {t(lang, 'smartReview')}
-              {dueCount > 0 && <span className="font-mono text-[13px] px-1.5 py-0.5 rounded-md bg-stradeo-ink text-stradeo-bg">{dueCount} {t(lang, 'qDue')}</span>}
-            </span>
-            {dueCount === 0 && (
-              <span className="text-[12px] text-stradeo-inkdim">
-                {capitalize(t(lang, 'nothingDue'))}{nextReviewAt ? ` · ${t(lang, 'nextReview')} ${formatWhen(nextReviewAt, lang)}` : ''}
-              </span>
-            )}
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-blue/10 text-stradeo-blue"><IconReview size={17} /></span>
+            <span className="flex-1 text-[15px] font-semibold">{t(lang, 'smartReview')}</span>
+            <span className="font-mono text-[13px] px-1.5 py-0.5 rounded-md bg-stradeo-ink text-stradeo-bg">{dueCount} {t(lang, 'qDue')}</span>
           </Link>
         )}
 
@@ -130,4 +128,26 @@ function Greeting({ name, lastStudy, readiness, streak }: { name: string; lastSt
   )
 }
 
-const capitalize = (x: string) => x.charAt(0).toLocaleUpperCase() + x.slice(1)
+function StudyButton() {
+  const { lang } = useLanguage()
+  const { progress, getTopicAccuracy } = useProgress()
+  // Read after mount (device storage), so server and client markup match.
+  const [last, setLast] = useState<number | null | undefined>(undefined)
+  useEffect(() => { setLast(getLastTopic()) }, [])
+  const started = progress.totalDone > 0 || !!last
+  const topic = last ?? nextBestTopic(progress.stats) ?? 1
+  const acc = getTopicAccuracy(topic)
+  return (
+    <Link href={`/topic?id=${topic}`}
+      className={`flex w-full items-center gap-3 px-4 py-3 rounded-[10px] border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink mb-2.5 hover:border-stradeo-ink transition-opacity duration-300 ${last === undefined ? 'opacity-0' : 'opacity-100'}`}>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-brandorange/[0.12] text-stradeo-brandorange"><IconStudy size={17} /></span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-[15px] font-semibold">{t(lang, started ? 'continueStudying' : 'startStudying')}</span>
+        <span className="block text-[12px] text-stradeo-inkdim truncate">
+          <span className="font-mono">{String(topic).padStart(2, '0')}</span> · {getTopicName(topic, lang)}{acc !== null ? ` · ${acc}%` : ''}
+        </span>
+      </span>
+      <IconArrowRight size={14} className="text-stradeo-inkfaint" />
+    </Link>
+  )
+}

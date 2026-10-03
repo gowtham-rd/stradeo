@@ -12,6 +12,7 @@ import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
+import { setLastTopic } from '@/lib/lastTopic'
 import ReportQuestion from '@/components/ReportQuestion'
 import { aiPost, AI_ENABLED, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
 import { IconReview, IconCheck, IconCross, IconTip, IconRoadworks, IconArrowRight } from '@/components/icons'
@@ -55,6 +56,7 @@ function QuizInner() {
   const params = useSearchParams()
   const mode = params.get('mode')
   const topicId = params.get('topic') ? Number(params.get('topic')) : null
+  useEffect(() => { if (topicId) setLastTopic(topicId) }, [topicId])
   const invalidTopic = topicId !== null && !TOPICS.some(x => x.id === topicId)
   const isReview = mode === 'review'
 
