@@ -125,3 +125,6 @@ button:active {
 .stradeo-range::-moz-range-progress { height: 6px; border-radius: 3px; background: rgb(var(--ink)); }
 .stradeo-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 4px; background: rgb(var(--ink)); border: 2px solid rgb(var(--surface)); }
 .stradeo-range::-moz-range-thumb { width: 16px; height: 16px; border-radius: 4px; background: rgb(var(--ink)); border: 2px solid rgb(var(--surface)); }
+
+/* Carousel dot: fills over one autoplay interval */
+@keyframes dotfill { from { width: 0% } to { width: 100% } }

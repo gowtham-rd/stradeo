@@ -196,11 +196,9 @@ function QuizInner() {
             <div className={`bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 mb-4 ${
               state.animation === 'ok' ? 'animate-pulse-green' : state.animation === 'no' ? 'animate-shake' : ''
             }`}>
-              <div className={`flex flex-wrap justify-end ${imgUrl ? '' : 'mb-2'}`}>
-                <TranslateButton key={questionKey(q)} question={q.q} />
-              </div>
-              {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
-              <p lang="it" className={`text-[17px] leading-relaxed font-normal ${imgUrl ? 'mt-3.5' : ''}`}>{q.q}</p>
+              {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto mb-4 border border-stradeo-line" />}
+              <p lang="it" className="text-[17px] leading-relaxed font-normal">{q.q}</p>
+              <TranslateButton key={questionKey(q)} question={q.q} />
             </div>
 
             {/* Answer buttons (recolor after answering) */}

@@ -35,6 +35,12 @@ const config: Config = {
         'spin-slow': 'spin 0.8s linear infinite',
         'pulse-green': 'pulseGreen 0.4s',
         'shake': 'shake 0.3s',
+        'page-in': 'pageIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'slide-from-right': 'slideFromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'slide-from-left': 'slideFromLeft 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'sheet-up': 'sheetUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'backdrop-in': 'backdropIn 0.2s ease both',
+        'rise': 'rise 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both',
       },
       keyframes: {
         fadeIn: {
@@ -48,6 +54,30 @@ const config: Config = {
         pulseGreen: {
           '0%': { borderColor: 'rgb(var(--success))' },
           '100%': { borderColor: 'rgb(var(--line))' },
+        },
+        pageIn: {
+          from: { opacity: '0', transform: 'translateY(6px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        slideFromRight: {
+          from: { opacity: '0', transform: 'translateX(28px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        slideFromLeft: {
+          from: { opacity: '0', transform: 'translateX(-28px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        sheetUp: {
+          from: { opacity: '0', transform: 'translateY(24px) scale(0.98)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        backdropIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        rise: {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'none' },
         },
         shake: {
           '0%,100%': { transform: 'translateX(0)' },

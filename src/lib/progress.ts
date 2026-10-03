@@ -1,5 +1,5 @@
 // Pure progress logic — no React, no Supabase — so it can be unit-tested.
-import type { UserProgress, Question } from '@/types'
+import type { UserProgress, Question, ExamRecord } from '@/types'
 import { REVIEW_STEPS_MS } from './constants'
 import { questionKey } from './questions'
 
@@ -12,7 +12,10 @@ export const DEFAULT_PROGRESS: UserProgress = {
   lastStudy: null,
   dailyLog: {},
   seen: {},
+  exams: [],
 }
+
+export const EXAM_HISTORY_MAX = 50
 
 /** A single answer, kept until the server has confirmed it (replayed on conflicts). */
 export interface PendingAnswer {
@@ -20,6 +23,12 @@ export interface PendingAnswer {
   correct: boolean
   at: number
 }
+/** A finished exam, kept until the server has confirmed it. */
+export interface PendingExam {
+  exam: ExamRecord
+  at: number
+}
+export type PendingEvent = PendingAnswer | PendingExam
 
 // ── Seen questions ──────────────────────────────────────────────────────────
 /** Short stable id for a question (FNV-1a over questionKey, base36). Stored per topic. */
@@ -125,7 +134,13 @@ export function fromRow(row: any): UserProgress {
     lastStudy: row.last_study ?? null,
     dailyLog: row.daily_log || {},
     seen,
+    exams: Array.isArray(row.exams) ? (row.exams as ExamRecord[]).filter(isExamRecord) : [],
   }
+}
+
+function isExamRecord(e: unknown): e is ExamRecord {
+  const x = e as ExamRecord
+  return !!x && typeof x.at === 'number' && typeof x.score === 'number' && Array.isArray(x.ids) && typeof x.ans === 'string'
 }
 
 /** UserProgress → database columns. */
@@ -139,6 +154,7 @@ export function toRow(p: UserProgress) {
     last_study: p.lastStudy,
     daily_log: p.dailyLog,
     seen: p.seen,
+    exams: p.exams,
   }
 }
 
@@ -198,10 +214,31 @@ export function applyAnswer(prev: UserProgress, question: Question, correct: boo
     lastStudy,
     dailyLog,
     seen,
+    exams: prev.exams || [],
   }
 }
 
-/** Replay answers (oldest first) on top of a server snapshot. */
-export function replay(base: UserProgress, answers: PendingAnswer[]): UserProgress {
-  return answers.reduce((acc, a) => applyAnswer(acc, a.question, a.correct, a.at), base)
+/** Add a finished exam to the history (idempotent by `at`; keeps the newest EXAM_HISTORY_MAX). */
+export function applyExam(prev: UserProgress, exam: ExamRecord): UserProgress {
+  const exams = [...(prev.exams || []).filter(e => e.at !== exam.at), exam]
+    .sort((a, b) => a.at - b.at)
+    .slice(-EXAM_HISTORY_MAX)
+  return { ...prev, exams }
+}
+
+/** Build the stored record for an exam. */
+export function makeExamRecord(questions: Question[], answers: Record<number, boolean>, at: number, secs: number): ExamRecord {
+  return {
+    at,
+    score: questions.filter((q, i) => answers[i] === q.a).length,
+    total: questions.length,
+    secs: Math.max(0, Math.round(secs)),
+    ids: questions.map(q => seenId(q)),
+    ans: questions.map((_, i) => (i in answers ? (answers[i] ? 'T' : 'F') : '-')).join(''),
+  }
+}
+
+/** Replay events (oldest first) on top of a server snapshot. */
+export function replay(base: UserProgress, events: PendingEvent[]): UserProgress {
+  return events.reduce((acc, e) => ('exam' in e ? applyExam(acc, e.exam) : applyAnswer(acc, e.question, e.correct, e.at)), base)
 }

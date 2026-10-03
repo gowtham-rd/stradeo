@@ -17,6 +17,10 @@ import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
 import { IconExam, IconReview } from '@/components/icons'
 import HomeCards from '@/components/HomeCards'
+import ExamHistoryCard from '@/components/ExamHistoryCard'
+
+// How long each home card stays before the next slides in.
+const HOME_CARD_MS = 2500
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
@@ -50,8 +54,8 @@ export default function HomePage() {
         {/* Greeting: name, then a line for the time of day / how it's going */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak} />
 
-        {/* Readiness → Topic map → Stats (swipe; the strip takes the height of the card in view) */}
-        <HomeCards className="mb-4" cards={[
+        {/* Readiness → Topic map → Stats → Exam history: auto-advances, swipe or tap the dots */}
+        <HomeCards className="mb-4" autoPlay={HOME_CARD_MS} cards={[
           { label: t(lang, 'readinessCard'), content: (
             <ReadinessScore
               readiness={readiness}
@@ -62,6 +66,7 @@ export default function HomePage() {
           ) },
           { label: t(lang, 'topicMap'), content: <TopicMapCard topicsCovered={topicsCovered} /> },
           { label: t(lang, 'stats'), content: <StatsPanel /> },
+          { label: t(lang, 'examHistory'), content: <ExamHistoryCard /> },
         ]} />
 
         {/* Exam Button */}

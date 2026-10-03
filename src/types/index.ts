@@ -54,6 +54,24 @@ export interface UserProgress {
   dailyLog: Record<string, DayStats>
   /** Ids (seenId) of questions answered at least once, per topic. */
   seen: Record<number, string[]>
+  /** Finished exam simulations, oldest first (last EXAM_HISTORY_MAX kept). */
+  exams: ExamRecord[]
+}
+
+/** One finished exam, stored compactly: question ids + one character per answer. */
+export interface ExamRecord {
+  /** Epoch ms when it was submitted (also its id). */
+  at: number
+  /** Correct answers. */
+  score: number
+  /** Questions in the exam (30). */
+  total: number
+  /** Seconds used. */
+  secs: number
+  /** seenId of each question, in exam order. */
+  ids: string[]
+  /** One character per question: 'T' (vero), 'F' (falso) or '-' (no answer). */
+  ans: string
 }
 
 // ─── Theory ───

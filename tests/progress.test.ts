@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
-  DEFAULT_PROGRESS, applyAnswer, nextBestTopic, topicScore, replay, normaliseReview, computeReadiness, activeStreak, seenId, seenCount, fromRow, toRow,
+  DEFAULT_PROGRESS, applyAnswer, nextBestTopic, topicScore, replay, normaliseReview, computeReadiness, activeStreak, seenId, seenCount, fromRow, toRow, applyExam, makeExamRecord, EXAM_HISTORY_MAX,
 } from '../src/lib/progress'
 import { questionKey, buildExamQuestions } from '../src/lib/questions'
 import { REVIEW_STEPS_MS } from '../src/lib/constants'
@@ -149,4 +149,22 @@ test('next best topic: weighted biggest gap, none when everything is ready', () 
   // From nothing, the first double-weight topic wins.
   assert.equal(nextBestTopic({}), 1)
   assert.equal(topicScore({ 5: { c: 5, t: 5 } }, 5), 0.25)
+})
+
+test('exam history: record, replay is idempotent, capped, survives a row round-trip', () => {
+  const qs = [A, B, { ...A, q: 'altra domanda', a: false }]
+  const rec = makeExamRecord(qs, { 0: true, 1: true }, T0, 125.4)
+  assert.equal(rec.score, 1)
+  assert.equal(rec.ans, 'TT-')
+  assert.equal(rec.secs, 125)
+  assert.deepEqual(rec.ids, qs.map(seenId))
+  let p = replay(DEFAULT_PROGRESS, [{ exam: rec, at: T0 }, { exam: rec, at: T0 }])
+  assert.equal(p.exams.length, 1)
+  for (let i = 1; i <= EXAM_HISTORY_MAX + 5; i++) p = applyExam(p, { ...rec, at: T0 + i })
+  assert.equal(p.exams.length, EXAM_HISTORY_MAX)
+  assert.equal(p.exams[p.exams.length - 1].at, T0 + EXAM_HISTORY_MAX + 5)
+  assert.deepEqual(fromRow({ ...toRow(p) }).exams, p.exams)
+  // Answers keep the history; rows from before migration 003 load with none.
+  assert.equal(applyAnswer(p, A, true, T0).exams.length, EXAM_HISTORY_MAX)
+  assert.deepEqual(fromRow({ stats: {} }).exams, [])
 })

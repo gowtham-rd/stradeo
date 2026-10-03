@@ -2,10 +2,10 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
-import type { UserProgress, Question } from '@/types'
+import type { UserProgress, Question, ExamRecord } from '@/types'
 import { questionKey } from '@/lib/questions'
 import {
-  DEFAULT_PROGRESS, type PendingAnswer, activeStreak, computeReadiness, fromRow, toRow, replay, seenCount,
+  DEFAULT_PROGRESS, type PendingEvent, activeStreak, makeExamRecord, computeReadiness, fromRow, toRow, replay, seenCount,
 } from '@/lib/progress'
 
 export { computeReadiness, READINESS_MIN_ANSWERS, applyAnswer, normaliseReview, activeStreak } from '@/lib/progress'
@@ -23,6 +23,8 @@ interface ProgressContextType {
   resetProgress: () => Promise<boolean>
   recordAnswer: (question: Question, correct: boolean) => void
   recordAnswers: (entries: { question: Question; correct: boolean }[]) => void
+  /** Save a finished exam: its answers count towards progress and it joins the exam history. Returns the record. */
+  recordExam: (questions: Question[], answers: Record<number, boolean>, secs: number) => ExamRecord | null
   getDueReviews: () => Question[]
   /** Epoch ms of the next review that isn't due yet, or null if none. */
   nextReviewAt: number | null
@@ -37,13 +39,29 @@ interface ProgressContextType {
 
 const ProgressContext = createContext<ProgressContextType | null>(null)
 const RETRY_MS = 5000
+// Until migration 003 has run, the database has no `exams` column: saves then
+// leave it out (history stays on this device) instead of failing.
+let examsColumn = true
+const isMissingExams = (e: { code?: string; message?: string } | null) =>
+  !!e && (e.code === 'PGRST204' || e.code === '42703') && /exams/.test(e.message || '')
+function rowFor(p: UserProgress) {
+  const row: Partial<ReturnType<typeof toRow>> = toRow(p)
+  if (!examsColumn) delete row.exams
+  return row
+}
 
 // Device copy of the last confirmed snapshot + unsaved answers, so practice works
 // offline and nothing is lost if the tab closes before a save lands.
-type Stored = { data: UserProgress; version: number; exists: boolean; pending: PendingAnswer[] }
+type Stored = { data: UserProgress; version: number; exists: boolean; pending: PendingEvent[] }
 const storeKey = (id: string) => `stradeo-progress:${id}`
 function readStore(id: string): Stored | null {
-  try { const raw = localStorage.getItem(storeKey(id)); return raw ? JSON.parse(raw) as Stored : null } catch { return null }
+  try {
+    const raw = localStorage.getItem(storeKey(id))
+    if (!raw) return null
+    const s = JSON.parse(raw) as Stored
+    // Copies saved by older versions may miss newer fields.
+    return { ...s, data: { ...DEFAULT_PROGRESS, ...s.data, exams: s.data?.exams ?? [] } }
+  } catch { return null }
 }
 function writeStore(id: string, s: Stored) {
   try { localStorage.setItem(storeKey(id), JSON.stringify(s)) } catch { /* storage full or blocked */ }
@@ -64,7 +82,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // or device) saved in between; otherwise we fetch their snapshot, replay our
   // pending answers on top and try again — so no device overwrites another.
   const server = useRef<{ userId: string; data: UserProgress; version: number; exists: boolean } | null>(null)
-  const pending = useRef<PendingAnswer[]>([])
+  const pending = useRef<PendingEvent[]>([])
   const flushing = useRef(false)
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -128,14 +146,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         let ok: boolean
         if (base.exists) {
           const { data, error } = await supabase.from('progress')
-            .update({ ...toRow(target), version: nextVersion, updated_at: new Date().toISOString() })
+            .update({ ...rowFor(target), version: nextVersion, updated_at: new Date().toISOString() })
             .eq('user_id', base.userId).eq('version', base.version)
             .select('version')
+          if (isMissingExams(error)) { examsColumn = false; attempt--; continue }
           if (error) throw error
           ok = !!data && data.length > 0
         } else {
           const { error } = await supabase.from('progress')
-            .insert({ user_id: base.userId, ...toRow(target), version: nextVersion, updated_at: new Date().toISOString() })
+            .insert({ user_id: base.userId, ...rowFor(target), version: nextVersion, updated_at: new Date().toISOString() })
+          if (isMissingExams(error)) { examsColumn = false; attempt--; continue }
           ok = !error // a duplicate-key error means another device created the row first
         }
         if (server.current?.userId !== base.userId) return // signed out meanwhile
@@ -188,6 +208,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     void flush()
   }, [flush, persist])
 
+  const recordExam = useCallback((questions: Question[], answers: Record<number, boolean>, secs: number): ExamRecord | null => {
+    if (!server.current) return null
+    const at = Date.now()
+    const exam = makeExamRecord(questions, answers, at, secs)
+    const events: PendingEvent[] = [
+      ...questions.flatMap((q, i) => (i in answers ? [{ question: q, correct: answers[i] === q.a, at }] : [])),
+      { exam, at },
+    ]
+    pending.current = [...pending.current, ...events]
+    persist()
+    setProgress(prev => replay(prev, events))
+    void flush()
+    return exam
+  }, [flush, persist])
+
   const recordAnswer = useCallback((question: Question, correct: boolean) => {
     recordAnswers([{ question, correct }])
   }, [recordAnswers])
@@ -201,10 +236,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // Not conditional on version: a reset must win over any device's save.
       const latest = await fetchRow(base.userId)
       const nextVersion = Math.max(base.version, latest.version) + 1
-      const row = { ...toRow(DEFAULT_PROGRESS), version: nextVersion, updated_at: new Date().toISOString() }
-      const { error } = latest.exists
-        ? await supabase.from('progress').update(row).eq('user_id', base.userId)
-        : await supabase.from('progress').insert({ user_id: base.userId, ...row })
+      const write = () => {
+        const row = { ...rowFor(DEFAULT_PROGRESS), version: nextVersion, updated_at: new Date().toISOString() }
+        return latest.exists
+          ? supabase.from('progress').update(row).eq('user_id', base.userId)
+          : supabase.from('progress').insert({ user_id: base.userId, ...row })
+      }
+      let { error } = await write()
+      if (isMissingExams(error)) { examsColumn = false; ({ error } = await write()) }
       if (error) throw error
       server.current = { userId: base.userId, data: DEFAULT_PROGRESS, version: nextVersion, exists: true }
       pending.current = []
@@ -240,7 +279,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProgressContext.Provider value={{
-      progress, loaded, loadError, saveError, retryLoad, resetProgress, recordAnswer, recordAnswers,
+      progress, loaded, loadError, saveError, retryLoad, resetProgress, recordAnswer, recordAnswers, recordExam,
       getDueReviews, nextReviewAt, streak: activeStreak(progress), getTopicAccuracy,
       seenCount: seenCountFn, readiness, topicsCovered,
     }}>
