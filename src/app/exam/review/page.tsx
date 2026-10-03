@@ -9,6 +9,7 @@ import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import { aiPost, AI_NOT_READY } from '@/lib/api'
+import { IconExam, IconFinish, IconCheck, IconCross, IconTip, IconRoadworks } from '@/components/icons'
 
 interface ExamResult {
   questions: Question[]
@@ -57,7 +58,7 @@ export default function ExamReviewPage() {
       <div className="min-h-screen">
         <AdBanner /><NavBar />
         <div className="max-w-[640px] mx-auto px-4 pt-16 text-center">
-          <div className="text-5xl mb-4">🎯</div>
+          <IconExam size={48} className="mx-auto mb-4" />
           <p className="text-stradeo-inkdim mb-6">{t(lang, 'examSim')}</p>
           <Link href="/exam" className="inline-block px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'newExam')}</Link>
         </div>
@@ -76,7 +77,7 @@ export default function ExamReviewPage() {
           <div className={`font-mono text-[52px] leading-tight tracking-tight ${passed ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>
             {score}/{EXAM_QUESTIONS}
           </div>
-          <div className="text-xl font-bold mt-1">{passed ? `${t(lang, 'passed')} 🎉` : t(lang, 'failed')}</div>
+          <div className="text-xl font-bold mt-1 inline-flex items-center gap-2">{passed ? <>{t(lang, 'passed')} <IconFinish size={22} /></> : t(lang, 'failed')}</div>
           <div className="text-sm text-stradeo-inkdim mt-1.5">{EXAM_QUESTIONS - score} {t(lang, 'errors')} · {t(lang, 'max3')}</div>
         </div>
 
@@ -89,7 +90,7 @@ export default function ExamReviewPage() {
               h.ok ? 'bg-stradeo-green/[0.03] border-stradeo-green/[0.08]' : 'bg-stradeo-accent2/[0.05] border-stradeo-accent2/[0.12]'
             }`}>
               <div className="flex gap-2.5 items-start">
-                <span className={`text-base ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>{h.ok ? '✓' : '✗'}</span>
+                <span className={`mt-0.5 ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>{h.ok ? <IconCheck size={15} /> : <IconCross size={13} />}</span>
                 <div className="flex-1">
                   {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
                   <p className="text-sm leading-[1.5] mb-1">{h.q.q}</p>
@@ -98,15 +99,15 @@ export default function ExamReviewPage() {
                   </p>
                   {!h.ok && (exp[i] ? (
                     <div className="bg-stradeo-surface2 rounded-[10px] p-3 mt-2">
-                      <div className="flex items-center gap-1.5 mb-1.5"><span>💡</span><span className="text-[11px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span></div>
-                      <p className="text-[13px] leading-relaxed text-stradeo-ink">{exp[i]}</p>
+                      <div className="flex items-center gap-1.5 mb-1.5"><IconTip size={13} className="text-stradeo-brandorange" /><span className="text-[11px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span></div>
+                      <p className="text-[13px] leading-relaxed text-stradeo-ink">{exp[i] === t(lang, 'aiSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={15} className="text-stradeo-brandorange mt-0.5" />{exp[i]}</span> : exp[i]}</p>
                     </div>
                   ) : (
                     <button onClick={() => fetchExp(i, h.q.q, h.q.a)} disabled={expLoading[i]}
                       className="mt-2 px-4 py-2 rounded-lg border border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-xs font-semibold flex items-center gap-1.5">
                       {expLoading[i]
                         ? <><div className="w-3 h-3 border-2 border-stradeo-line border-t-stradeo-ink rounded-full animate-spin-slow" />{t(lang, 'loading')}</>
-                        : <>💡 {t(lang, 'explain')}</>}
+                        : <><IconTip size={13} />{t(lang, 'explain')}</>}
                     </button>
                   ))}
                 </div>

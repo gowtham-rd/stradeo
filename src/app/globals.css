@@ -21,6 +21,7 @@
   --ink-faint: 138 138 131;
 
   --brand: 255 214 0;
+  --stradeo: 232 106 0; /* Stradeo orange — icon accents (darker in light mode for contrast) */
   --on-brand: 11 11 10;
 
   --success: 31 138 76;
@@ -45,6 +46,7 @@
     --warning: 240 138 67;
     --danger: 239 106 111;
     --info: 111 158 240;
+    --stradeo: 255 122 0;
     color-scheme: dark;
   }
 }
@@ -62,6 +64,7 @@
   --warning: 240 138 67;
   --danger: 239 106 111;
   --info: 111 158 240;
+  --stradeo: 255 122 0;
   color-scheme: dark;
 }
 

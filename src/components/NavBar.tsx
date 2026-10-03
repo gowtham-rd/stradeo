@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import StradeoMark from './StradeoMark'
 import ThemeToggle from './ThemeToggle'
+import { IconArrowLeft, IconChevronDown } from '@/components/icons'
 
 export default function NavBar() {
   const { signOut } = useAuth()
@@ -25,7 +26,7 @@ export default function NavBar() {
             <span className="text-[17px] font-bold tracking-tight max-[399px]:sr-only">Stradeo</span>
           </Link>
           {!isHome && (
-            <Link href="/" aria-label={t(lang, 'home')} className="text-stradeo-inkdim hover:text-stradeo-ink text-sm font-semibold whitespace-nowrap">← <span className="hidden sm:inline">{t(lang, 'home')}</span></Link>
+            <Link href="/" aria-label={t(lang, 'home')} className="inline-flex items-center gap-1.5 text-stradeo-inkdim hover:text-stradeo-ink text-sm font-semibold whitespace-nowrap"><IconArrowLeft size={14} /><span className="hidden sm:inline">{t(lang, 'home')}</span></Link>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -33,8 +34,8 @@ export default function NavBar() {
           <div className="sm:hidden"><ThemeToggle compact /></div>
           <div className="relative">
             <button onClick={() => setShowLang(!showLang)} aria-expanded={showLang}
-              className="h-8 px-2.5 rounded-lg border border-stradeo-line bg-stradeo-bg2 text-stradeo-inkdim hover:text-stradeo-ink text-xs font-semibold whitespace-nowrap">
-              {LANGUAGES[lang]} ▾
+              className="h-8 px-2.5 rounded-lg border border-stradeo-line bg-stradeo-bg2 text-stradeo-inkdim hover:text-stradeo-ink text-xs font-semibold whitespace-nowrap inline-flex items-center gap-1">
+              {LANGUAGES[lang]} <IconChevronDown size={10} />
             </button>
             {showLang && (
               <div className="absolute right-0 top-full mt-1 bg-stradeo-bg2 border border-stradeo-line rounded-[10px] overflow-hidden z-[100] min-w-[120px]">

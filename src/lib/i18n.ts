@@ -28,7 +28,7 @@ export const UI = {
     why: "Why?", gettingExp: "Getting explanation...", correctBadge: "Correct!",
     explain: "Explain why", loading: "Loading...", smartReview: "Smart Review",
     qDue: "due", logout: "Log out", welcome: "Welcome back",
-    aiSoon: "🚧 Feature in progress — AI translations and explanations are coming soon.", lessonLangSoon: "🚧 Lessons in this language are in progress. Showing English for now.", readinessHint: "Based on your accuracy in all 25 topics. Answer at least 20 questions per topic for a full score.", topicsCovered: "topics covered",
+    aiSoon: "Feature in progress — AI translations and explanations are coming soon.", lessonLangSoon: "Lessons in this language are in progress. Showing English for now.", readinessHint: "Based on your accuracy in all 25 topics. Answer at least 20 questions per topic for a full score.", topicsCovered: "topics covered",
   },
   it: {
     login: "Accedi", username: "Nome utente", password: "Password", loginBtn: "Accedi",
@@ -42,7 +42,7 @@ export const UI = {
     questions: "domande", why: "Perché?", gettingExp: "Caricamento...",
     correctBadge: "Corretto!", explain: "Spiega", loading: "Caricamento...",
     smartReview: "Ripasso", qDue: "da ripassare", logout: "Esci", welcome: "Bentornato",
-    aiSoon: "🚧 Funzione in arrivo — traduzioni e spiegazioni AI saranno disponibili presto.", lessonLangSoon: "🚧 Le lezioni in questa lingua sono in arrivo. Per ora in inglese.", readinessHint: "Basato sulla tua precisione in tutti i 25 argomenti. Rispondi ad almeno 20 domande per argomento per il punteggio pieno.", topicsCovered: "argomenti coperti",
+    aiSoon: "Funzione in arrivo — traduzioni e spiegazioni AI saranno disponibili presto.", lessonLangSoon: "Le lezioni in questa lingua sono in arrivo. Per ora in inglese.", readinessHint: "Basato sulla tua precisione in tutti i 25 argomenti. Rispondi ad almeno 20 domande per argomento per il punteggio pieno.", topicsCovered: "argomenti coperti",
   },
   ta: {
     login: "உள்நுழை", username: "பயனர்பெயர்", password: "கடவுச்சொல்",
@@ -56,7 +56,7 @@ export const UI = {
     questions: "கேள்விகள்", why: "ஏன்?", gettingExp: "ஏற்றுகிறது...",
     correctBadge: "சரி!", explain: "விளக்கு", loading: "ஏற்றுகிறது...",
     smartReview: "மறுபார்வை", qDue: "நிலுவை", logout: "வெளியேறு", welcome: "மீண்டும் வருக",
-    aiSoon: "🚧 இந்த வசதி தயாராகிறது — AI மொழிபெயர்ப்பும் விளக்கமும் விரைவில் வரும்.", lessonLangSoon: "🚧 இந்த மொழியில் பாடங்கள் தயாராகின்றன. இப்போதைக்கு ஆங்கிலத்தில்.", readinessHint: "25 தலைப்புகளிலும் உங்கள் சரியான விடைகளின் அடிப்படையில். முழு மதிப்பெண்ணுக்கு ஒவ்வொரு தலைப்பிலும் குறைந்தது 20 கேள்விகள்.", topicsCovered: "தலைப்புகள் முடிந்தன",
+    aiSoon: "இந்த வசதி தயாராகிறது — AI மொழிபெயர்ப்பும் விளக்கமும் விரைவில் வரும்.", lessonLangSoon: "இந்த மொழியில் பாடங்கள் தயாராகின்றன. இப்போதைக்கு ஆங்கிலத்தில்.", readinessHint: "25 தலைப்புகளிலும் உங்கள் சரியான விடைகளின் அடிப்படையில். முழு மதிப்பெண்ணுக்கு ஒவ்வொரு தலைப்பிலும் குறைந்தது 20 கேள்விகள்.", topicsCovered: "தலைப்புகள் முடிந்தன",
   },
   hi: {
     login: "लॉग इन", username: "यूजरनेम", password: "पासवर्ड", loginBtn: "साइन इन",
@@ -70,7 +70,7 @@ export const UI = {
     gettingExp: "लोड हो रहा...", correctBadge: "सही!", explain: "कारण बताएं",
     loading: "लोड हो रहा...", smartReview: "स्मार्ट रिव्यू", qDue: "बाकी",
     logout: "लॉग आउट", welcome: "वापसी पर स्वागत",
-    aiSoon: "🚧 यह सुविधा जल्द आ रही है — AI अनुवाद और व्याख्या जल्द उपलब्ध होंगे।", lessonLangSoon: "🚧 इस भाषा में पाठ जल्द आ रहे हैं। अभी अंग्रेज़ी में।", readinessHint: "सभी 25 विषयों में आपकी सटीकता पर आधारित। पूरे स्कोर के लिए हर विषय में कम से कम 20 सवाल करें।", topicsCovered: "विषय पूरे",
+    aiSoon: "यह सुविधा जल्द आ रही है — AI अनुवाद और व्याख्या जल्द उपलब्ध होंगे।", lessonLangSoon: "इस भाषा में पाठ जल्द आ रहे हैं। अभी अंग्रेज़ी में।", readinessHint: "सभी 25 विषयों में आपकी सटीकता पर आधारित। पूरे स्कोर के लिए हर विषय में कम से कम 20 सवाल करें।", topicsCovered: "विषय पूरे",
   },
 } as const
 

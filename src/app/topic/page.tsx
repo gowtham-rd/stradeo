@@ -12,6 +12,7 @@ import type { TheoryContent } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import { aiPost } from '@/lib/api'
+import { IconStudy, IconQuiz, IconRoadworks, IconWarning, IconTip, IconArrowRight, IconExam } from '@/components/icons'
 
 // Render inline Markdown emphasis (**bold** and *italic*) as real elements.
 function renderMD(text: string) {
@@ -111,9 +112,9 @@ function TopicInner() {
         {/* Tabs */}
         <div className="flex gap-1 mb-5 bg-stradeo-surface2 rounded-[10px] p-1" role="tablist">
           <button onClick={() => setMode('study')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'study' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'}`}>📖 Study</button>
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'study' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconStudy size={16} />Study</button>
           <button onClick={() => setMode('quiz')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'quiz' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'}`}>📝 Quiz</button>
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'quiz' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconQuiz size={15} />Quiz</button>
         </div>
 
         {/* STUDY TAB */}
@@ -121,8 +122,8 @@ function TopicInner() {
           <div>
             {!theory && !theoryLoading && (
               <button onClick={() => fetchTheory()}
-                className="w-full p-5 rounded-[14px] border border-dashed border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-[15px] font-semibold mb-4">
-                📖 Generate lesson in {LANGUAGES[lang]}
+                className="w-full p-5 rounded-[14px] border border-dashed border-stradeo-line text-stradeo-ink hover:border-stradeo-ink text-[15px] font-semibold mb-4 inline-flex items-center justify-center gap-2">
+                <IconStudy size={16} />Generate lesson in {LANGUAGES[lang]}
               </button>
             )}
 
@@ -135,8 +136,8 @@ function TopicInner() {
             )}
 
             {theory && lang !== 'en' && !cache[`${tid}-${lang}`] && (
-              <div className="mb-3.5 rounded-[10px] border border-stradeo-accent/30 bg-stradeo-accent/[0.08] px-4 py-3 text-[13px] text-stradeo-ink">
-                {t(lang, 'lessonLangSoon')}
+              <div className="mb-3.5 rounded-[10px] border border-stradeo-accent/30 bg-stradeo-accent/[0.08] px-4 py-3 text-[13px] text-stradeo-ink flex items-start gap-2.5">
+                <IconRoadworks size={18} className="text-stradeo-brandorange shrink-0" /><span>{t(lang, 'lessonLangSoon')}</span>
               </div>
             )}
 
@@ -173,10 +174,10 @@ function TopicInner() {
                 {/* Traps */}
                 {theory.traps && (
                   <div className="bg-stradeo-accent/[0.06] border border-stradeo-accent/20 rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-accent uppercase tracking-[1px] mb-3">⚠ Exam Traps</div>
+                    <div className="text-xs font-semibold text-stradeo-accent uppercase tracking-[1px] mb-3 flex items-center gap-2"><IconWarning size={14} />Exam Traps</div>
                     {theory.traps.split('\n').filter(l => l.trim()).map((line, i) => (
                       <div key={i} className="flex gap-2.5 mb-2 items-start">
-                        <span className="text-stradeo-accent text-[13px]">⚠</span>
+                        <IconWarning size={13} className="text-stradeo-accent mt-1" />
                         <p className="m-0 text-sm leading-relaxed text-stradeo-ink">{renderMD(line.replace(/^[⚠·\-]\s*/, ''))}</p>
                       </div>
                     ))}
@@ -186,14 +187,14 @@ function TopicInner() {
                 {/* Remember */}
                 {theory.remember && (
                   <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-3.5 text-center">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-2">💡 Remember</div>
+                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-2 flex items-center justify-center gap-2"><IconTip size={14} className="text-stradeo-brandorange" />Remember</div>
                     <p className="m-0 text-[15px] font-semibold leading-relaxed text-stradeo-ink">{renderMD(theory.remember)}</p>
                   </div>
                 )}
 
                 {/* Actions */}
                 <button onClick={() => setMode('quiz')}
-                  className="w-full py-3.5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mt-2">📝 Start Quiz →</button>
+                  className="flex w-full py-3.5 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mt-2"><IconQuiz size={15} />Start Quiz <IconArrowRight size={15} /></button>
               </div>
             )}
           </div>
@@ -203,7 +204,7 @@ function TopicInner() {
         {mode === 'quiz' && (
           <div>
             <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 text-center">
-              <div className="text-4xl mb-2">{isPri ? '🎯' : '📝'}</div>
+              <div className="mb-2 flex justify-center">{isPri ? <IconExam size={36} /> : <IconQuiz size={34} />}</div>
               <h3 className="text-[17px] font-bold mb-1.5">{count} {t(lang, 'questions')}</h3>
               <p className="text-[13px] text-stradeo-inkfaint">{isPri ? 'Primary topic · 2 questions per exam' : 'Integrative · 1 question per exam'}</p>
               {accuracy !== null && (
@@ -212,15 +213,15 @@ function TopicInner() {
                 </p>
               )}
               <Link href={`/quiz?topic=${tid}`}
-                className="block w-full py-4 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold mt-4">
-                Start Quiz →
+                className="flex w-full py-4 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-base font-bold mt-4">
+                Start Quiz <IconArrowRight size={16} />
               </Link>
             </div>
 
             {!theory && (
               <button onClick={() => setMode('study')}
-                className="w-full py-3.5 rounded-[10px] border border-dashed border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink text-[13px] font-semibold mt-3">
-                📖 Study the theory first?
+                className="w-full py-3.5 rounded-[10px] border border-dashed border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink text-[13px] font-semibold mt-3 inline-flex items-center justify-center gap-2">
+                <IconStudy size={15} />Study the theory first?
               </button>
             )}
           </div>

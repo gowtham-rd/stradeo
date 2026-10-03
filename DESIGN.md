@@ -45,3 +45,16 @@ Status backgrounds use the status colour at about 10% opacity.
 - Do: one yellow button, everything else outlined or ink.
 - Do: put numbers in JetBrains Mono.
 - Don't: gradients, glows, coloured shadows, emoji-as-icons in navigation, yellow text, a second yellow button.
+
+## Icons
+
+Stradeo uses its own icon set (`src/components/icons.tsx`), never emoji. Every icon is drawn like the app mark:
+
+- 24×24 grid, **solid fills only** (no strokes), `currentColor`.
+- **Square-cut ends, no rounded joins.** Diagonals are slanted like the road in the mark.
+- Holes are cut with `fillRule="evenodd"` rather than drawn as outlines.
+- Default colour is the surrounding text colour. Accents (streak flame, tip bulb, roadworks) use `text-stradeo-brandorange`:
+  `--stradeo` is `#E86A00` in light mode (darker, for contrast on white) and `#FF7A00` in dark mode.
+- Yellow stays reserved for primary CTAs. Never colour an icon yellow.
+
+Set: exam, review, study, quiz, streak, stats, translate, warning, tip, finish, roadworks, check, cross, arrowRight, arrowLeft, chevronDown.

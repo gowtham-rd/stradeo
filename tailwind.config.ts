@@ -16,6 +16,7 @@ const config: Config = {
           inkfaint: 'rgb(var(--ink-faint) / <alpha-value>)',
           // Brand: yellow fill for the one main action per view; text on it is onbrand.
           brand: 'rgb(var(--brand) / <alpha-value>)',
+          brandorange: 'rgb(var(--stradeo) / <alpha-value>)',
           onbrand: 'rgb(var(--on-brand) / <alpha-value>)',
           // Status colours (kept under their old names so components didn't need renaming).
           accent: 'rgb(var(--warning) / <alpha-value>)', // warning — orange

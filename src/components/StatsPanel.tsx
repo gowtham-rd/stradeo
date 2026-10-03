@@ -5,6 +5,7 @@ import { useProgress } from '@/contexts/ProgressContext'
 import { TOPICS, getTopicName } from '@/lib/topics'
 import { t } from '@/lib/i18n'
 import Link from 'next/link'
+import { IconStreak } from '@/components/icons'
 
 export default function StatsPanel() {
   const { lang } = useLanguage()
@@ -44,7 +45,7 @@ export default function StatsPanel() {
       <div className="flex justify-around mb-5">
         <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink">{weekTotal}</div><div className="text-[11px] text-stradeo-inkdim">This week</div></div>
         <div className="text-center"><div className={`font-mono text-[22px] ${weekAcc >= 80 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{weekAcc}%</div><div className="text-[11px] text-stradeo-inkdim">Accuracy</div></div>
-        <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink">🔥 {progress.streak}</div><div className="text-[11px] text-stradeo-inkdim">Streak</div></div>
+        <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink inline-flex items-center gap-1.5"><IconStreak size={18} className="text-stradeo-brandorange" />{progress.streak}</div><div className="text-[11px] text-stradeo-inkdim">Streak</div></div>
       </div>
 
       <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-2.5">Last 7 days</div>

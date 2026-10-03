@@ -12,6 +12,7 @@ import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
 import { aiPost, AI_NOT_READY } from '@/lib/api'
+import { IconReview, IconCheck, IconCross, IconTip, IconRoadworks, IconArrowRight } from '@/components/icons'
 
 const initialState: QuizState = {
   questions: [],
@@ -93,7 +94,7 @@ function QuizInner() {
   const imgUrl = getImageUrl(q?.i)
 
   const title = isReview
-    ? `🧠 ${t(lang, 'smartReview')}`
+    ? t(lang, 'smartReview')
     : topicId ? getTopicName(topicId, lang) : t(lang, 'examSim')
 
   async function fetchExplanation(question: string, correctAnswer: boolean) {
@@ -137,7 +138,7 @@ function QuizInner() {
           </div>
         ) : total === 0 ? (
           <div className="text-center py-16">
-            <div className="text-5xl mb-4">✓</div>
+            <IconCheck size={48} className="text-stradeo-green mb-4" />
             <p className="text-stradeo-inkdim mb-6">{t(lang, 'ready')}</p>
             <Link href="/" className="inline-block px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'home')}</Link>
           </div>
@@ -146,12 +147,12 @@ function QuizInner() {
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="text-[17px] font-bold">{title}</h3>
+                <h3 className="text-[17px] font-bold inline-flex items-center gap-2">{isReview && <IconReview size={17} />}{title}</h3>
                 <p className="font-mono text-[13px] text-stradeo-inkfaint mt-0.5">{state.currentIndex + 1}/{total}</p>
               </div>
               <div className="flex gap-3 font-mono text-[15px]">
-                <span className="text-stradeo-green">✓{state.score.c}</span>
-                <span className="text-stradeo-accent2">✗{state.score.w}</span>
+                <span className="text-stradeo-green inline-flex items-center gap-1"><IconCheck size={13} />{state.score.c}</span>
+                <span className="text-stradeo-accent2 inline-flex items-center gap-1"><IconCross size={12} />{state.score.w}</span>
               </div>
             </div>
 
@@ -185,8 +186,8 @@ function QuizInner() {
                 return (
                   <button key={String(val)} onClick={() => handleAnswer(val)}
                     disabled={state.answer !== null}
-                    className={`py-4 rounded-[14px] text-lg font-bold transition-all ${cls} ${state.answer === null ? 'cursor-pointer' : 'cursor-default'}`}>
-                    {val ? 'VERO ✓' : 'FALSO ✗'}
+                    className={`py-4 rounded-[14px] text-lg font-bold transition-all inline-flex items-center justify-center gap-2 ${cls} ${state.answer === null ? 'cursor-pointer' : 'cursor-default'}`}>
+                    {val ? <>VERO <IconCheck size={18} /></> : <>FALSO <IconCross size={16} /></>}
                   </button>
                 )
               })}
@@ -196,7 +197,7 @@ function QuizInner() {
             {state.answer !== null && state.answer !== q.a && (
               <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span>💡</span>
+                  <IconTip size={16} className="text-stradeo-brandorange" />
                   <span className="text-[13px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span>
                 </div>
                 {expLoading ? (
@@ -205,7 +206,7 @@ function QuizInner() {
                     <span className="text-sm text-stradeo-inkdim">{t(lang, 'gettingExp')}</span>
                   </div>
                 ) : (
-                  <p className="text-sm leading-relaxed text-stradeo-ink">{exp}</p>
+                  <p className="text-sm leading-relaxed text-stradeo-ink">{exp === t(lang, 'aiSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={16} className="text-stradeo-brandorange mt-0.5" />{exp}</span> : exp}</p>
                 )}
               </div>
             )}
@@ -213,15 +214,15 @@ function QuizInner() {
             {/* Correct badge */}
             {state.answer !== null && state.answer === q.a && (
               <div className="bg-stradeo-green/[0.06] border border-stradeo-green/[0.12] rounded-[14px] px-4 py-3.5 mb-4 text-center">
-                <span className="text-sm text-stradeo-green font-semibold">✓ {t(lang, 'correctBadge')}</span>
+                <span className="text-sm text-stradeo-green font-semibold inline-flex items-center gap-1.5"><IconCheck size={14} />{t(lang, 'correctBadge')}</span>
               </div>
             )}
 
             {/* Next (not last) */}
             {state.answer !== null && !isLast && (
               <button onClick={() => dispatch({ type: 'NEXT' })}
-                className="w-full py-3.5 rounded-[10px] bg-stradeo-ink text-stradeo-bg text-[15px] font-semibold">
-                {t(lang, 'next')} →
+                className="flex w-full py-3.5 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-ink text-stradeo-bg text-[15px] font-semibold">
+                {t(lang, 'next')} <IconArrowRight size={15} />
               </button>
             )}
 

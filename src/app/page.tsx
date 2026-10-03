@@ -14,6 +14,7 @@ import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
 import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
+import { IconStreak, IconStats, IconExam, IconReview } from '@/components/icons'
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
@@ -52,14 +53,15 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             {progress.streak > 0 && (
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-stradeo-line bg-stradeo-bg2">
-                <span className="text-base">🔥</span>
+                <IconStreak size={16} className="text-stradeo-brandorange" />
                 <span className="font-mono text-sm text-stradeo-ink">{progress.streak}</span>
               </div>
             )}
             <button
               onClick={() => setShowStats(!showStats)}
-              className="px-3 py-1.5 rounded-lg border border-stradeo-line bg-stradeo-surface2 text-stradeo-inkdim text-xs font-semibold"
-            >📊</button>
+              aria-label="Stats" aria-pressed={showStats}
+              className="px-2.5 py-1.5 rounded-lg border border-stradeo-line bg-stradeo-surface2 text-stradeo-inkdim hover:text-stradeo-ink"
+            ><IconStats size={16} /></button>
           </div>
         </div>
 
@@ -78,15 +80,15 @@ export default function HomePage() {
         {/* Exam Button */}
         <a
           href="/exam"
-          className="block w-full p-4 rounded-[10px] text-center bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
-        >🎯 {t(lang, 'examSim')}</a>
+          className="flex w-full p-4 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mb-2.5"
+        ><IconExam size={18} />{t(lang, 'examSim')}</a>
 
         {/* Smart Review */}
         {(progress.wrongQuestions.length > 0 || dueCount > 0) && (
           <a
             href="/quiz?mode=review"
-            className="block w-full p-4 rounded-[10px] text-center border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink text-[15px] font-semibold mb-2.5"
-          >🧠 {t(lang, 'smartReview')} ({dueCount || progress.wrongQuestions.length} {t(lang, 'qDue')})</a>
+            className="flex w-full p-4 rounded-[10px] inline-flex items-center justify-center gap-2 border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink text-[15px] font-semibold mb-2.5"
+          ><IconReview size={18} />{t(lang, 'smartReview')} ({dueCount || progress.wrongQuestions.length} {t(lang, 'qDue')})</a>
         )}
 
         {/* Topics */}
