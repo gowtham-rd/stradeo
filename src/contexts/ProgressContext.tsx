@@ -3,7 +3,8 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 import type { UserProgress, Question, TopicStats, DayStats, SRData } from '@/types'
-import { SR_INITIAL_INTERVAL, SR_MAX_INTERVAL, SR_MULTIPLIER } from '@/lib/constants'
+import { REVIEW_STEPS_MS } from '@/lib/constants'
+import { questionKey } from '@/lib/questions'
 
 const DEFAULT_PROGRESS: UserProgress = {
   stats: {},
@@ -20,6 +21,8 @@ interface ProgressContextType {
   recordAnswer: (question: Question, correct: boolean) => void
   recordAnswers: (entries: { question: Question; correct: boolean }[]) => void
   getDueReviews: () => Question[]
+  /** Epoch ms of the next review that isn't due yet, or null if none. */
+  nextReviewAt: number | null
   getTopicAccuracy: (topicId: number) => number | null
   readiness: number
   topicsCovered: number
@@ -45,26 +48,58 @@ export function computeReadiness(stats: UserProgress['stats']): { readiness: num
   return { readiness: Math.min(100, Math.round((score / weight) * 100)), topicsCovered: covered }
 }
 
+// Bring stored review data up to the current format: unique keys, one entry per
+// question, no orphans. Entries from the old 40-character keys are dropped and
+// their questions start fresh (due now).
+export function normaliseReview(wrong: Question[], sr: Record<string, unknown>): Pick<UserProgress, 'wrongQuestions' | 'srData'> {
+  const seen = new Set<string>()
+  const wrongQuestions: Question[] = []
+  const srData: UserProgress['srData'] = {}
+  for (const q of wrong) {
+    const k = questionKey(q)
+    if (seen.has(k)) continue
+    seen.add(k)
+    wrongQuestions.push(q)
+    const e = sr[k] as { stage?: unknown; next?: unknown } | undefined
+    srData[k] = e && typeof e.stage === 'number' && typeof e.next === 'number'
+      ? { stage: e.stage, next: e.next }
+      : { stage: 0, next: Date.now() }
+  }
+  return { wrongQuestions, srData }
+}
+
 const ProgressContext = createContext<ProgressContextType | null>(null)
 
 // Pure fold of one answer into a progress snapshot (no mutation of prev).
-function applyAnswer(prev: UserProgress, question: Question, correct: boolean): UserProgress {
+export function applyAnswer(prev: UserProgress, question: Question, correct: boolean): UserProgress {
   const topicId = question.t
   const prevStats = prev.stats[topicId] || { c: 0, t: 0 }
   const newStats = { ...prev.stats, [topicId]: { c: prevStats.c + (correct ? 1 : 0), t: prevStats.t + 1 } }
 
-  // Spaced repetition
-  const key = question.q.substring(0, 40)
-  const prevSR = prev.srData[key] || { interval: SR_INITIAL_INTERVAL, next: 0, reps: 0 }
-  const newInterval = correct ? Math.min(prevSR.interval * SR_MULTIPLIER, SR_MAX_INTERVAL) : SR_INITIAL_INTERVAL
-  const newSRData = { ...prev.srData, [key]: { interval: newInterval, next: Date.now() + newInterval, reps: prevSR.reps + 1 } }
-
-  // Wrong questions
-  let newWrong = [...prev.wrongQuestions]
+  // Smart Review (spaced repetition on missed questions)
+  const now = Date.now()
+  const key = questionKey(question)
+  const inReview = prev.wrongQuestions.some(w => questionKey(w) === key)
+  let newWrong = prev.wrongQuestions
+  const newSRData = { ...prev.srData }
   if (!correct) {
-    if (!newWrong.find(w => w.q === question.q)) newWrong.push(question)
-  } else {
-    newWrong = newWrong.filter(w => w.q !== question.q)
+    // Miss: (re)enter review at the start of the schedule.
+    if (!inReview) newWrong = [...prev.wrongQuestions, question]
+    newSRData[key] = { stage: 0, next: now + REVIEW_STEPS_MS[0] }
+  } else if (inReview) {
+    const entry = prev.srData[key]
+    const due = !entry || now >= entry.next
+    if (due) {
+      // On-time correct answer: move one step on, or graduate after the last step.
+      const stage = (entry?.stage ?? 0) + 1
+      if (stage >= REVIEW_STEPS_MS.length) {
+        newWrong = prev.wrongQuestions.filter(w => questionKey(w) !== key)
+        delete newSRData[key]
+      } else {
+        newSRData[key] = { stage, next: now + REVIEW_STEPS_MS[stage] }
+      }
+    }
+    // Correct before it's due (extra practice): schedule unchanged.
   }
 
   // Streak (batched answers all share one study day)
@@ -104,8 +139,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           setProgress({
             stats: data.stats || {},
             totalDone: data.total_done || 0,
-            wrongQuestions: data.wrong_questions || [],
-            srData: data.sr_data || {},
+            ...normaliseReview(data.wrong_questions || [], data.sr_data || {}),
             streak: data.streak || 0,
             lastStudy: data.last_study,
             dailyLog: data.daily_log || {},
@@ -150,12 +184,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const getDueReviews = useCallback((): Question[] => {
     const now = Date.now()
-    return progress.wrongQuestions.filter(q => {
-      const key = q.q.substring(0, 40)
-      const sr = progress.srData[key] || { next: 0 }
-      return now >= sr.next
-    })
+    return progress.wrongQuestions.filter(q => now >= (progress.srData[questionKey(q)]?.next ?? 0))
   }, [progress.wrongQuestions, progress.srData])
+
+  const nowMs = Date.now()
+  const upcoming = progress.wrongQuestions
+    .map(q => progress.srData[questionKey(q)]?.next ?? 0)
+    .filter(n => n > nowMs)
+  const nextReviewAt = upcoming.length ? Math.min(...upcoming) : null
 
   const getTopicAccuracy = useCallback((topicId: number): number | null => {
     const s = progress.stats[topicId]
@@ -166,7 +202,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const { readiness, topicsCovered } = computeReadiness(progress.stats)
 
   return (
-    <ProgressContext.Provider value={{ progress, recordAnswer, recordAnswers, getDueReviews, getTopicAccuracy, readiness, topicsCovered }}>
+    <ProgressContext.Provider value={{ progress, recordAnswer, recordAnswers, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered }}>
       {children}
     </ProgressContext.Provider>
   )

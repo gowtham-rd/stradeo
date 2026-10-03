@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { loadQuestions, getTopicQuestionCount, shuffle, getTopicQuestions, buildExamQuestions } from '@/lib/questions'
 import { TOPICS, getTopicName, isPrimaryTopic } from '@/lib/topics'
-import { t } from '@/lib/i18n'
+import { t, formatWhen } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import ReadinessScore from '@/components/ReadinessScore'
@@ -19,7 +19,7 @@ import { IconStreak, IconStats, IconExam, IconReview } from '@/components/icons'
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, getDueReviews, getTopicAccuracy, readiness, topicsCovered } = useProgress()
+  const { progress, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
   const [questions, setQuestions] = useState<Question[]>([])
   const [showStats, setShowStats] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
@@ -84,11 +84,17 @@ export default function HomePage() {
         ><IconExam size={18} />{t(lang, 'examSim')}</a>
 
         {/* Smart Review */}
-        {(progress.wrongQuestions.length > 0 || dueCount > 0) && (
+        {progress.wrongQuestions.length > 0 && (
           <a
             href="/quiz?mode=review"
             className="flex w-full p-4 rounded-[10px] inline-flex items-center justify-center gap-2 border border-stradeo-line bg-stradeo-bg2 text-stradeo-ink text-[15px] font-semibold mb-2.5"
-          ><IconReview size={18} />{t(lang, 'smartReview')} ({dueCount || progress.wrongQuestions.length} {t(lang, 'qDue')})</a>
+          >
+            <IconReview size={18} />
+            {t(lang, 'smartReview')}
+            {dueCount > 0
+              ? <span className="font-mono text-[13px] px-1.5 py-0.5 rounded-md bg-stradeo-ink text-stradeo-bg">{dueCount} {t(lang, 'qDue')}</span>
+              : <span className="text-[13px] font-normal text-stradeo-inkdim">· {t(lang, 'nothingDue')}{nextReviewAt ? ` · ${t(lang, 'nextReview')} ${formatWhen(nextReviewAt, lang)}` : ''}</span>}
+          </a>
         )}
 
         {/* Topics */}

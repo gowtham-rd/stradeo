@@ -40,6 +40,12 @@ export function buildExamQuestions(questions: Question[]): Question[] {
   return shuffle(exam).slice(0, 30)
 }
 
+/** Unique id for a question. Text alone isn't unique: many questions share the same
+ *  wording with a different sign picture, so topic + image + text are combined. */
+export function questionKey(q: Pick<Question, 't' | 'i' | 'q'>): string {
+  return `${q.t}|${q.i ?? ''}|${q.q}`
+}
+
 export function getImageUrl(imgPath?: string | null): string | null {
   if (!imgPath) return null
   // Strip leading slash and prefix

@@ -29,6 +29,7 @@ export const UI = {
     explain: "Explain why", loading: "Loading...", smartReview: "Smart Review",
     qDue: "due", logout: "Log out", welcome: "Welcome back",
     aiSoon: "Feature in progress — AI translations and explanations are coming soon.", lessonLangSoon: "Lessons in this language are in progress. Showing English for now.", readinessHint: "Based on your accuracy in all 25 topics. Answer at least 20 questions per topic for a full score.", topicsCovered: "topics covered",
+    nothingDue: "nothing due", nextReview: "next", reviewBack: "Back for review", reviewMastered: "Mastered — out of review", reviewEarly: "Extra practice — schedule unchanged",
   },
   it: {
     login: "Accedi", username: "Nome utente", password: "Password", loginBtn: "Accedi",
@@ -43,6 +44,7 @@ export const UI = {
     correctBadge: "Corretto!", explain: "Spiega", loading: "Caricamento...",
     smartReview: "Ripasso", qDue: "da ripassare", logout: "Esci", welcome: "Bentornato",
     aiSoon: "Funzione in arrivo — traduzioni e spiegazioni AI saranno disponibili presto.", lessonLangSoon: "Le lezioni in questa lingua sono in arrivo. Per ora in inglese.", readinessHint: "Basato sulla tua precisione in tutti i 25 argomenti. Rispondi ad almeno 20 domande per argomento per il punteggio pieno.", topicsCovered: "argomenti coperti",
+    nothingDue: "niente da ripassare", nextReview: "prossimo", reviewBack: "Torna in ripasso", reviewMastered: "Imparata — fuori dal ripasso", reviewEarly: "Pratica extra — calendario invariato",
   },
   ta: {
     login: "உள்நுழை", username: "பயனர்பெயர்", password: "கடவுச்சொல்",
@@ -57,6 +59,7 @@ export const UI = {
     correctBadge: "சரி!", explain: "விளக்கு", loading: "ஏற்றுகிறது...",
     smartReview: "மறுபார்வை", qDue: "நிலுவை", logout: "வெளியேறு", welcome: "மீண்டும் வருக",
     aiSoon: "இந்த வசதி தயாராகிறது — AI மொழிபெயர்ப்பும் விளக்கமும் விரைவில் வரும்.", lessonLangSoon: "இந்த மொழியில் பாடங்கள் தயாராகின்றன. இப்போதைக்கு ஆங்கிலத்தில்.", readinessHint: "25 தலைப்புகளிலும் உங்கள் சரியான விடைகளின் அடிப்படையில். முழு மதிப்பெண்ணுக்கு ஒவ்வொரு தலைப்பிலும் குறைந்தது 20 கேள்விகள்.", topicsCovered: "தலைப்புகள் முடிந்தன",
+    nothingDue: "இப்போது எதுவும் இல்லை", nextReview: "அடுத்து", reviewBack: "மீண்டும் மறுபார்வைக்கு", reviewMastered: "கற்றுக்கொண்டீர்கள் — மறுபார்வையிலிருந்து நீக்கப்பட்டது", reviewEarly: "கூடுதல் பயிற்சி — அட்டவணை மாறாது",
   },
   hi: {
     login: "लॉग इन", username: "यूजरनेम", password: "पासवर्ड", loginBtn: "साइन इन",
@@ -71,6 +74,7 @@ export const UI = {
     loading: "लोड हो रहा...", smartReview: "स्मार्ट रिव्यू", qDue: "बाकी",
     logout: "लॉग आउट", welcome: "वापसी पर स्वागत",
     aiSoon: "यह सुविधा जल्द आ रही है — AI अनुवाद और व्याख्या जल्द उपलब्ध होंगे।", lessonLangSoon: "इस भाषा में पाठ जल्द आ रहे हैं। अभी अंग्रेज़ी में।", readinessHint: "सभी 25 विषयों में आपकी सटीकता पर आधारित। पूरे स्कोर के लिए हर विषय में कम से कम 20 सवाल करें।", topicsCovered: "विषय पूरे",
+    nothingDue: "अभी कुछ बाकी नहीं", nextReview: "अगला", reviewBack: "फिर से रिव्यू में", reviewMastered: "सीख लिया — रिव्यू से हटाया", reviewEarly: "अतिरिक्त अभ्यास — शेड्यूल नहीं बदला",
   },
 } as const
 
@@ -78,4 +82,17 @@ export type UIKey = keyof typeof UI.en
 
 export function t(lang: Language, key: UIKey): string {
   return UI[lang]?.[key] || UI.en[key]
+}
+
+
+const LOCALE: Record<Language, string> = { en: 'en', it: 'it', ta: 'ta', hi: 'hi' }
+
+/** "in 3 days" / "tra 3 giorni" / … for a future epoch-ms timestamp. */
+export function formatWhen(at: number, lang: Language, now = Date.now()): string {
+  const rtf = new Intl.RelativeTimeFormat(LOCALE[lang], { numeric: 'auto' })
+  const mins = Math.max(1, Math.round((at - now) / 60_000))
+  if (mins < 60) return rtf.format(mins, 'minute')
+  const hours = Math.round(mins / 60)
+  if (hours < 24) return rtf.format(hours, 'hour')
+  return rtf.format(Math.round(hours / 24), 'day')
 }

@@ -36,9 +36,10 @@ export interface DayStats {
 }
 
 export interface SRData {
-  interval: number
+  /** Correct on-time reviews so far (0 = just missed). Graduates at REVIEW_STEPS_MS.length. */
+  stage: number
+  /** Epoch ms when the question is next due. */
   next: number
-  reps: number
 }
 
 export interface UserProgress {

@@ -4,9 +4,10 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { loadQuestions, getTopicQuestions, getImageUrl, shuffle } from '@/lib/questions'
+import { loadQuestions, getTopicQuestions, getImageUrl, shuffle, questionKey } from '@/lib/questions'
+import { REVIEW_STEPS_MS } from '@/lib/constants'
 import { getTopicName } from '@/lib/topics'
-import { LANG_PROMPT, t } from '@/lib/i18n'
+import { LANG_PROMPT, t, formatWhen } from '@/lib/i18n'
 import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
@@ -60,6 +61,9 @@ function QuizInner() {
   const [state, dispatch] = useReducer(reducer, initialState)
   const [loading, setLoading] = useState(true)
 
+  // Smart Review: what happens to this question next (shown after answering in review mode)
+  const [reviewNote, setReviewNote] = useState<string | null>(null)
+
   // AI explanation for the current wrong answer
   const [exp, setExp] = useState<string | null>(null)
   const [expLoading, setExpLoading] = useState(false)
@@ -86,7 +90,7 @@ function QuizInner() {
   }, [isReview, topicId])
 
   // Reset explanation whenever the question changes
-  useEffect(() => { setExp(null); setExpLoading(false) }, [state.currentIndex])
+  useEffect(() => { setExp(null); setExpLoading(false); setReviewNote(null) }, [state.currentIndex])
 
   const total = state.questions.length
   const q = state.questions[state.currentIndex]
@@ -115,6 +119,19 @@ function QuizInner() {
   function handleAnswer(value: boolean) {
     if (state.answer !== null || !q) return
     const ok = value === q.a
+    if (isReview) {
+      // Mirror the scheduling rule in ProgressContext so the user sees the outcome.
+      const now = Date.now()
+      const entry = progress.srData[questionKey(q)]
+      const due = !entry || now >= entry.next
+      const stage = (entry?.stage ?? 0) + 1
+      setReviewNote(
+        !ok ? `${t(lang, 'reviewBack')} ${formatWhen(now + REVIEW_STEPS_MS[0], lang, now)}`
+        : !due ? t(lang, 'reviewEarly')
+        : stage >= REVIEW_STEPS_MS.length ? t(lang, 'reviewMastered')
+        : `${t(lang, 'reviewBack')} ${formatWhen(now + REVIEW_STEPS_MS[stage], lang, now)}`
+      )
+    }
     recordAnswer(q, ok)
     dispatch({ type: 'ANSWER', value })
     if (!ok) fetchExplanation(q.q, q.a)
@@ -216,6 +233,13 @@ function QuizInner() {
               <div className="bg-stradeo-green/[0.06] border border-stradeo-green/[0.12] rounded-[14px] px-4 py-3.5 mb-4 text-center">
                 <span className="text-sm text-stradeo-green font-semibold inline-flex items-center gap-1.5"><IconCheck size={14} />{t(lang, 'correctBadge')}</span>
               </div>
+            )}
+
+            {/* Smart Review outcome */}
+            {state.answer !== null && reviewNote && (
+              <p className="flex items-center justify-center gap-2 text-[13px] text-stradeo-inkdim mb-4">
+                <IconReview size={14} />{reviewNote}
+              </p>
             )}
 
             {/* Next (not last) */}
