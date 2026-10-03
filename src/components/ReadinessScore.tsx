@@ -25,39 +25,10 @@ interface Props {
   totalCorrect: number
   totalWrong: number
   totalRemaining: number
-  topicsCovered: number
 }
 
-export default function ReadinessScore({ readiness, totalCorrect, totalWrong, totalRemaining, topicsCovered }: Props) {
+export default function ReadinessScore({ readiness, totalCorrect, totalWrong, totalRemaining }: Props) {
   const { lang } = useLanguage()
-  const { progress, getTopicAccuracy, seenCount } = useProgress()
-  const next = nextBestTopic(progress.stats)
-  // Topic tapped on the map: shown as a card beside "Biggest gain next".
-  const [picked, setPicked] = useState<number | null>(null)
-  const [jump, setJump] = useState<{ index: number; seq: number } | undefined>()
-  const pick = (id: number) => {
-    setPicked(id)
-    setJump(j => ({ index: next ? 1 : 0, seq: (j?.seq ?? 0) + 1 }))
-  }
-  const topicSlide = (id: number, label: string, hint?: string) => {
-    const meta = TOPICS.find(x => x.id === id)!
-    return {
-      label,
-      content: (
-        <div className="text-left">
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{label}</span>
-            {hint && <span className="text-[11px] text-stradeo-inkfaint">{hint}</span>}
-          </div>
-          <TopicCard compact topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
-        </div>
-      ),
-    }
-  }
-  const slides = [
-    ...(next ? [topicSlide(next, t(lang, 'nextUp'), picked ? undefined : t(lang, 'tapSquareShort'))] : []),
-    ...(picked ? [topicSlide(picked, t(lang, 'selectedTopic'))] : []),
-  ]
   const hasStarted = totalCorrect + totalWrong > 0
 
   // Count up from 0; number and meter take the colour of the band the *animated* value is in,
@@ -120,8 +91,57 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
         <Count icon={<IconStack size={13} />} tone="text-stradeo-inkdim" value={totalRemaining} label={t(lang, 'remaining')} />
       </div>
 
+    </div>
+  )
+}
+
+function Count({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className={`inline-flex items-center gap-1.5 font-mono text-[18px] leading-none ${tone}`}>
+        <span aria-hidden="true">{icon}</span>{value}
+      </span>
+      <span className="mt-1 text-[11px] text-stradeo-inkdim">{label}</span>
+    </div>
+  )
+}
+
+// Topic map card: one square per topic (tap to show it), "Biggest gain next" and the tapped topic.
+export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
+  const { lang } = useLanguage()
+  const { progress, getTopicAccuracy, seenCount } = useProgress()
+  const next = nextBestTopic(progress.stats)
+  // Topic tapped on the map: shown as a card beside "Biggest gain next".
+  const [picked, setPicked] = useState<number | null>(null)
+  const [jump, setJump] = useState<{ index: number; seq: number } | undefined>()
+  const pick = (id: number) => {
+    setPicked(id)
+    setJump(j => ({ index: next ? 1 : 0, seq: (j?.seq ?? 0) + 1 }))
+  }
+  const topicSlide = (id: number, label: string, hint?: string) => {
+    const meta = TOPICS.find(x => x.id === id)!
+    return {
+      label,
+      content: (
+        <div className="text-left">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{label}</span>
+            {hint && <span className="text-[11px] text-stradeo-inkfaint">{hint}</span>}
+          </div>
+          <TopicCard compact topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
+        </div>
+      ),
+    }
+  }
+  const slides = [
+    ...(next ? [topicSlide(next, t(lang, 'nextUp'), picked ? undefined : t(lang, 'tapSquareShort'))] : []),
+    ...(picked ? [topicSlide(picked, t(lang, 'selectedTopic'))] : []),
+  ]
+
+  return (
+    <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-5">
       {/* Topic map: one square per topic; tap to show it below */}
-      <div className="mt-4 pt-4 border-t border-stradeo-line">
+      <div>
         <div className="flex items-baseline justify-between mb-2.5">
           <h3 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'topicMap')}</h3>
           <span className="font-mono text-[11px] text-stradeo-inkdim">{topicsCovered}/25 {t(lang, 'covered')}</span>
@@ -155,17 +175,6 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
       {slides.length > 0 && (
         <HomeCards key={slides.map(x => x.label).join('|')} cards={slides} goTo={jump} className="mt-4" />
       )}
-    </div>
-  )
-}
-
-function Count({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: number; label: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className={`inline-flex items-center gap-1.5 font-mono text-[18px] leading-none ${tone}`}>
-        <span aria-hidden="true">{icon}</span>{value}
-      </span>
-      <span className="mt-1 text-[11px] text-stradeo-inkdim">{label}</span>
     </div>
   )
 }

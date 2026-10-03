@@ -8,7 +8,7 @@ import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { TOPICS, getTopicName, isPrimaryTopic } from '@/lib/topics'
 import { t, formatWhen } from '@/lib/i18n'
 import NavBar from '@/components/NavBar'
-import ReadinessScore from '@/components/ReadinessScore'
+import ReadinessScore, { TopicMapCard } from '@/components/ReadinessScore'
 import StatsPanel from '@/components/StatsPanel'
 import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
@@ -45,11 +45,11 @@ export default function HomePage() {
     <div className="min-h-screen">
       <AdBanner />
       <NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
+      <div className="max-w-[640px] mx-auto px-4 pt-4 pb-10 animate-fade-in">
         {/* Greeting: changes with how long it's been since the last practice */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} />
 
-        {/* Readiness → Stats (swipe) */}
+        {/* Readiness → Topic map → Stats (swipe; the strip takes the height of the card in view) */}
         <HomeCards className="mb-4" cards={[
           { label: t(lang, 'readinessCard'), content: (
             <ReadinessScore
@@ -57,9 +57,9 @@ export default function HomePage() {
               totalCorrect={totalC}
               totalWrong={totalW}
               totalRemaining={totalRemaining}
-              topicsCovered={topicsCovered}
             />
           ) },
+          { label: t(lang, 'topicMap'), content: <TopicMapCard topicsCovered={topicsCovered} /> },
           { label: t(lang, 'stats'), content: <StatsPanel /> },
         ]} />
 
@@ -122,7 +122,7 @@ function Greeting({ name, lastStudy }: { name: string; lastStudy: string | null 
     : 'greetLong'
   const when = days === null ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
   return (
-    <div className="mb-4">
+    <div className="mb-3">
       <p className="text-[15px] text-stradeo-inkdim">
         {t(lang, key)}, <strong className="font-semibold text-stradeo-ink">{name}</strong>
       </p>
