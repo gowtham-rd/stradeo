@@ -148,10 +148,10 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
           <h3 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'topicMap')}</h3>
           <span className="font-mono text-[11px] text-stradeo-inkdim">{topicsCovered}/25 {t(lang, 'covered')}</span>
         </div>
-        {/* Row 1: topics 1–15 (2 exam questions each). Row 2: topics 16–25 (1 each), centred. */}
-        <div className="space-y-[5px]">
-          {[[1, 15], [16, 25]].map(([from, to]) => (
-            <div key={from} className="flex justify-center gap-[4px]">
+        {/* 25 numbered circles in three centred rows (9 / 8 / 8) */}
+        <div className="space-y-1.5">
+          {[[1, 9], [10, 17], [18, 25]].map(([from, to]) => (
+            <div key={from} className="flex justify-center gap-1.5">
               {Array.from({ length: to - from + 1 }, (_, i) => from + i).map(id => {
                 const answered = progress.stats[id]?.t ?? 0
                 const sc = topicScore(progress.stats, id)
@@ -159,7 +159,7 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
                   <button key={id} type="button" onClick={() => pick(id)} aria-pressed={picked === id}
                     title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
                     aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
-                    className={`w-[calc((100%-56px)/15)] max-w-[30px] h-10 rounded-[4px] flex items-center justify-center font-mono text-[9px] leading-none ${answered === 0 ? 'text-stradeo-inkfaint' : 'text-stradeo-bg/80 font-bold'} ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`}>
+                    className={`h-[30px] w-[30px] shrink-0 rounded-full flex items-center justify-center font-mono text-[11px] leading-none transition-transform active:scale-90 ${answered === 0 ? 'text-stradeo-inkfaint border border-stradeo-line' : 'text-stradeo-bg font-bold'} ${cellClass(sc, answered)} ${picked === id ? 'ring-2 ring-stradeo-ink ring-offset-2 ring-offset-stradeo-bg2' : ''}`}>
                     {id}
                   </button>
                 )
@@ -168,10 +168,10 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
           ))}
         </div>
         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2.5 text-[10px] text-stradeo-inkdim">
-          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent2" />&lt;50%</span>
-          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent" />50–89%</span>
-          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-green" />90%+</span>
-          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-surface2 border border-stradeo-line" />{t(lang, 'notStarted')}</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-stradeo-accent2" />&lt;50%</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-stradeo-accent" />50–89%</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-stradeo-green" />90%+</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-stradeo-surface2 border border-stradeo-line" />{t(lang, 'notStarted')}</span>
         </div>
       </div>
 
