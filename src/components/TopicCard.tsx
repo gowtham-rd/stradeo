@@ -25,8 +25,8 @@ export default function TopicCard({ topic, count, accuracy, done, compact }: Pro
         {String(topic.id).padStart(2, '0')}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold mb-px">{getTopicName(topic.id, lang)}</div>
-        <div className="text-[11px] text-stradeo-inkdim">{topic.it} · {count} {t(lang, 'questions')}</div>
+        <div className={`text-sm font-semibold mb-px ${compact ? 'truncate' : ''}`}>{getTopicName(topic.id, lang)}</div>
+        <div className={`text-[11px] text-stradeo-inkdim ${compact ? 'truncate' : ''}`}>{topic.it} · {count} {t(lang, 'questions')}</div>
         {accuracy !== null && (
           <div className="h-[3px] rounded bg-stradeo-surface2 mt-1.5 max-w-[120px]">
             <div className={`h-full rounded transition-all duration-400 ${accuracy >= 90 ? 'bg-stradeo-green' : accuracy >= 50 ? 'bg-stradeo-accent' : 'bg-stradeo-accent2'}`}

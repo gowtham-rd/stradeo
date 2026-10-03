@@ -35,10 +35,10 @@ export default function StatsPanel() {
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-3 text-center">{t(lang, 'stats')}</div>
       {/* Three headline figures, each with its icon tile */}
       <div className="grid grid-cols-3 gap-2 mb-3">
-        <Stat tone="text-stradeo-blue bg-stradeo-blue/10" icon={<IconCalendar size={15} />} value={<span className="text-stradeo-ink">{weekTotal}</span>} label={t(lang, 'thisWeek')} />
+        <Stat tone="text-stradeo-blue bg-stradeo-blue/10" icon={<IconCalendar size={13} />} value={<span className="text-stradeo-ink">{weekTotal}</span>} label={t(lang, 'thisWeek')} />
         <Stat tone={weekTotal === 0 ? 'text-stradeo-inkdim bg-stradeo-surface2' : weekAcc >= 90 ? 'text-stradeo-green bg-stradeo-green/10' : weekAcc >= 50 ? 'text-stradeo-accent bg-stradeo-accent/10' : 'text-stradeo-accent2 bg-stradeo-accent2/10'}
-          icon={<IconAccuracy size={15} />} value={<span className={weekTotal === 0 ? 'text-stradeo-inkdim' : weekAcc >= 90 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}>{weekAcc}%</span>} label={t(lang, 'accuracy')} />
-        <Stat tone="text-stradeo-brandorange bg-stradeo-brandorange/10" icon={<IconStreak size={15} />} value={<span className="text-stradeo-ink">{streak}</span>} label={t(lang, 'streak')} />
+          icon={<IconAccuracy size={13} />} value={<span className={weekTotal === 0 ? 'text-stradeo-inkdim' : weekAcc >= 90 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}>{weekAcc}%</span>} label={t(lang, 'accuracy')} />
+        <Stat tone="text-stradeo-brandorange bg-stradeo-brandorange/10" icon={<IconStreak size={13} />} value={<span className="text-stradeo-ink">{streak}</span>} label={t(lang, 'streak')} />
       </div>
 
       <div>
@@ -69,12 +69,12 @@ export default function StatsPanel() {
 
 function Stat({ icon, value, label, tone }: { icon: React.ReactNode; value: React.ReactNode; label: string; tone: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-[10px] border border-stradeo-line px-2 py-2 min-w-0">
-      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] ${tone}`} aria-hidden="true">{icon}</span>
-      <span className="flex flex-col min-w-0">
+    <div className="flex flex-col items-center gap-1.5 rounded-[10px] border border-stradeo-line px-1.5 py-2 min-w-0">
+      <span className="flex items-center gap-1.5">
+        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] ${tone}`} aria-hidden="true">{icon}</span>
         <span className="font-mono text-[17px] leading-none">{value}</span>
-        <span className="mt-1 text-[10px] text-stradeo-inkdim leading-none truncate">{label}</span>
       </span>
+      <span className="text-[11px] text-stradeo-inkdim leading-none text-center">{label}</span>
     </div>
   )
 }
