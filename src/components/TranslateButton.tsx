@@ -36,7 +36,7 @@ export default function TranslateButton({ question, compact }: Props) {
         {loading ? <div className="w-2.5 h-2.5 border-[1.5px] border-stradeo-blue/30 border-t-stradeo-blue rounded-full animate-spin-slow" /> : <>🌐 {compact ? '' : LANGUAGES[lang]}</>}
       </button>
       {translation && (
-        <p className="text-sm leading-relaxed text-stradeo-blue italic border-t border-stradeo-blue/10 pt-2.5 mt-2.5">
+        <p className="basis-full w-full text-left text-sm leading-relaxed text-stradeo-blue italic border-t border-stradeo-blue/10 pt-2.5 mt-2.5">
           {translation}
         </p>
       )}

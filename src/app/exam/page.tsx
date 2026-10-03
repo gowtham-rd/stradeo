@@ -127,7 +127,7 @@ export default function ExamPage() {
                 <span className="font-mono text-stradeo-inkfaint text-[13px] min-w-[24px]">{i + 1}.</span>
                 <div className="flex-1">
                   {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
-                  <div className="flex justify-between items-start mb-1.5 gap-2">
+                  <div className="flex flex-wrap justify-between items-start mb-1.5 gap-2">
                     <p className="text-sm leading-[1.55] flex-1">{q.q}</p>
                     <TranslateButton question={q.q} compact />
                   </div>

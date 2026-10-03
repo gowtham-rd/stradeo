@@ -165,7 +165,7 @@ function QuizInner() {
             <div className={`bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 mb-4 ${
               state.animation === 'ok' ? 'animate-pulse-green' : state.animation === 'no' ? 'animate-shake' : ''
             }`}>
-              <div className={`flex justify-end ${imgUrl ? '' : 'mb-2'}`}>
+              <div className={`flex flex-wrap justify-end ${imgUrl ? '' : 'mb-2'}`}>
                 <TranslateButton question={q.q} />
               </div>
               {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
