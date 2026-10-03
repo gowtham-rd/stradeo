@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n'
 import { getTopicName } from '@/lib/topics'
 import { topicScore, nextBestTopic } from '@/lib/progress'
 import { IconArrowRight } from './icons'
+import { useCountUp } from '@/lib/useCountUp'
 
 // Square colour for one topic: untouched, weak, getting there, ready (≥90% ≈ pass mark).
 function cellClass(score: number, answered: number): string {
@@ -29,10 +30,13 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
   const next = nextBestTopic(progress.stats)
   const hasStarted = totalCorrect + totalWrong > 0
 
+  // Count up from 0; number and meter take the colour of the band the *animated* value is in,
+  // so they pass red → orange → green as they rise.
+  const shown = useCountUp(readiness)
+  const band = shown >= 90 ? 'green' : shown >= 50 ? 'accent' : 'accent2'
   const scoreClass = !hasStarted ? 'text-stradeo-inkfaint'
-    : readiness >= 90 ? 'text-stradeo-green'
-    : readiness >= 50 ? 'text-stradeo-accent'
-    : 'text-stradeo-accent2'
+    : { green: 'text-stradeo-green', accent: 'text-stradeo-accent', accent2: 'text-stradeo-accent2' }[band]
+  const fillClass = { green: 'bg-stradeo-green', accent: 'bg-stradeo-accent', accent2: 'bg-stradeo-accent2' }[band]
 
   const label = !hasStarted ? t(lang, 'startStudy')
     : readiness >= 90 ? t(lang, 'ready')
@@ -43,8 +47,25 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
   return (
     <div className="h-full flex flex-col text-center py-6 px-5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line">
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'readiness')}</div>
-      <div className={`font-mono text-[52px] leading-tight tracking-tight ${scoreClass}`}>
-        {readiness}%
+      <div className={`font-mono text-[52px] leading-tight tracking-tight tabular-nums transition-colors duration-300 ${scoreClass}`}
+        aria-live="off" aria-label={`${readiness}%`}>
+        {Math.round(shown)}%
+      </div>
+
+      {/* Readiness meter: solid band colour, square ends, notch at the 90% pass line. */}
+      <div className="mx-auto mt-3 w-full max-w-[300px]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readiness}
+        aria-label={t(lang, 'readiness')}>
+        <div className="relative h-2 rounded-[3px] bg-stradeo-surface2 overflow-hidden">
+          <div className={`absolute inset-y-0 left-0 rounded-[3px] transition-colors duration-300 ${hasStarted ? fillClass : ''}`}
+            style={{ width: `${shown}%` }} />
+          <div className="absolute inset-y-0 left-1/2 w-px bg-stradeo-bg2" aria-hidden="true" />
+          <div className="absolute inset-y-0 left-[90%] w-[2px] bg-stradeo-ink" aria-hidden="true" />
+        </div>
+        <div className="relative h-4 mt-1 font-mono text-[10px] text-stradeo-inkfaint" aria-hidden="true">
+          <span className="absolute left-0">0</span>
+          <span className="absolute left-1/2 -translate-x-1/2">50</span>
+          <span className="absolute left-[90%] -translate-x-[60%] text-stradeo-ink whitespace-nowrap">90 · {t(lang, 'passMark')}</span>
+        </div>
       </div>
       <div className="text-[13px] text-stradeo-inkdim mt-1">{label}</div>
       <div className="font-mono text-[12px] text-stradeo-inkdim mt-2">{topicsCovered}/25 {t(lang, 'topicsCovered')}</div>
