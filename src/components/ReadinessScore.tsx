@@ -57,17 +57,22 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
       {/* Topic map: one square per topic, coloured by its readiness. Tap to open. */}
       <div className="mt-5">
         <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'topicMap')}</div>
-        <div className="grid grid-cols-[repeat(25,minmax(0,1fr))] gap-[3px] max-w-[420px] mx-auto">
-          {Array.from({ length: 25 }, (_, i) => i + 1).map(id => {
-            const answered = progress.stats[id]?.t ?? 0
-            const sc = topicScore(progress.stats, id)
-            return (
-              <Link key={id} href={`/topic?id=${id}`}
-                title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
-                aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
-                className={`aspect-square rounded-[2px] ${cellClass(sc, answered)} ${id <= 15 ? '' : 'opacity-70'} hover:outline hover:outline-2 hover:outline-stradeo-ink`} />
-            )
-          })}
+        {/* Row 1: topics 1–15 (2 exam questions each). Row 2: topics 16–25 (1 each), centred. */}
+        <div className="max-w-[360px] mx-auto space-y-[4px]">
+          {[[1, 15], [16, 25]].map(([from, to]) => (
+            <div key={from} className="flex justify-center gap-[4px]">
+              {Array.from({ length: to - from + 1 }, (_, i) => from + i).map(id => {
+                const answered = progress.stats[id]?.t ?? 0
+                const sc = topicScore(progress.stats, id)
+                return (
+                  <Link key={id} href={`/topic?id=${id}`}
+                    title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
+                    aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
+                    className={`w-[calc((100%-56px)/15)] aspect-square rounded-[3px] ${cellClass(sc, answered)} hover:outline hover:outline-2 hover:outline-stradeo-ink`} />
+                )
+              })}
+            </div>
+          ))}
         </div>
         <div className="flex justify-center gap-3 mt-2 text-[10px] text-stradeo-inkdim">
           <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent2" />&lt;50%</span>
