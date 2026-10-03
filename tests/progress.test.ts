@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
-  DEFAULT_PROGRESS, applyAnswer, replay, normaliseReview, computeReadiness, activeStreak, seenId, seenCount, fromRow, toRow,
+  DEFAULT_PROGRESS, applyAnswer, nextBestTopic, topicScore, replay, normaliseReview, computeReadiness, activeStreak, seenId, seenCount, fromRow, toRow,
 } from '../src/lib/progress'
 import { questionKey, buildExamQuestions } from '../src/lib/questions'
 import { REVIEW_STEPS_MS } from '../src/lib/constants'
@@ -139,4 +139,14 @@ test('exam: always 30 questions, max 2 per topic, no duplicates', () => {
     for (const q of exam) per[q.t] = (per[q.t] || 0) + 1
     assert.ok(Object.entries(per).every(([t, n]) => n <= (Number(t) <= 15 ? 2 : 1)))
   }
+})
+
+test('next best topic: weighted biggest gap, none when everything is ready', () => {
+  const all = Object.fromEntries(Array.from({ length: 25 }, (_, i) => [i + 1, { c: 20, t: 20 }]))
+  assert.equal(nextBestTopic(all), null)
+  // Topic 3 (double weight) at 50% beats topic 20 (single weight) at 0%.
+  assert.equal(nextBestTopic({ ...all, 3: { c: 10, t: 20 }, 20: { c: 0, t: 20 } }), 3)
+  // From nothing, the first double-weight topic wins.
+  assert.equal(nextBestTopic({}), 1)
+  assert.equal(topicScore({ 5: { c: 5, t: 5 } }, 5), 0.25)
 })

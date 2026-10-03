@@ -1,6 +1,19 @@
 'use client'
+import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useProgress } from '@/contexts/ProgressContext'
 import { t } from '@/lib/i18n'
+import { getTopicName } from '@/lib/topics'
+import { topicScore, nextBestTopic } from '@/lib/progress'
+import { IconArrowRight } from './icons'
+
+// Square colour for one topic: untouched, weak, getting there, ready (≥90% ≈ pass mark).
+function cellClass(score: number, answered: number): string {
+  if (answered === 0) return 'bg-stradeo-surface2'
+  if (score >= 0.9) return 'bg-stradeo-green'
+  if (score >= 0.5) return 'bg-stradeo-accent'
+  return 'bg-stradeo-accent2'
+}
 
 interface Props {
   readiness: number
@@ -12,6 +25,8 @@ interface Props {
 
 export default function ReadinessScore({ readiness, totalCorrect, totalWrong, totalRemaining, topicsCovered }: Props) {
   const { lang } = useLanguage()
+  const { progress } = useProgress()
+  const next = nextBestTopic(progress.stats)
   const hasStarted = totalCorrect + totalWrong > 0
 
   const scoreClass = !hasStarted ? 'text-stradeo-inkfaint'
@@ -26,7 +41,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
     : t(lang, 'keep')
 
   return (
-    <div className="h-full text-center py-6 px-5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line">
+    <div className="h-full flex flex-col text-center py-6 px-5 rounded-[14px] bg-stradeo-bg2 border border-stradeo-line">
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'readiness')}</div>
       <div className={`font-mono text-[52px] leading-tight tracking-tight ${scoreClass}`}>
         {readiness}%
@@ -38,7 +53,44 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
         <div><div className="font-mono text-xl text-stradeo-accent2">{totalWrong}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'wrong')}</div></div>
         <div><div className="font-mono text-xl text-stradeo-ink">{totalRemaining}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'remaining')}</div></div>
       </div>
-      <p className="text-[11px] leading-snug text-stradeo-inkfaint mt-4 max-w-[360px] mx-auto">{t(lang, 'readinessHint')}</p>
+
+      {/* Topic map: one square per topic, coloured by its readiness. Tap to open. */}
+      <div className="mt-5">
+        <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-2">{t(lang, 'topicMap')}</div>
+        <div className="grid grid-cols-[repeat(25,minmax(0,1fr))] gap-[3px] max-w-[420px] mx-auto">
+          {Array.from({ length: 25 }, (_, i) => i + 1).map(id => {
+            const answered = progress.stats[id]?.t ?? 0
+            const sc = topicScore(progress.stats, id)
+            return (
+              <Link key={id} href={`/topic?id=${id}`}
+                title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
+                aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
+                className={`aspect-square rounded-[2px] ${cellClass(sc, answered)} ${id <= 15 ? '' : 'opacity-70'} hover:outline hover:outline-2 hover:outline-stradeo-ink`} />
+            )
+          })}
+        </div>
+        <div className="flex justify-center gap-3 mt-2 text-[10px] text-stradeo-inkdim">
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent2" />&lt;50%</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-accent" />50–89%</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-green" />90%+</span>
+          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-stradeo-surface2 border border-stradeo-line" />{t(lang, 'notStarted')}</span>
+        </div>
+      </div>
+
+      {/* Biggest gain next */}
+      {next && (
+        <Link href={`/topic?id=${next}`}
+          className="mt-4 flex items-center gap-3 rounded-[10px] border border-stradeo-line px-3.5 py-2.5 text-left hover:border-stradeo-ink">
+          <span className="font-mono text-[12px] text-stradeo-inkdim">{String(next).padStart(2, '0')}</span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[10px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim">{t(lang, 'nextUp')}</span>
+            <span className="block truncate text-[13px] font-semibold text-stradeo-ink">{getTopicName(next, lang)}</span>
+          </span>
+          <IconArrowRight size={13} />
+        </Link>
+      )}
+
+      <p className="text-[11px] leading-snug text-stradeo-inkfaint mt-auto pt-4 max-w-[360px] mx-auto">{t(lang, 'readinessHint')}</p>
     </div>
   )
 }

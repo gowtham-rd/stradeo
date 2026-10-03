@@ -70,6 +70,24 @@ export function computeReadiness(stats: UserProgress['stats']): { readiness: num
   return { readiness: Math.min(100, Math.round((score / weight) * 100)), topicsCovered: covered }
 }
 
+/** Readiness of one topic, 0–1 (same rule as the overall score). */
+export function topicScore(stats: UserProgress['stats'], topic: number): number {
+  const s = stats[topic] || { c: 0, t: 0 }
+  return s.c / Math.max(s.t, READINESS_MIN_ANSWERS)
+}
+
+/** The topic whose improvement raises overall readiness the most: the biggest
+ *  weighted gap to 100% (topics 1–15 count double, as in the exam). */
+export function nextBestTopic(stats: UserProgress['stats']): number | null {
+  let best: number | null = null
+  let bestGap = 0
+  for (let t = 1; t <= 25; t++) {
+    const gap = (t <= 15 ? 2 : 1) * (1 - topicScore(stats, t))
+    if (gap > bestGap + 1e-9) { bestGap = gap; best = t }
+  }
+  return bestGap >= 0.1 ? best : null
+}
+
 // ── Loading stored data ─────────────────────────────────────────────────────
 // Bring stored review data up to the current format: unique keys, one entry per
 // question, no orphans. Entries from old key formats are dropped and those
