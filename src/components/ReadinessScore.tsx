@@ -73,8 +73,8 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
       {/* Meter: solid band colour, square ends, notch at the 90% pass line */}
       <div className="mx-auto mt-3 w-full max-w-[320px]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readiness}
         aria-label={t(lang, 'readiness')}>
-        <div className="relative h-2 rounded-[3px] bg-stradeo-surface2 overflow-hidden">
-          <div className={`absolute inset-y-0 left-0 rounded-[3px] transition-colors duration-300 ${hasStarted ? fillClass : ''}`}
+        <div className="relative h-3 rounded-[4px] bg-stradeo-surface2 overflow-hidden">
+          <div className={`absolute inset-y-0 left-0 rounded-[4px] transition-colors duration-300 ${hasStarted ? fillClass : ''}`}
             style={{ width: `${shown}%` }} />
           <div className="absolute inset-y-0 left-1/2 w-px bg-stradeo-bg2" aria-hidden="true" />
           <div className="absolute inset-y-0 left-[90%] w-[2px] bg-stradeo-ink" aria-hidden="true" />
@@ -88,22 +88,22 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
 
       {/* Counts with icons */}
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Count icon={<IconCheck size={13} />} tone="text-stradeo-green" value={totalCorrect} label={t(lang, 'correct')} />
-        <Count icon={<IconCross size={11} />} tone="text-stradeo-accent2" value={totalWrong} label={t(lang, 'wrong')} />
-        <Count icon={<IconStack size={13} />} tone="text-stradeo-inkdim" value={totalRemaining} label={t(lang, 'remaining')} />
+        <Count icon={<IconCheck size={16} />} tone="text-stradeo-green bg-stradeo-green/10" valueTone="text-stradeo-green" value={totalCorrect} label={t(lang, 'correct')} />
+        <Count icon={<IconCross size={13} />} tone="text-stradeo-accent2 bg-stradeo-accent2/10" valueTone="text-stradeo-accent2" value={totalWrong} label={t(lang, 'wrong')} />
+        <Count icon={<IconStack size={16} />} tone="text-stradeo-inkdim bg-stradeo-surface2" valueTone="text-stradeo-ink" value={totalRemaining} label={t(lang, 'remaining')} />
       </div>
 
     </div>
   )
 }
 
-function Count({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: number; label: string }) {
+function Count({ icon, tone, valueTone, value, label }: { icon: React.ReactNode; tone: string; valueTone: string; value: number; label: string }) {
+  // Same tile as the Stats card: icon on top, figure, label.
   return (
-    <div className="flex flex-col items-center">
-      <span className={`inline-flex items-center gap-1.5 font-mono text-[18px] leading-none ${tone}`}>
-        <span aria-hidden="true">{icon}</span>{value}
-      </span>
-      <span className="mt-1 text-[11px] text-stradeo-inkdim">{label}</span>
+    <div className="flex flex-col items-center rounded-[10px] border border-stradeo-line px-1.5 py-2.5 min-w-0">
+      <span className={`flex h-9 w-9 items-center justify-center rounded-[9px] ${tone}`} aria-hidden="true">{icon}</span>
+      <span className={`font-mono text-[20px] leading-none mt-2 ${valueTone}`}>{value}</span>
+      <span className="text-[11px] text-stradeo-inkdim leading-none mt-1.5">{label}</span>
     </div>
   )
 }
