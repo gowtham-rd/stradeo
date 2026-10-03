@@ -37,7 +37,8 @@ Status backgrounds use the status colour at about 10% opacity.
 ## Marks
 
 - **quattroventi:** yellow rounded tile with a bold, square-cut black #.
-- **Apps:** the app's line icon on a neutral tile (subtle background, 1px border). Rento = house, Stradeo = road, Hub = lock.
+- **Stradeo:** orange (`#FF7A00`) rounded tile with a bold, square-cut black road — a sibling of the quattroventi mark. Orange here is Stradeo's identity, not a status colour; keep the tile as the only orange fill in the app chrome.
+- **Other apps:** the app's line icon on a neutral tile (subtle background, 1px border). Rento = house, Hub = lock.
 
 ## Do / don't
 

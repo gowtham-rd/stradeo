@@ -25,7 +25,7 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 animate-fade-in-up">
+    <div className="relative min-h-screen flex flex-col items-center justify-center px-5 pt-20 pb-10 animate-fade-in-up">
       <div className="absolute top-4 right-4"><ThemeToggle /></div>
       <div className="w-full max-w-[380px]">
         <div className="text-center mb-10">
