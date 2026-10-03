@@ -37,6 +37,8 @@ export default function ExamPage() {
   const [remaining, setRemaining] = useState(EXAM_DURATION)
   const [loadFailed, setLoadFailed] = useState(false)
   const [confirmSubmit, setConfirmSubmit] = useState(false)
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const leavingRef = useRef(false)
   // Latest state for the timer callback (an interval would otherwise see stale answers).
   const stateRef = useRef(state)
   stateRef.current = state
@@ -62,6 +64,30 @@ export default function ExamPage() {
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
   }, [loading, state.submitted])
+
+  // Browser Back mid-exam: keep an extra history entry so Back lands on it, then ask.
+  // (Copying the router's own history state keeps Next from treating it as a navigation.)
+  useEffect(() => {
+    if (loading || state.submitted) return
+    window.history.pushState({ ...window.history.state, stradeoExam: true }, '')
+    const onPop = () => {
+      if (leavingRef.current || submittedRef.current) return
+      setConfirmLeave(true)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [loading, state.submitted])
+
+  function stay() {
+    setConfirmLeave(false)
+    window.history.pushState({ ...window.history.state, stradeoExam: true }, '')
+  }
+
+  function leave() {
+    leavingRef.current = true
+    setConfirmLeave(false)
+    router.push('/')
+  }
 
   // Wall-clock countdown (survives tab backgrounding)
   useEffect(() => {
@@ -187,6 +213,20 @@ export default function ExamPage() {
             ? `${total - answeredCount} ${t(lang, 'unanswered')} — ${t(lang, 'submitAnyway')}`
             : `${t(lang, 'submit')} (${answeredCount}/${total})`}
         </button>
+
+        {confirmLeave && (
+          <div role="dialog" aria-modal="true" aria-labelledby="leave-title"
+            className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-[400px] rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5">
+              <h2 id="leave-title" className="text-lg font-bold mb-1">{t(lang, 'leaveExamTitle')}</h2>
+              <p className="text-sm text-stradeo-inkdim mb-5">{t(lang, 'leaveExamBody')}</p>
+              <div className="flex gap-2.5">
+                <button onClick={leave} className="flex-1 py-3 rounded-[10px] border border-stradeo-line text-stradeo-inkdim font-semibold">{t(lang, 'leave')}</button>
+                <button onClick={stay} autoFocus className="flex-1 py-3 rounded-[10px] bg-stradeo-ink text-stradeo-bg font-semibold">{t(lang, 'stay')}</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

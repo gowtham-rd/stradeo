@@ -1,0 +1,63 @@
+// Stradeo service worker — makes the app installable and lets practice work offline.
+// Bump VERSION to drop old caches after a release that changes cached files' format.
+const VERSION = 'v1'
+const SHELL = `stradeo-shell-${VERSION}`
+const DATA = `stradeo-data-${VERSION}`
+
+// App pages and the question/lesson data needed to practise offline.
+const PRECACHE = [
+  '/', '/quiz', '/topic', '/exam', '/exam/review', '/login', '/privacy',
+  '/data/questions.json', '/data/theory_lessons.json',
+  ...Array.from({ length: 25 }, (_, i) => `/data/topics/${i + 1}.json`),
+]
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(SHELL).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()))
+})
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== SHELL && k !== DATA).map(k => caches.delete(k))))
+      .then(() => self.clients.claim()),
+  )
+})
+
+self.addEventListener('fetch', event => {
+  const req = event.request
+  const url = new URL(req.url)
+  // Only same-origin GETs. Supabase, the AI routes and anything else go straight to the network.
+  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return
+
+  // Pages: network first (fresh code), fall back to the cached page when offline.
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone()
+        caches.open(SHELL).then(c => c.put(url.pathname, copy))
+        return res
+      }).catch(() => caches.match(url.pathname).then(r => r || caches.match('/'))),
+    )
+    return
+  }
+
+  // Build assets are content-hashed: cache first.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
+      const copy = res.clone()
+      caches.open(SHELL).then(c => c.put(req, copy))
+      return res
+    })))
+    return
+  }
+
+  // Question data, lessons, sign images, icons: serve from cache, refresh in the background.
+  if (/^\/(data|images|icons|logo)\//.test(url.pathname)) {
+    event.respondWith(caches.open(DATA).then(async cache => {
+      const hit = (await cache.match(req)) || (await caches.match(req))
+      const refresh = fetch(req).then(res => { if (res.ok) cache.put(req, res.clone()); return res })
+      if (hit) { refresh.catch(() => {}); return hit }
+      return refresh
+    }))
+  }
+})

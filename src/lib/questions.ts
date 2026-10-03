@@ -10,6 +10,18 @@ export async function loadQuestions(): Promise<Question[]> {
   return questionsCache!
 }
 
+const topicCache: Record<number, Promise<Question[]>> = {}
+
+/** Questions for one topic. Uses the full bank if it's already loaded, otherwise the small per-topic file. */
+export function loadTopicQuestions(topicId: number): Promise<Question[]> {
+  if (questionsCache) return Promise.resolve(getTopicQuestions(questionsCache, topicId))
+  topicCache[topicId] ??= fetch(`/data/topics/${topicId}.json`).then(res => {
+    if (!res.ok) throw new Error(`topics/${topicId}.json ${res.status}`)
+    return res.json() as Promise<Question[]>
+  }).catch(err => { delete topicCache[topicId]; throw err })
+  return topicCache[topicId]
+}
+
 export function getTopicQuestions(questions: Question[], topicId: number): Question[] {
   return questions.filter(q => q.t === topicId)
 }

@@ -2,19 +2,13 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
-import type { UserProgress, Question, TopicStats, DayStats, SRData } from '@/types'
-import { REVIEW_STEPS_MS } from '@/lib/constants'
+import type { UserProgress, Question } from '@/types'
 import { questionKey } from '@/lib/questions'
+import {
+  DEFAULT_PROGRESS, type PendingAnswer, activeStreak, computeReadiness, fromRow, toRow, replay, seenCount,
+} from '@/lib/progress'
 
-const DEFAULT_PROGRESS: UserProgress = {
-  stats: {},
-  totalDone: 0,
-  wrongQuestions: [],
-  srData: {},
-  streak: 0,
-  lastStudy: null,
-  dailyLog: {},
-}
+export { computeReadiness, READINESS_MIN_ANSWERS, applyAnswer, normaliseReview, activeStreak } from '@/lib/progress'
 
 interface ProgressContextType {
   progress: UserProgress
@@ -22,7 +16,7 @@ interface ProgressContextType {
   loaded: boolean
   /** Progress couldn't be fetched; answering is blocked until retryLoad succeeds. */
   loadError: boolean
-  /** The last save failed (offline, session expired…). */
+  /** Answers are waiting to be saved because the last attempt failed. */
   saveError: boolean
   retryLoad: () => void
   recordAnswer: (question: Question, correct: boolean) => void
@@ -33,119 +27,24 @@ interface ProgressContextType {
   /** Current streak, 0 if it has lapsed. */
   streak: number
   getTopicAccuracy: (topicId: number) => number | null
+  /** Distinct questions answered at least once (overall, or for one topic). */
+  seenCount: (topicId?: number) => number
   readiness: number
   topicsCovered: number
 }
 
-// Exam readiness, modelled on the real exam: topics 1–15 supply 2 questions each,
-// topics 16–25 supply 1 each. Each topic scores correct / max(answered, MIN), so a
-// topic you have barely practised can't look mastered. The total is the
-// exam-weighted average across all 25 topics; 90%+ ≈ the pass mark (max 3 errors / 30).
-export const READINESS_MIN_ANSWERS = 20
-
-export function computeReadiness(stats: UserProgress['stats']): { readiness: number; topicsCovered: number } {
-  let score = 0
-  let weight = 0
-  let covered = 0
-  for (let t = 1; t <= 25; t++) {
-    const w = t <= 15 ? 2 : 1
-    const s = stats[t] || { c: 0, t: 0 }
-    score += w * (s.c / Math.max(s.t, READINESS_MIN_ANSWERS))
-    weight += w
-    if (s.t >= READINESS_MIN_ANSWERS) covered++
-  }
-  return { readiness: Math.min(100, Math.round((score / weight) * 100)), topicsCovered: covered }
-}
-
-// Bring stored review data up to the current format: unique keys, one entry per
-// question, no orphans. Entries from the old 40-character keys are dropped and
-// their questions start fresh (due now).
-export function normaliseReview(wrong: Question[], sr: Record<string, unknown>): Pick<UserProgress, 'wrongQuestions' | 'srData'> {
-  const seen = new Set<string>()
-  const wrongQuestions: Question[] = []
-  const srData: UserProgress['srData'] = {}
-  for (const q of wrong) {
-    const k = questionKey(q)
-    if (seen.has(k)) continue
-    seen.add(k)
-    wrongQuestions.push(q)
-    const e = sr[k] as { stage?: unknown; next?: unknown } | undefined
-    srData[k] = e && typeof e.stage === 'number' && typeof e.next === 'number'
-      ? { stage: e.stage, next: e.next }
-      : { stage: 0, next: Date.now() }
-  }
-  return { wrongQuestions, srData }
-}
-
-// Calendar "yesterday" in local time (subtracting 24h breaks across DST changes).
-function localYesterday(): string {
-  const d = new Date()
-  d.setDate(d.getDate() - 1)
-  return d.toLocaleDateString('sv')
-}
-
-/** Streak as it stands today: it lapses if the last study day was before yesterday. */
-export function activeStreak(p: Pick<UserProgress, 'streak' | 'lastStudy'>): number {
-  const today = new Date().toLocaleDateString('sv')
-  return p.lastStudy === today || p.lastStudy === localYesterday() ? p.streak : 0
-}
-
 const ProgressContext = createContext<ProgressContextType | null>(null)
+const RETRY_MS = 5000
 
-// Pure fold of one answer into a progress snapshot (no mutation of prev).
-export function applyAnswer(prev: UserProgress, question: Question, correct: boolean): UserProgress {
-  const topicId = question.t
-  const prevStats = prev.stats[topicId] || { c: 0, t: 0 }
-  const newStats = { ...prev.stats, [topicId]: { c: prevStats.c + (correct ? 1 : 0), t: prevStats.t + 1 } }
-
-  // Smart Review (spaced repetition on missed questions)
-  const now = Date.now()
-  const key = questionKey(question)
-  const inReview = prev.wrongQuestions.some(w => questionKey(w) === key)
-  let newWrong = prev.wrongQuestions
-  const newSRData = { ...prev.srData }
-  if (!correct) {
-    // Miss: (re)enter review at the start of the schedule.
-    if (!inReview) newWrong = [...prev.wrongQuestions, question]
-    newSRData[key] = { stage: 0, next: now + REVIEW_STEPS_MS[0] }
-  } else if (inReview) {
-    const entry = prev.srData[key]
-    const due = !entry || now >= entry.next
-    if (due) {
-      // On-time correct answer: move one step on, or graduate after the last step.
-      const stage = (entry?.stage ?? 0) + 1
-      if (stage >= REVIEW_STEPS_MS.length) {
-        newWrong = prev.wrongQuestions.filter(w => questionKey(w) !== key)
-        delete newSRData[key]
-      } else {
-        newSRData[key] = { stage, next: now + REVIEW_STEPS_MS[stage] }
-      }
-    }
-    // Correct before it's due (extra practice): schedule unchanged.
-  }
-
-  // Streak (batched answers all share one study day)
-  const today = new Date().toLocaleDateString('sv')
-  const yesterday = localYesterday()
-  let newStreak = prev.streak
-  if (prev.lastStudy !== today) {
-    newStreak = prev.lastStudy === yesterday ? prev.streak + 1 : 1
-  }
-
-  // Daily log — immutable nested update
-  const prevDay = prev.dailyLog[today] || { c: 0, w: 0, total: 0 }
-  const newDay = { c: prevDay.c + (correct ? 1 : 0), w: prevDay.w + (correct ? 0 : 1), total: prevDay.total + 1 }
-  const newDaily = { ...prev.dailyLog, [today]: newDay }
-
-  return {
-    stats: newStats,
-    totalDone: prev.totalDone + 1,
-    wrongQuestions: newWrong,
-    srData: newSRData,
-    streak: newStreak,
-    lastStudy: today,
-    dailyLog: newDaily,
-  }
+// Device copy of the last confirmed snapshot + unsaved answers, so practice works
+// offline and nothing is lost if the tab closes before a save lands.
+type Stored = { data: UserProgress; version: number; exists: boolean; pending: PendingAnswer[] }
+const storeKey = (id: string) => `stradeo-progress:${id}`
+function readStore(id: string): Stored | null {
+  try { const raw = localStorage.getItem(storeKey(id)); return raw ? JSON.parse(raw) as Stored : null } catch { return null }
+}
+function writeStore(id: string, s: Stored) {
+  try { localStorage.setItem(storeKey(id), JSON.stringify(s)) } catch { /* storage full or blocked */ }
 }
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
@@ -156,80 +55,140 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [loadError, setLoadError] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
-  // Saves are only allowed once this user's row has been read successfully,
-  // so a failed or slow load can never overwrite real data with defaults.
-  const loadedFor = useRef<string | null>(null)
-  const saveChain = useRef<Promise<void>>(Promise.resolve())
 
+  // Sync model: `server` is the last snapshot confirmed by the database together
+  // with its version; `pending` are answers not yet confirmed. What the user sees
+  // is always server + pending. A save only succeeds if nobody else (another tab
+  // or device) saved in between; otherwise we fetch their snapshot, replay our
+  // pending answers on top and try again — so no device overwrites another.
+  const server = useRef<{ userId: string; data: UserProgress; version: number; exists: boolean } | null>(null)
+  const pending = useRef<PendingAnswer[]>([])
+  const flushing = useRef(false)
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const persist = useCallback(() => {
+    const s = server.current
+    if (s) writeStore(s.userId, { data: s.data, version: s.version, exists: s.exists, pending: pending.current })
+  }, [])
+
+  const fetchRow = useCallback(async (id: string) => {
+    const { data, error } = await supabase.from('progress').select('*').eq('user_id', id).maybeSingle()
+    if (error) throw error
+    return { data: fromRow(data), version: (data?.version as number | undefined) ?? 0, exists: !!data }
+  }, [])
+
+  // Load on sign-in / user change / retry.
   useEffect(() => {
-    loadedFor.current = null
+    server.current = null
+    pending.current = []
     setLoaded(false)
     setLoadError(false)
     setSaveError(false)
     if (!userId) { setProgress(DEFAULT_PROGRESS); return }
     let cancelled = false
-    supabase.from('progress').select('*').eq('user_id', userId).maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return
-        if (error) { setLoadError(true); return }
-        setProgress(data ? {
-          stats: data.stats || {},
-          totalDone: data.total_done || 0,
-          ...normaliseReview(data.wrong_questions || [], data.sr_data || {}),
-          streak: data.streak || 0,
-          lastStudy: data.last_study,
-          dailyLog: data.daily_log || {},
-        } : DEFAULT_PROGRESS)
-        loadedFor.current = userId
+    const stored = readStore(userId)
+    pending.current = stored?.pending ?? []
+    fetchRow(userId).then(row => {
+      if (cancelled) return
+      server.current = { userId, ...row }
+      setProgress(replay(row.data, pending.current))
+      setLoaded(true)
+      persist()
+      if (pending.current.length) void flushRef.current()
+    }, () => {
+      if (cancelled) return
+      if (stored) {
+        // Offline (or server unreachable): carry on from the device copy; sync later.
+        server.current = { userId, data: stored.data, version: stored.version, exists: stored.exists }
+        setProgress(replay(stored.data, pending.current))
         setLoaded(true)
-      }, () => { if (!cancelled) setLoadError(true) })
+        setSaveError(true)
+      } else {
+        setLoadError(true)
+      }
+    })
     return () => { cancelled = true }
-  }, [userId, reloadToken])
+  }, [userId, reloadToken, fetchRow, persist])
 
   const retryLoad = useCallback(() => setReloadToken(n => n + 1), [])
 
-  // Saves run one after another so an older snapshot can't land after a newer one.
-  const saveProgress = useCallback((p: UserProgress) => {
-    const id = loadedFor.current
-    if (!id) return
-    saveChain.current = saveChain.current.then(async () => {
-      try {
-        const { error } = await supabase.from('progress').upsert({
-          user_id: id,
-          stats: p.stats,
-          total_done: p.totalDone,
-          wrong_questions: p.wrongQuestions,
-          sr_data: p.srData,
-          streak: p.streak,
-          last_study: p.lastStudy,
-          daily_log: p.dailyLog,
-          updated_at: new Date().toISOString(),
-        })
-        setSaveError(!!error)
-      } catch {
-        setSaveError(true)
+  const flush = useCallback(async () => {
+    if (flushing.current) return
+    flushing.current = true
+    if (retryTimer.current) { clearTimeout(retryTimer.current); retryTimer.current = null }
+    try {
+      for (let attempt = 0; pending.current.length && attempt < 5; attempt++) {
+        const base = server.current
+        if (!base) return
+        const batch = pending.current.slice()
+        const target = replay(base.data, batch)
+        const nextVersion = base.version + 1
+        let ok: boolean
+        if (base.exists) {
+          const { data, error } = await supabase.from('progress')
+            .update({ ...toRow(target), version: nextVersion, updated_at: new Date().toISOString() })
+            .eq('user_id', base.userId).eq('version', base.version)
+            .select('version')
+          if (error) throw error
+          ok = !!data && data.length > 0
+        } else {
+          const { error } = await supabase.from('progress')
+            .insert({ user_id: base.userId, ...toRow(target), version: nextVersion, updated_at: new Date().toISOString() })
+          ok = !error // a duplicate-key error means another device created the row first
+        }
+        if (server.current?.userId !== base.userId) return // signed out meanwhile
+        if (ok) {
+          server.current = { userId: base.userId, data: target, version: nextVersion, exists: true }
+          pending.current = pending.current.slice(batch.length)
+          persist()
+        } else {
+          // Someone else saved first: rebase our pending answers on their snapshot.
+          const latest = await fetchRow(base.userId)
+          if (server.current?.userId !== base.userId) return
+          server.current = { userId: base.userId, ...latest }
+          setProgress(replay(latest.data, pending.current))
+          persist()
+        }
       }
-    })
-  }, [])
+      setSaveError(pending.current.length > 0)
+    } catch {
+      setSaveError(true)
+    } finally {
+      flushing.current = false
+      if (pending.current.length) {
+        // Retry later (offline, expired session, or more answers arrived mid-save).
+        retryTimer.current = setTimeout(() => { void flush() }, RETRY_MS)
+      }
+    }
+  }, [fetchRow, persist])
+  const flushRef = useRef(flush)
+  flushRef.current = flush
+
+  // Try again as soon as the connection or the tab comes back.
+  useEffect(() => {
+    const kick = () => { if (pending.current.length) void flush() }
+    window.addEventListener('online', kick)
+    document.addEventListener('visibilitychange', kick)
+    return () => {
+      window.removeEventListener('online', kick)
+      document.removeEventListener('visibilitychange', kick)
+      if (retryTimer.current) clearTimeout(retryTimer.current)
+    }
+  }, [flush])
+
+  const recordAnswers = useCallback((entries: { question: Question; correct: boolean }[]) => {
+    if (!entries.length || !server.current) return // not loaded: never save over unloaded data
+    const at = Date.now()
+    const answers = entries.map(e => ({ question: e.question, correct: e.correct, at }))
+    pending.current = [...pending.current, ...answers]
+    persist()
+    setProgress(prev => replay(prev, answers))
+    void flush()
+  }, [flush, persist])
 
   const recordAnswer = useCallback((question: Question, correct: boolean) => {
-    if (!loadedFor.current) return
-    setProgress(prev => {
-      const updated = applyAnswer(prev, question, correct)
-      saveProgress(updated)
-      return updated
-    })
-  }, [saveProgress])
-
-  // Record several answers at once (e.g. an exam) as a single state update + save.
-  const recordAnswers = useCallback((entries: { question: Question; correct: boolean }[]) => {
-    if (!entries.length || !loadedFor.current) return
-    setProgress(prev => {
-      const updated = entries.reduce((acc, e) => applyAnswer(acc, e.question, e.correct), prev)
-      saveProgress(updated)
-      return updated
-    })
-  }, [saveProgress])
+    recordAnswers([{ question, correct }])
+  }, [recordAnswers])
 
   const getDueReviews = useCallback((): Question[] => {
     const now = Date.now()
@@ -248,10 +207,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return Math.round((s.c / s.t) * 100)
   }, [progress.stats])
 
+  const seenCountFn = useCallback((topicId?: number) => seenCount(progress.seen, topicId), [progress.seen])
+
   const { readiness, topicsCovered } = computeReadiness(progress.stats)
 
   return (
-    <ProgressContext.Provider value={{ progress, loaded, loadError, saveError, retryLoad, recordAnswer, recordAnswers, getDueReviews, nextReviewAt, streak: activeStreak(progress), getTopicAccuracy, readiness, topicsCovered }}>
+    <ProgressContext.Provider value={{
+      progress, loaded, loadError, saveError, retryLoad, recordAnswer, recordAnswers,
+      getDueReviews, nextReviewAt, streak: activeStreak(progress), getTopicAccuracy,
+      seenCount: seenCountFn, readiness, topicsCovered,
+    }}>
       {children}
     </ProgressContext.Provider>
   )

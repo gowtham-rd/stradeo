@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { loadQuestions, getTopicQuestions, getImageUrl, shuffle, questionKey } from '@/lib/questions'
+import { loadQuestions, loadTopicQuestions, getImageUrl, shuffle, questionKey } from '@/lib/questions'
 import { REVIEW_STEPS_MS } from '@/lib/constants'
 import { getTopicName, TOPICS } from '@/lib/topics'
 import { LANG_PROMPT, t, formatWhen } from '@/lib/i18n'
@@ -12,7 +12,8 @@ import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import TranslateButton from '@/components/TranslateButton'
-import { aiPost, AI_NOT_READY } from '@/lib/api'
+import ReportQuestion from '@/components/ReportQuestion'
+import { aiPost, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
 import { IconReview, IconCheck, IconCross, IconTip, IconRoadworks, IconArrowRight } from '@/components/icons'
 
 const initialState: QuizState = {
@@ -76,8 +77,8 @@ function QuizInner() {
       const pool = due.length ? due : progress.wrongQuestions
       return shuffle([...pool]).slice(0, 20)
     }
-    const all = await loadQuestions()
-    return topicId ? shuffle(getTopicQuestions(all, topicId)) : shuffle(all).slice(0, 30)
+    if (topicId) return shuffle(await loadTopicQuestions(topicId))
+    return shuffle(await loadQuestions()).slice(0, 30)
   }
 
   useEffect(() => {
@@ -112,6 +113,7 @@ function QuizInner() {
     try {
       const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
       if (res.status === AI_NOT_READY) { setExp(t(lang, 'aiSoon')); setExpLoading(false); return }
+      if (res.status === AI_LIMIT) { setExp(t(lang, 'aiLimit')); setExpLoading(false); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
       setExp(data.explanation || t(lang, 'unavailable'))
@@ -251,6 +253,8 @@ function QuizInner() {
                 <IconReview size={14} />{reviewNote}
               </p>
             )}
+
+            {state.answer !== null && <div className="mb-4 -mt-1"><ReportQuestion key={questionKey(q)} question={q} /></div>}
 
             {/* Next (not last) */}
             {state.answer !== null && !isLast && (

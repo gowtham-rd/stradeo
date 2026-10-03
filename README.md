@@ -103,3 +103,11 @@ Questions from [Ed0ardo/QuizPatenteB](https://github.com/Ed0ardo/QuizPatenteB) (
 ## License
 
 MIT
+
+## Maintenance
+
+- `npm test` — unit tests for progress logic (Smart Review schedule, streak, sync replay, readiness) and question data / exam composition.
+- `npm run data` — after editing `public/data/questions.json`, regenerates the per-topic files in `public/data/topics/` and `src/lib/questionCounts.ts`.
+- Database: run `supabase/schema.sql` for a fresh project, then every file in `supabase/migrations/` in order.
+- Question reports from users land in the `question_reports` table (Supabase → Table Editor).
+- AI features need `CLAUDE_API_KEY` in Vercel; each user gets 60 AI requests per day (`bump_ai_usage` in migration 002).

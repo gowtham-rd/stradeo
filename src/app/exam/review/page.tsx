@@ -2,13 +2,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { getImageUrl } from '@/lib/questions'
+import { getImageUrl, questionKey } from '@/lib/questions'
+import ReportQuestion from '@/components/ReportQuestion'
 import { EXAM_QUESTIONS, MAX_ERRORS } from '@/lib/constants'
 import { LANG_PROMPT, t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
-import { aiPost, AI_NOT_READY } from '@/lib/api'
+import { aiPost, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
 import { IconExam, IconFinish, IconCheck, IconCross, IconTip, IconRoadworks } from '@/components/icons'
 
 interface ExamResult {
@@ -44,6 +45,7 @@ export default function ExamReviewPage() {
     try {
       const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
       if (res.status === AI_NOT_READY) { setExp(p => ({ ...p, [idx]: t(lang, 'aiSoon') })); setExpLoading(p => ({ ...p, [idx]: false })); return }
+      if (res.status === AI_LIMIT) { setExp(p => ({ ...p, [idx]: t(lang, 'aiLimit') })); setExpLoading(p => ({ ...p, [idx]: false })); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
       setExp(p => ({ ...p, [idx]: data.explanation || t(lang, 'unavailable') }))
@@ -114,6 +116,7 @@ export default function ExamReviewPage() {
                         : <><IconTip size={13} />{t(lang, 'explain')}</>}
                     </button>
                   ))}
+                  {!h.ok && <ReportQuestion key={questionKey(h.q)} question={h.q} />}
                 </div>
               </div>
             </div>

@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { loadQuestions, getTopicQuestionCount, shuffle, getTopicQuestions, buildExamQuestions } from '@/lib/questions'
+import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { TOPICS, getTopicName, isPrimaryTopic } from '@/lib/topics'
 import { t, formatWhen } from '@/lib/i18n'
-import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import ReadinessScore from '@/components/ReadinessScore'
 import StatsPanel from '@/components/StatsPanel'
@@ -20,13 +19,11 @@ import { IconStreak, IconStats, IconExam, IconReview } from '@/components/icons'
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, streak, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
-  const [questions, setQuestions] = useState<Question[]>([])
+  const { progress, streak, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
   const [showStats, setShowStats] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
-    loadQuestions().then(setQuestions, () => { /* counts fall back to 0; quiz pages show their own error */ })
     // Show the splash once per browser session, not every time Home opens.
     let seen = false
     try { seen = sessionStorage.getItem('stradeo-splash') === '1'; sessionStorage.setItem('stradeo-splash', '1') } catch { /* storage blocked */ }
@@ -39,11 +36,10 @@ export default function HomePage() {
   if (authLoading) return <SplashScreen />
   if (!user) return <LoginForm />
 
-  const topicCounts = getTopicQuestionCount(questions)
   const dueCount = getDueReviews().length
   const totalC = Object.values(progress.stats).reduce((a, s) => a + s.c, 0)
   const totalW = Object.values(progress.stats).reduce((a, s) => a + (s.t - s.c), 0)
-  const totalRemaining = Math.max(0, (questions.length || 7139) - totalC - totalW)
+  const totalRemaining = Math.max(0, TOTAL_QUESTIONS - seenCount())
 
   return (
     <div className="min-h-screen">
@@ -110,9 +106,9 @@ export default function HomePage() {
           <TopicCard
             key={topic.id}
             topic={topic}
-            count={topicCounts[topic.id] || 0}
+            count={TOPIC_COUNTS[topic.id] || 0}
             accuracy={getTopicAccuracy(topic.id)}
-            done={progress.stats[topic.id]?.t || 0}
+            done={seenCount(topic.id)}
           />
         ))}
       </div>

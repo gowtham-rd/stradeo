@@ -71,7 +71,7 @@ export default function LoginForm() {
           </button>
         </form>
 
-        <p className="text-center text-[11px] text-stradeo-inkfaint mt-5">{t(lang, 'contactAdmin')}</p>
+        <p className="text-center text-[11px] text-stradeo-inkfaint mt-5">{t(lang, 'contactAdmin')} · <a href="/privacy" className="underline hover:text-stradeo-ink">Privacy</a></p>
       </div>
     </div>
   )

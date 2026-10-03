@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 // Server-side guard for the AI routes: only signed-in Stradeo users may call them,
-// so nobody on the internet can spend the Claude credits.
+// each within a daily limit, so nobody can run up the Claude bill.
 const ALLOWED_LANGUAGES = new Set(['English', 'Italian', 'Tamil', 'Hindi'])
 const MAX_TEXT = 600
 
@@ -12,13 +12,19 @@ export async function guardAiRequest(req: NextRequest): Promise<NextResponse | n
   }
   const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Client acting as this user, so the database applies their identity (auth.uid()).
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false } },
+    { auth: { persistSession: false }, global: { headers: { Authorization: `Bearer ${token}` } } },
   )
   const { data, error } = await supabase.auth.getUser(token)
   if (error || !data.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Daily cap per user, counted in the database (see supabase/migrations/002).
+  const { data: allowed, error: limitError } = await supabase.rpc('bump_ai_usage')
+  if (limitError) return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
+  if (allowed !== true) return NextResponse.json({ error: 'Daily limit reached' }, { status: 429 })
   return null
 }
 

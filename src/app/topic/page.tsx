@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { loadQuestions, getTopicQuestionCount } from '@/lib/questions'
+import { TOPIC_COUNTS } from '@/lib/questionCounts'
 import { getLesson } from '@/lib/lessons'
 import { getTopicName, isPrimaryTopic, TOPICS } from '@/lib/topics'
 import { LANGUAGES, LANG_PROMPT, t } from '@/lib/i18n'
@@ -34,15 +34,11 @@ function TopicInner() {
   const { getTopicAccuracy, progress } = useProgress()
 
   const [mode, setMode] = useState<'study' | 'quiz'>('study')
-  const [count, setCount] = useState(0)
+  const count = TOPIC_COUNTS[tid] || 0
   const [theory, setTheory] = useState<TheoryContent | null>(null)
   const [theoryLoading, setTheoryLoading] = useState(false)
   // cache generated lessons per topic+language for this session
   const [cache, setCache] = useState<Record<string, TheoryContent>>({})
-
-  useEffect(() => {
-    loadQuestions().then(all => setCount(getTopicQuestionCount(all)[tid] || 0), () => { /* count stays 0 */ })
-  }, [tid])
 
   // Show the pre-generated lesson for this topic immediately.
   // A live regenerate (in another language) takes precedence via the session cache.

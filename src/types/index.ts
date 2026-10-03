@@ -50,6 +50,8 @@ export interface UserProgress {
   streak: number
   lastStudy: string | null
   dailyLog: Record<string, DayStats>
+  /** Ids (seenId) of questions answered at least once, per topic. */
+  seen: Record<number, string[]>
 }
 
 // ─── Theory ───
