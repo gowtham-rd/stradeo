@@ -36,6 +36,8 @@ function TopicInner() {
   const [mode, setMode] = useState<'study' | 'quiz'>('study')
   const count = TOPIC_COUNTS[tid] || 0
   const [theory, setTheory] = useState<TheoryContent | null>(null)
+  // Language the shown lesson is actually in (English when no translation exists yet).
+  const [theoryLang, setTheoryLang] = useState<string>('en')
   const [theoryLoading, setTheoryLoading] = useState(false)
   // cache generated lessons per topic+language for this session
   const [cache, setCache] = useState<Record<string, TheoryContent>>({})
@@ -47,7 +49,7 @@ function TopicInner() {
     if (cache[key]) { setTheory(cache[key]); setTheoryLoading(false); return }
     let cancelled = false
     setTheoryLoading(false)
-    getLesson(tid).then(l => { if (!cancelled) setTheory(l) }, () => { /* the 'Generate lesson' button stays available */ })
+    getLesson(tid, lang).then(r => { if (!cancelled) { setTheory(r?.lesson ?? null); setTheoryLang(r?.lang ?? 'en') } }, () => { /* the 'Generate lesson' button stays available */ })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tid, lang])
@@ -67,12 +69,12 @@ function TopicInner() {
       const res = await aiPost('/api/theory', ({ topicNameIt: topic?.it, topicNameEn: topic?.en, language: LANG_PROMPT[lang] }))
       if (!res.ok) throw new Error('theory request failed')
       const data: TheoryContent = await res.json()
-      setTheory(data)
+      setTheory(data); setTheoryLang(lang)
       setCache(prev => ({ ...prev, [key]: data }))
     } catch {
       // Keep the pre-generated lesson rather than wiping it (e.g. no Claude key yet)
       let fallback: TheoryContent | null = previous
-      if (!fallback) { try { fallback = await getLesson(tid) } catch { /* offline */ } }
+      if (!fallback) { try { fallback = (await getLesson(tid, lang))?.lesson ?? null } catch { /* offline */ } }
       setTheory(fallback || { title: topic?.en || '', keypoints: t(lang, 'lessonFailed'), details: '', traps: '', remember: '' })
     } finally {
       setTheoryLoading(false)
@@ -134,7 +136,7 @@ function TopicInner() {
               </div>
             )}
 
-            {theory && lang !== 'en' && !cache[`${tid}-${lang}`] && (
+            {theory && lang !== 'en' && theoryLang !== lang && !cache[`${tid}-${lang}`] && (
               <div className="mb-3.5 rounded-[10px] border border-stradeo-accent/30 bg-stradeo-accent/[0.08] px-4 py-3 text-[13px] text-stradeo-ink flex items-start gap-2.5">
                 <IconRoadworks size={18} className="text-stradeo-brandorange shrink-0" /><span>{t(lang, 'lessonLangSoon')}</span>
               </div>

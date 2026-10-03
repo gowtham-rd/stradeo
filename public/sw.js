@@ -1,6 +1,6 @@
 // Stradeo service worker — makes the app installable and lets practice work offline.
 // Bump VERSION to drop old caches after a release that changes cached files' format.
-const VERSION = 'v1'
+const VERSION = 'v2'
 const SHELL = `stradeo-shell-${VERSION}`
 const DATA = `stradeo-data-${VERSION}`
 
@@ -8,11 +8,17 @@ const DATA = `stradeo-data-${VERSION}`
 const PRECACHE = [
   '/', '/quiz', '/topic', '/exam', '/exam/review', '/login', '/privacy',
   '/data/questions.json', '/data/theory_lessons.json',
+  '/data/lessons/it.json', '/data/lessons/ta.json', '/data/lessons/hi.json',
   ...Array.from({ length: 25 }, (_, i) => `/data/topics/${i + 1}.json`),
 ]
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(SHELL).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()))
+  // Cache each file on its own so one missing file doesn't block installation.
+  event.waitUntil(
+    caches.open(SHELL)
+      .then(c => Promise.allSettled(PRECACHE.map(url => c.add(url))))
+      .then(() => self.skipWaiting()),
+  )
 })
 
 self.addEventListener('activate', event => {
