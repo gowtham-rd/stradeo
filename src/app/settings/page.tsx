@@ -1,17 +1,20 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { LANGUAGES, t } from '@/lib/i18n'
+import { useProgress } from '@/contexts/ProgressContext'
+import { LANGUAGES, t, type UIKey } from '@/lib/i18n'
 import type { Language } from '@/types'
 import NavBar from '@/components/NavBar'
 import ThemeToggle from '@/components/ThemeToggle'
 import HashtagMark from '@/components/HashtagMark'
-import { IconSettings, IconCheck, IconArrowRight } from '@/components/icons'
+import { IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip, IconStudy } from '@/components/icons'
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
   const { lang, setLang } = useLanguage()
+  const [confirmReset, setConfirmReset] = useState(false)
 
   return (
     <div className="min-h-screen">
@@ -19,13 +22,17 @@ export default function SettingsPage() {
       <main className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-fade-in">
         <h1 className="text-[22px] font-bold mb-5 inline-flex items-center gap-2.5"><IconSettings size={20} />{t(lang, 'settings')}</h1>
 
-        <Section title={t(lang, 'appearance')}>
-          <ThemeToggle />
-          <p className="text-[12px] text-stradeo-inkfaint mt-2.5">{t(lang, 'themeHint')}</p>
-        </Section>
+        {/* Name + Appearance: side by side on wider screens, stacked on phones */}
+        <div className="grid gap-3.5 sm:grid-cols-2 mb-3.5">
+          <Section title={t(lang, 'yourName')} flush><NameEditor /></Section>
+          <Section title={t(lang, 'appearance')} flush>
+            <ThemeToggle />
+            <p className="text-[12px] text-stradeo-inkfaint mt-2.5">{t(lang, 'themeHint')}</p>
+          </Section>
+        </div>
 
-        <Section title={t(lang, 'language')}>
-          <div role="radiogroup" aria-label={t(lang, 'language')} className="grid grid-cols-2 gap-2">
+        <Section title={t(lang, 'learnThrough')}>
+          <div role="radiogroup" aria-label={t(lang, 'learnThrough')} className="grid grid-cols-2 gap-2">
             {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
               <button key={k} role="radio" aria-checked={lang === k} onClick={() => setLang(k)}
                 className={`flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-sm font-semibold text-left ${
@@ -36,19 +43,34 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+          <p className="text-[12px] text-stradeo-inkfaint mt-2.5">{t(lang, 'learnThroughHint')}</p>
         </Section>
 
         <Section title={t(lang, 'account')}>
           <p className="text-[13px] text-stradeo-inkdim mb-3">
             {t(lang, 'signedInAs')} <strong className="font-semibold text-stradeo-ink break-all">{user?.email}</strong>
           </p>
-          <button onClick={signOut}
-            className="w-full rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-accent2 hover:border-stradeo-accent2">
-            {t(lang, 'logout')}
-          </button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button onClick={signOut}
+              className="rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-ink hover:border-stradeo-ink">
+              {t(lang, 'logout')}
+            </button>
+            <button onClick={() => setConfirmReset(true)}
+              className="rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-accent2 hover:border-stradeo-accent2">
+              {t(lang, 'resetProgress')}
+            </button>
+          </div>
         </Section>
 
         <Section title={t(lang, 'about')}>
+          <h3 className="text-[13px] font-bold text-stradeo-ink mb-2 inline-flex items-center gap-2">
+            <IconRoadworks size={15} className="text-stradeo-brandorange" />{t(lang, 'comingSoon')}
+          </h3>
+          <ul className="space-y-2.5 mb-4">
+            <Upcoming icon={<IconTranslate size={14} />} title="soonTranslationsTitle" body="soonTranslationsBody" />
+            <Upcoming icon={<IconTip size={14} />} title="soonExplanationsTitle" body="soonExplanationsBody" />
+            <Upcoming icon={<IconStudy size={14} />} title="soonLessonsTitle" body="soonLessonsBody" />
+          </ul>
           <Link href="/privacy" className="flex items-center justify-between rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-ink hover:border-stradeo-ink">
             {t(lang, 'privacyLink')} <IconArrowRight size={13} />
           </Link>
@@ -65,15 +87,116 @@ export default function SettingsPage() {
           <p className="font-mono text-[12px] text-stradeo-inkfaint mt-3">Stradeo · {t(lang, 'appVersion')} {process.env.NEXT_PUBLIC_APP_VERSION}</p>
         </Section>
       </main>
+
+      {confirmReset && <ResetDialog onClose={() => setConfirmReset(false)} />}
     </div>
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, flush }: { title: string; children: React.ReactNode; flush?: boolean }) {
   return (
-    <section className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
+    <section className={`bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 ${flush ? '' : 'mb-3.5'}`}>
       <h2 className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim mb-3">{title}</h2>
       {children}
     </section>
+  )
+}
+
+function Upcoming({ icon, title, body }: { icon: React.ReactNode; title: UIKey; body: UIKey }) {
+  const { lang } = useLanguage()
+  return (
+    <li className="flex gap-2.5">
+      <span className="mt-0.5 text-stradeo-inkdim">{icon}</span>
+      <span>
+        <span className="block text-[13px] font-semibold text-stradeo-ink">{t(lang, title)}</span>
+        <span className="block text-[12px] leading-snug text-stradeo-inkdim">{t(lang, body)}</span>
+      </span>
+    </li>
+  )
+}
+
+function NameEditor() {
+  const { user, updateName } = useAuth()
+  const { lang } = useLanguage()
+  const fallback = user?.email?.split('@')[0] ?? ''
+  const [value, setValue] = useState(user?.name ?? '')
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  useEffect(() => { setValue(user?.name ?? '') }, [user?.name])
+  const dirty = value.trim() !== (user?.name ?? '')
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    if (!dirty) return
+    setState('saving')
+    const { error } = await updateName(value)
+    setState(error ? 'error' : 'saved')
+  }
+
+  return (
+    <form onSubmit={save}>
+      <label htmlFor="display-name" className="sr-only">{t(lang, 'yourName')}</label>
+      <div className="flex gap-2">
+        <input id="display-name" value={value} maxLength={40} autoComplete="nickname"
+          onChange={e => { setValue(e.target.value); setState('idle') }} placeholder={fallback}
+          className="min-w-0 flex-1 h-8 px-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-sm outline-none focus:border-stradeo-ink" />
+        <button type="submit" disabled={!dirty || state === 'saving'}
+          className="h-8 px-3 rounded-lg bg-stradeo-ink text-stradeo-bg text-[13px] font-semibold disabled:opacity-40">
+          {t(lang, 'save')}
+        </button>
+      </div>
+      <p className={`text-[12px] mt-2.5 ${state === 'error' ? 'text-stradeo-accent2' : 'text-stradeo-inkfaint'}`}>
+        {state === 'saved' ? <span className="inline-flex items-center gap-1"><IconCheck size={11} />{t(lang, 'saved')}</span>
+          : state === 'error' ? t(lang, 'connError')
+          : t(lang, 'nameHint')}
+      </p>
+    </form>
+  )
+}
+
+function ResetDialog({ onClose }: { onClose: () => void }) {
+  const { lang } = useLanguage()
+  const { resetProgress } = useProgress()
+  const [typed, setTyped] = useState('')
+  const [state, setState] = useState<'idle' | 'working' | 'done' | 'error'>('idle')
+  const word = t(lang, 'resetWord')
+  const ok = typed.trim().toUpperCase() === word.toUpperCase()
+
+  async function confirm() {
+    setState('working')
+    setState((await resetProgress()) ? 'done' : 'error')
+  }
+
+  return (
+    <div role="dialog" aria-modal="true" aria-labelledby="reset-title"
+      className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/40 p-4"
+      onKeyDown={e => { if (e.key === 'Escape' && state !== 'working') onClose() }}>
+      <div className="w-full max-w-[420px] rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5">
+        {state === 'done' ? (
+          <>
+            <h2 id="reset-title" className="text-lg font-bold mb-1 inline-flex items-center gap-2"><IconCheck size={16} className="text-stradeo-green" />{t(lang, 'resetDone')}</h2>
+            <p className="text-sm text-stradeo-inkdim mb-5">{t(lang, 'resetDoneBody')}</p>
+            <Link href="/" className="block w-full py-3 rounded-[10px] bg-stradeo-ink text-stradeo-bg font-semibold text-center">{t(lang, 'home')}</Link>
+          </>
+        ) : (
+          <>
+            <h2 id="reset-title" className="text-lg font-bold mb-1 inline-flex items-center gap-2"><IconWarning size={16} className="text-stradeo-accent2" />{t(lang, 'resetTitle')}</h2>
+            <p className="text-sm text-stradeo-inkdim mb-4">{t(lang, 'resetBody')}</p>
+            <label htmlFor="reset-confirm" className="block text-[12px] font-semibold text-stradeo-inkdim mb-1.5">
+              {t(lang, 'resetType')} <span className="font-mono text-stradeo-ink">{word}</span>
+            </label>
+            <input id="reset-confirm" value={typed} onChange={e => setTyped(e.target.value)} autoFocus autoComplete="off"
+              className="w-full h-10 px-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink font-mono text-sm outline-none focus:border-stradeo-ink mb-4" />
+            {state === 'error' && <p className="text-[12px] text-stradeo-accent2 mb-3">{t(lang, 'connError')}</p>}
+            <div className="flex gap-2.5">
+              <button onClick={onClose} disabled={state === 'working'} className="flex-1 py-3 rounded-[10px] border border-stradeo-line text-stradeo-inkdim font-semibold">{t(lang, 'cancel')}</button>
+              <button onClick={confirm} disabled={!ok || state === 'working'}
+                className="flex-1 py-3 rounded-[10px] bg-stradeo-accent2 text-white font-semibold disabled:opacity-40">
+                {t(lang, 'resetConfirm')}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   )
 }

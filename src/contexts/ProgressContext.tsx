@@ -19,6 +19,8 @@ interface ProgressContextType {
   /** Answers are waiting to be saved because the last attempt failed. */
   saveError: boolean
   retryLoad: () => void
+  /** Wipe all study progress for this user (server + device). */
+  resetProgress: () => Promise<boolean>
   recordAnswer: (question: Question, correct: boolean) => void
   recordAnswers: (entries: { question: Question; correct: boolean }[]) => void
   getDueReviews: () => Question[]
@@ -190,6 +192,31 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     recordAnswers([{ question, correct }])
   }, [recordAnswers])
 
+  const resetProgress = useCallback(async (): Promise<boolean> => {
+    const base = server.current
+    if (!base) return false
+    pending.current = []
+    if (retryTimer.current) { clearTimeout(retryTimer.current); retryTimer.current = null }
+    try {
+      // Not conditional on version: a reset must win over any device's save.
+      const latest = await fetchRow(base.userId)
+      const nextVersion = Math.max(base.version, latest.version) + 1
+      const row = { ...toRow(DEFAULT_PROGRESS), version: nextVersion, updated_at: new Date().toISOString() }
+      const { error } = latest.exists
+        ? await supabase.from('progress').update(row).eq('user_id', base.userId)
+        : await supabase.from('progress').insert({ user_id: base.userId, ...row })
+      if (error) throw error
+      server.current = { userId: base.userId, data: DEFAULT_PROGRESS, version: nextVersion, exists: true }
+      pending.current = []
+      setProgress(DEFAULT_PROGRESS)
+      setSaveError(false)
+      persist()
+      return true
+    } catch {
+      return false
+    }
+  }, [fetchRow, persist])
+
   const getDueReviews = useCallback((): Question[] => {
     const now = Date.now()
     return progress.wrongQuestions.filter(q => now >= (progress.srData[questionKey(q)]?.next ?? 0))
@@ -213,7 +240,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProgressContext.Provider value={{
-      progress, loaded, loadError, saveError, retryLoad, recordAnswer, recordAnswers,
+      progress, loaded, loadError, saveError, retryLoad, resetProgress, recordAnswer, recordAnswers,
       getDueReviews, nextReviewAt, streak: activeStreak(progress), getTopicAccuracy,
       seenCount: seenCountFn, readiness, topicsCovered,
     }}>

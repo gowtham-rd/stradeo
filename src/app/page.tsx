@@ -49,7 +49,7 @@ export default function HomePage() {
         {/* Welcome + Streak */}
         <div className="flex justify-between items-center mb-4">
           <p className="text-sm text-stradeo-inkdim">
-            {t(lang, 'welcome')}, <strong className="font-semibold text-stradeo-ink">{user.email?.split('@')[0]}</strong>
+            {t(lang, 'welcome')}, <strong className="font-semibold text-stradeo-ink">{user.name || user.email?.split('@')[0]}</strong>
           </p>
           <div className="flex items-center gap-3">
             {streak > 0 && (

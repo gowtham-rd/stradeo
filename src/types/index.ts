@@ -20,6 +20,8 @@ export type Language = 'en' | 'it' | 'ta' | 'hi'
 export interface UserSession {
   id: string
   email: string
+  /** Display name chosen in Settings (Supabase user_metadata.display_name). */
+  name?: string
   role?: string
 }
 
