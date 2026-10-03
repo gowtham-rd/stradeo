@@ -159,7 +159,9 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
                   <button key={id} type="button" onClick={() => pick(id)} aria-pressed={picked === id}
                     title={`${String(id).padStart(2, '0')} · ${getTopicName(id, lang)} · ${Math.round(sc * 100)}%`}
                     aria-label={`${getTopicName(id, lang)}: ${Math.round(sc * 100)}%`}
-                    className={`w-[calc((100%-56px)/15)] max-w-[22px] aspect-square rounded-[3px] ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`} />
+                    className={`w-[calc((100%-56px)/15)] max-w-[30px] h-8 rounded-[4px] flex items-center justify-center font-mono text-[9px] leading-none ${answered === 0 ? 'text-stradeo-inkfaint' : 'text-stradeo-bg/80 font-bold'} ${cellClass(sc, answered)} ${picked === id ? 'outline outline-2 outline-offset-1 outline-stradeo-ink' : 'hover:outline hover:outline-2 hover:outline-stradeo-ink'}`}>
+                    {id}
+                  </button>
                 )
               })}
             </div>

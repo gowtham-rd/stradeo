@@ -1,12 +1,11 @@
 'use client'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { t } from '@/lib/i18n'
 import { MAX_ERRORS } from '@/lib/constants'
 import ExamHistoryChart from './ExamHistoryChart'
-import { IconHistory, IconFinish, IconExam, IconArrowRight } from './icons'
+import { IconHistory, IconFinish, IconExam } from './icons'
 
 // Home card: the latest exam simulations as a bar chart (tap a bar to open that
 // exam's results), with exams taken, passed and best score.
@@ -46,10 +45,6 @@ export default function ExamHistoryCard() {
             <ExamHistoryChart exams={exams} max={8} height={104} selected={last.at}
               onSelect={at => router.push(`/exam/review?at=${at}`)} />
           </div>
-          <Link href={`/exam/review?at=${last.at}`}
-            className="mt-2 inline-flex items-center justify-center gap-1.5 self-center text-[12px] font-semibold text-stradeo-inkdim hover:text-stradeo-ink">
-            {t(lang, 'openResults')}<IconArrowRight size={11} />
-          </Link>
         </>
       )}
     </div>
