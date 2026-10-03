@@ -153,6 +153,33 @@ export const IconSettings = (p: P) => (
   </Svg>
 )
 
+/** Home: square-cut house, the door a lane marking like the app mark. */
+export const IconHome = (p: P) => (
+  <Svg {...p}>
+    <path fillRule="evenodd" d="M12 1.5L23 10.75h-3.25V22.5H4.25V10.75H1zM10.5 14v8.5h3V14z" />
+  </Svg>
+)
+
+/** Exam history: square clock face with a sweep hand. */
+export const IconHistory = (p: P) => (
+  <Svg {...p}>
+    <path fillRule="evenodd" d="M2.5 2.5h19v19h-19zM5 5v14h14V5z" />
+    <path d="M10.75 6.5h2.5v5.25h4.25v2.5h-6.75z" />
+  </Svg>
+)
+
+/** Previous / next page: square-cut chevrons. */
+export const IconChevronLeft = (p: P) => (
+  <Svg {...p}>
+    <path d="M17 3v4.5L12 12l5 4.5V21L7 12z" />
+  </Svg>
+)
+export const IconChevronRight = (p: P) => (
+  <Svg {...p}>
+    <path d="M7 3v4.5l5 4.5-5 4.5V21l10-9z" />
+  </Svg>
+)
+
 // ── Glyphs ──────────────────────────────────────────────────────────────────
 export const IconCheck = (p: P) => (
   <Svg {...p}>
@@ -206,6 +233,10 @@ export const ICONS = {
   arrowRight: IconArrowRight,
   arrowLeft: IconArrowLeft,
   chevronDown: IconChevronDown,
+  chevronLeft: IconChevronLeft,
+  chevronRight: IconChevronRight,
+  home: IconHome,
+  history: IconHistory,
 } as const
 
 export type IconName = keyof typeof ICONS

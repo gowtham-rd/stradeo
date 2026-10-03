@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext'
 import AuthGate from '@/components/AuthGate'
 import ServiceWorker from '@/components/ServiceWorker'
 import { noFlashTextSize } from '@/lib/textSize'
+import StartupImages from '@/components/StartupImages'
 
 export const metadata: Metadata = {
   title: 'Stradeo — Patente B Quiz',
@@ -28,12 +29,18 @@ export const viewport: Viewport = {
 
 // Applies a saved Light/Dark choice before first paint. No saved choice = Auto (follows the device).
 const noFlashTheme = `try{var t=localStorage.getItem('stradeo-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}`
+// Paints the right background on the very first frame, before the stylesheet arrives,
+// so a dark-mode phone never flashes white on launch.
+const firstPaint = `html{background:#FAFAF8;color-scheme:light}@media (prefers-color-scheme:dark){html:not([data-theme=light]){background:#0B0B0A;color-scheme:dark}}html[data-theme=dark]{background:#0B0B0A;color-scheme:dark}`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="light dark" />
+        <style dangerouslySetInnerHTML={{ __html: firstPaint }} />
         <script dangerouslySetInnerHTML={{ __html: noFlashTheme + noFlashTextSize }} />
+        <StartupImages />
       </head>
       <body>
         <ThemeProvider>

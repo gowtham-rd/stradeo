@@ -6,7 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { TOPICS, getTopicName, isPrimaryTopic } from '@/lib/topics'
-import { t, formatWhen } from '@/lib/i18n'
+import { t, formatWhen, type UIKey } from '@/lib/i18n'
+import { daysSince, greetingLine } from '@/lib/greeting'
 import NavBar from '@/components/NavBar'
 import ReadinessScore, { TopicMapCard } from '@/components/ReadinessScore'
 import StatsPanel from '@/components/StatsPanel'
@@ -20,7 +21,7 @@ import HomeCards from '@/components/HomeCards'
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered } = useProgress()
+  const { progress, seenCount, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
@@ -46,8 +47,8 @@ export default function HomePage() {
       <AdBanner />
       <NavBar />
       <div className="max-w-[640px] mx-auto px-4 pt-4 pb-10 animate-fade-in">
-        {/* Greeting: changes with how long it's been since the last practice */}
-        <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} />
+        {/* Greeting: name, then a line for the time of day / how it's going */}
+        <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak} />
 
         {/* Readiness → Topic map → Stats (swipe; the strip takes the height of the card in view) */}
         <HomeCards className="mb-4" cards={[
@@ -106,33 +107,19 @@ export default function HomePage() {
   )
 }
 
-// Calendar days between the last study day (YYYY-MM-DD, local) and today.
-function daysSince(lastStudy: string | null): number | null {
-  if (!lastStudy) return null
-  const [y, m, d] = lastStudy.split('-').map(Number)
-  const then = new Date(y, m - 1, d)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  return Math.max(0, Math.round((today.getTime() - then.getTime()) / 86_400_000))
-}
-
-function Greeting({ name, lastStudy }: { name: string; lastStudy: string | null }) {
+function Greeting({ name, lastStudy, readiness, streak }: { name: string; lastStudy: string | null; readiness: number; streak: number }) {
   const { lang } = useLanguage()
+  // Time-dependent: computed after mount so server and client markup match.
+  const [line, setLine] = useState<{ key: UIKey; n?: number } | null>(null)
+  useEffect(() => { setLine(greetingLine({ lastStudy, readiness, streak })) }, [lastStudy, readiness, streak])
   const days = daysSince(lastStudy)
-  const key = days === null ? 'greetNew'
-    : days === 0 ? 'greetToday'
-    : days === 1 ? 'greetYesterday'
-    : days < 7 ? 'greetDays'
-    : days < 30 ? 'greetWeeks'
-    : 'greetLong'
   const when = days === null ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
   return (
-    <div className="mb-3">
-      <p className="text-[15px] text-stradeo-inkdim">
-        {t(lang, key)}, <strong className="font-semibold text-stradeo-ink">{name}</strong>
-      </p>
-      <p className="text-[12px] text-stradeo-inkfaint mt-0.5">
-        {when ? `${t(lang, 'lastPractice')}: ${when}` : t(lang, 'firstPractice')}
+    <div className="mb-4 min-h-[64px]">
+      <h1 className="text-[26px] leading-tight font-bold tracking-tight truncate">{name ? `${name}!` : 'Ciao!'}</h1>
+      <p className={`text-[15px] text-stradeo-inkdim mt-0.5 transition-opacity duration-300 ${line ? 'opacity-100' : 'opacity-0'}`}>
+        {line ? t(lang, line.key).replace('{n}', String(line.n ?? '')) : '\u00a0'}
+        {when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}
       </p>
     </div>
   )
