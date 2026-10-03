@@ -49,12 +49,17 @@ export default function StatsPanel() {
             const pct = maxTotal > 0 ? (d.total / maxTotal) * 100 : 0
             const acc = d.total > 0 ? d.c / d.total : 0
             return (
-              <div key={i} className="flex-1 flex flex-col justify-end items-center">
-                <span className="text-[10px] text-stradeo-inkdim font-semibold leading-none mb-1">{d.total || ''}</span>
-                {/* Bar: green = correct (bottom), red = wrong (top); area above leaves room for the label */}
-                <div className="w-full max-h-[calc(100%-14px)] flex flex-col-reverse rounded-[4px] overflow-hidden bg-stradeo-accent2/25 transition-[height] duration-500"
-                  style={{ height: d.total ? `calc((100% - 14px) * ${pct / 100})` : 2 }}>
-                  <div className="w-full bg-stradeo-green transition-[height] duration-500" style={{ height: `${acc * 100}%` }} />
+              <div key={i} className="flex-1 relative">
+                {/* Bar: green = correct (bottom), red = wrong (top); the top 14px stays free for the count */}
+                <div className="absolute inset-x-0 bottom-0 top-[14px]">
+                  <div className="absolute inset-x-0 bottom-0 flex flex-col-reverse rounded-[4px] overflow-hidden bg-stradeo-accent2/25 transition-[height] duration-500"
+                    style={{ height: d.total ? `${Math.max(pct, 3)}%` : 2 }}>
+                    <div className="w-full bg-stradeo-green transition-[height] duration-500" style={{ height: `${acc * 100}%` }} />
+                  </div>
+                  {d.total > 0 && (
+                    <span className="absolute inset-x-0 text-center text-[10px] text-stradeo-inkdim font-semibold leading-none"
+                      style={{ bottom: `calc(${Math.max(pct, 3)}% + 3px)` }}>{d.total}</span>
+                  )}
                 </div>
               </div>
             )
