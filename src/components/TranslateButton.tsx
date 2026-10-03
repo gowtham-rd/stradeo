@@ -24,13 +24,13 @@ export default function TranslateButton({ question, compact }: Props) {
       if (!res.ok) throw new Error('translate failed')
       const data = await res.json()
       setTranslation(data.translation || question)
-    } catch { setTranslation('Translation unavailable right now.') }
+    } catch { setTranslation(t(lang, 'translateFailed')) }
     setLoading(false)
   }
 
   return (
     <>
-      <button onClick={translate} disabled={loading}
+      <button onClick={translate} disabled={loading} aria-label={`${t(lang, 'translate')}: ${LANGUAGES[lang]}`}
         className={`flex items-center gap-1 rounded border border-stradeo-blue/20 bg-stradeo-blue/[0.06] text-stradeo-blue font-semibold ${
           compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-[11px]'
         }`}>

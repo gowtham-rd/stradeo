@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
@@ -31,20 +31,37 @@ const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '
 export default function ExamPage() {
   const router = useRouter()
   const { lang } = useLanguage()
-  const { recordAnswers } = useProgress()
+  const { recordAnswers, loaded: progressLoaded } = useProgress()
   const [state, dispatch] = useReducer(reducer, initialState)
   const [loading, setLoading] = useState(true)
   const [remaining, setRemaining] = useState(EXAM_DURATION)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [confirmSubmit, setConfirmSubmit] = useState(false)
+  // Latest state for the timer callback (an interval would otherwise see stale answers).
+  const stateRef = useRef(state)
+  stateRef.current = state
+  const submittedRef = useRef(false)
 
+  // Start only once saved progress has loaded, so exam answers are never
+  // recorded on top of an empty (unloaded) progress snapshot.
   useEffect(() => {
+    if (!progressLoaded) return
     let cancelled = false
     loadQuestions().then(all => {
       if (cancelled) return
       dispatch({ type: 'START', questions: buildExamQuestions(all), endTime: Date.now() + EXAM_DURATION * 1000 })
       setLoading(false)
-    })
+    }, () => { if (!cancelled) setLoadFailed(true) })
     return () => { cancelled = true }
-  }, [])
+  }, [progressLoaded])
+
+  // Warn before leaving or refreshing mid-exam (a refresh starts a new exam).
+  useEffect(() => {
+    if (loading || state.submitted) return
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [loading, state.submitted])
 
   // Wall-clock countdown (survives tab backgrounding)
   useEffect(() => {
@@ -61,17 +78,19 @@ export default function ExamPage() {
   }, [loading, state.submitted, state.endTime])
 
   function submit() {
-    if (state.submitted) return
+    const s = stateRef.current
+    if (s.submitted || submittedRef.current) return
+    submittedRef.current = true
     dispatch({ type: 'SUBMIT' })
     // Feed answered questions into progress so the dashboard reflects the exam.
-    const answered = state.questions
-      .map((q, i) => ({ question: q, correct: state.answers[i] === q.a }))
-      .filter((_, i) => i in state.answers)
+    const answered = s.questions
+      .map((q, i) => ({ question: q, correct: s.answers[i] === q.a }))
+      .filter((_, i) => i in s.answers)
     recordAnswers(answered)
     try {
       sessionStorage.setItem('stradeo_exam_result', JSON.stringify({
-        questions: state.questions,
-        answers: state.answers,
+        questions: s.questions,
+        answers: s.answers,
       }))
     } catch { /* review page will show empty state */ }
     router.push('/exam/review')
@@ -79,6 +98,15 @@ export default function ExamPage() {
 
   const total = state.questions.length
   const answeredCount = Object.keys(state.answers).length
+
+  if (loadFailed) {
+    return (
+      <div className="min-h-screen max-w-[640px] mx-auto px-4 pt-16 text-center">
+        <p className="text-stradeo-inkdim mb-6">{t(lang, 'questionsFailed')}</p>
+        <button onClick={() => window.location.reload()} className="px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'retry')}</button>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -126,14 +154,14 @@ export default function ExamPage() {
               <div className="flex gap-2.5 items-start">
                 <span className="font-mono text-stradeo-inkfaint text-[13px] min-w-[24px]">{i + 1}.</span>
                 <div className="flex-1">
-                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
+                  {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
                   <div className="flex flex-wrap justify-between items-start mb-1.5 gap-2">
-                    <p className="text-sm leading-[1.55] flex-1">{q.q}</p>
+                    <p lang="it" className="text-sm leading-[1.55] flex-1">{q.q}</p>
                     <TranslateButton question={q.q} compact />
                   </div>
                   <div className="flex gap-2">
                     {[true, false].map(val => (
-                      <button key={String(val)} onClick={() => dispatch({ type: 'ANSWER', index: i, value: val })}
+                      <button key={String(val)} aria-pressed={state.answers[i] === val} onClick={() => { setConfirmSubmit(false); dispatch({ type: 'ANSWER', index: i, value: val }) }}
                         className={`px-5 py-2 rounded-lg text-[13px] font-semibold border ${
                           state.answers[i] === val ? 'border-stradeo-ink bg-stradeo-ink text-stradeo-bg' : 'border-stradeo-line bg-transparent text-stradeo-inkdim hover:text-stradeo-ink'
                         }`}>
@@ -147,11 +175,14 @@ export default function ExamPage() {
           )
         })}
 
-        <button onClick={submit}
+        {/* Unanswered questions need a second tap, so nobody submits by accident. */}
+        <button onClick={() => (answeredCount === total || confirmSubmit ? submit() : setConfirmSubmit(true))}
           className={`w-full mt-2 py-4 rounded-[10px] text-base font-bold ${
-            answeredCount === total ? 'bg-stradeo-brand text-stradeo-onbrand' : 'bg-stradeo-surface2 text-stradeo-inkdim'
+            answeredCount === total || confirmSubmit ? 'bg-stradeo-brand text-stradeo-onbrand' : 'bg-stradeo-surface2 text-stradeo-inkdim'
           }`}>
-          {t(lang, 'submit')} ({answeredCount}/{total})
+          {confirmSubmit && answeredCount < total
+            ? `${total - answeredCount} ${t(lang, 'unanswered')} — ${t(lang, 'submitAnyway')}`
+            : `${t(lang, 'submit')} (${answeredCount}/${total})`}
         </button>
       </div>
     </div>

@@ -7,6 +7,7 @@ let lessonsCache: Record<string, TheoryContent> | null = null
 export async function loadLessons(): Promise<Record<string, TheoryContent>> {
   if (lessonsCache) return lessonsCache
   const res = await fetch('/data/theory_lessons.json')
+  if (!res.ok) throw new Error(`theory_lessons.json ${res.status}`)
   lessonsCache = await res.json()
   return lessonsCache!
 }

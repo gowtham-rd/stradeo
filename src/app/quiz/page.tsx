@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { loadQuestions, getTopicQuestions, getImageUrl, shuffle, questionKey } from '@/lib/questions'
 import { REVIEW_STEPS_MS } from '@/lib/constants'
-import { getTopicName } from '@/lib/topics'
+import { getTopicName, TOPICS } from '@/lib/topics'
 import { LANG_PROMPT, t, formatWhen } from '@/lib/i18n'
 import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
@@ -54,12 +54,14 @@ function QuizInner() {
   const params = useSearchParams()
   const mode = params.get('mode')
   const topicId = params.get('topic') ? Number(params.get('topic')) : null
+  const invalidTopic = topicId !== null && !TOPICS.some(x => x.id === topicId)
   const isReview = mode === 'review'
 
   const { lang } = useLanguage()
   const { progress, loaded: progressLoaded, getDueReviews, recordAnswer } = useProgress()
   const [state, dispatch] = useReducer(reducer, initialState)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   // Smart Review: what happens to this question next (shown after answering in review mode)
   const [reviewNote, setReviewNote] = useState<string | null>(null)
@@ -79,14 +81,15 @@ function QuizInner() {
   }
 
   useEffect(() => {
-    // Review questions come from saved progress, so wait until it has loaded.
-    if (isReview && !progressLoaded) return
+    // Wait for saved progress: review questions come from it, and answering before
+    // it has loaded would save on top of an empty snapshot.
+    if (!progressLoaded) return
     let cancelled = false
     buildQuestions().then(qs => {
       if (cancelled) return
       dispatch({ type: 'START', questions: qs, isReview })
       setLoading(false)
-    })
+    }, () => { if (!cancelled) { setLoadFailed(true); setLoading(false) } })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReview, topicId, progressLoaded])
@@ -101,7 +104,7 @@ function QuizInner() {
 
   const title = isReview
     ? t(lang, 'smartReview')
-    : topicId ? getTopicName(topicId, lang) : t(lang, 'examSim')
+    : topicId ? getTopicName(topicId, lang) : t(lang, 'randomQuiz')
 
   async function fetchExplanation(question: string, correctAnswer: boolean) {
     setExpLoading(true)
@@ -111,9 +114,9 @@ function QuizInner() {
       if (res.status === AI_NOT_READY) { setExp(t(lang, 'aiSoon')); setExpLoading(false); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
-      setExp(data.explanation || 'Unavailable.')
+      setExp(data.explanation || t(lang, 'unavailable'))
     } catch {
-      setExp('Could not load.')
+      setExp(t(lang, 'unavailable'))
     }
     setExpLoading(false)
   }
@@ -155,6 +158,11 @@ function QuizInner() {
             <div className="h-4 w-full rounded bg-stradeo-surface2 mb-3" />
             <div className="h-4 w-1/2 rounded bg-stradeo-surface2" />
           </div>
+        ) : loadFailed || invalidTopic ? (
+          <div className="text-center py-16">
+            <p className="text-stradeo-inkdim mb-6">{t(lang, invalidTopic ? 'topicNotFound' : 'questionsFailed')}</p>
+            <Link href="/" className="inline-block px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'home')}</Link>
+          </div>
         ) : total === 0 ? (
           <div className="text-center py-16">
             <IconCheck size={48} className="text-stradeo-green mb-4" />
@@ -186,10 +194,10 @@ function QuizInner() {
               state.animation === 'ok' ? 'animate-pulse-green' : state.animation === 'no' ? 'animate-shake' : ''
             }`}>
               <div className={`flex flex-wrap justify-end ${imgUrl ? '' : 'mb-2'}`}>
-                <TranslateButton question={q.q} />
+                <TranslateButton key={questionKey(q)} question={q.q} />
               </div>
-              {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
-              <p className={`text-[17px] leading-relaxed font-normal ${imgUrl ? 'mt-3.5' : ''}`}>{q.q}</p>
+              {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
+              <p lang="it" className={`text-[17px] leading-relaxed font-normal ${imgUrl ? 'mt-3.5' : ''}`}>{q.q}</p>
             </div>
 
             {/* Answer buttons (recolor after answering) */}

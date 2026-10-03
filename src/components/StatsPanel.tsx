@@ -9,7 +9,7 @@ import { IconStreak } from '@/components/icons'
 
 export default function StatsPanel() {
   const { lang } = useLanguage()
-  const { progress, getTopicAccuracy } = useProgress()
+  const { progress, getTopicAccuracy, streak } = useProgress()
 
   const { days, dayData, dayLabels, weekTotal, weekAcc } = useMemo(() => {
     const d: string[] = []
@@ -24,7 +24,7 @@ export default function StatsPanel() {
     const wc = dd.reduce((a, x) => a + x.c, 0)
     const labels = d.map(day => {
       const dt = new Date(day + 'T12:00:00')
-      return dt.toLocaleDateString(lang === 'it' ? 'it-IT' : 'en-US', { weekday: 'short' }).substring(0, 2)
+      return dt.toLocaleDateString(lang, { weekday: 'short' })
     })
     return { days: d, dayData: dd, dayLabels: labels, weekTotal: wt, weekAcc: wt > 0 ? Math.round(wc / wt * 100) : 0 }
   }, [progress.dailyLog, lang])
@@ -43,12 +43,12 @@ export default function StatsPanel() {
   return (
     <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-5 animate-fade-in">
       <div className="flex justify-around mb-5">
-        <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink">{weekTotal}</div><div className="text-[11px] text-stradeo-inkdim">This week</div></div>
-        <div className="text-center"><div className={`font-mono text-[22px] ${weekAcc >= 80 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{weekAcc}%</div><div className="text-[11px] text-stradeo-inkdim">Accuracy</div></div>
-        <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink inline-flex items-center gap-1.5"><IconStreak size={18} className="text-stradeo-brandorange" />{progress.streak}</div><div className="text-[11px] text-stradeo-inkdim">Streak</div></div>
+        <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink">{weekTotal}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'thisWeek')}</div></div>
+        <div className="text-center"><div className={`font-mono text-[22px] ${weekAcc >= 80 ? 'text-stradeo-green' : weekAcc >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{weekAcc}%</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'accuracy')}</div></div>
+        <div className="text-center"><div className="font-mono text-[22px] text-stradeo-ink inline-flex items-center gap-1.5"><IconStreak size={18} className="text-stradeo-brandorange" />{streak}</div><div className="text-[11px] text-stradeo-inkdim">{t(lang, 'streak')}</div></div>
       </div>
 
-      <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-2.5">Last 7 days</div>
+      <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-2.5">{t(lang, 'last7')}</div>
       <div className="flex items-end gap-1.5 h-20 mb-1">
         {dayData.map((d, i) => {
           const h = maxTotal > 0 ? (d.total / maxTotal) * 60 : 0
@@ -71,7 +71,7 @@ export default function StatsPanel() {
 
       {weakestTopics.length > 0 && (
         <>
-          <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mt-5 mb-2.5">Weakest topics</div>
+          <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mt-5 mb-2.5">{t(lang, 'weakest')}</div>
           {weakestTopics.map(wt => (
             <div key={wt.id} className="flex items-center gap-2.5 mb-1.5">
               <span className={`font-mono text-xs min-w-[32px] ${(wt.pct || 0) >= 80 ? 'text-stradeo-green' : (wt.pct || 0) >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>{wt.pct}%</span>
@@ -82,7 +82,7 @@ export default function StatsPanel() {
                     style={{ width: `${wt.pct}%` }} />
                 </div>
               </div>
-              <Link href={`/topic?id=${wt.id}`} className="px-2.5 py-1 rounded-md border border-stradeo-line text-stradeo-ink text-[11px] font-semibold hover:border-stradeo-ink">Practice</Link>
+              <Link href={`/topic?id=${wt.id}`} className="px-2.5 py-1 rounded-md border border-stradeo-line text-stradeo-ink text-[11px] font-semibold hover:border-stradeo-ink">{t(lang, 'practice')}</Link>
             </div>
           ))}
         </>

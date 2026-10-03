@@ -18,18 +18,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email || '' })
-      }
+      const next = session?.user ? { id: session.user.id, email: session.user.email || '' } : null
+      setUser(prev => (prev?.id === next?.id ? prev : next))
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email || '' })
-      } else {
-        setUser(null)
-      }
+      // TOKEN_REFRESHED etc. fire roughly hourly; keep the same object when the
+      // user hasn't changed so dependants don't reload (and roll back) progress.
+      const next = session?.user ? { id: session.user.id, email: session.user.email || '' } : null
+      setUser(prev => (prev?.id === next?.id ? prev : next))
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
@@ -37,7 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
+    if (error) {
+      // Only a real credentials error means "wrong password"; anything else is a connection/server problem.
+      const wrong = error.code === 'invalid_credentials' || /invalid login credentials/i.test(error.message)
+      return { error: wrong ? 'wrongCreds' : 'connError' }
+    }
     return {}
   }
 

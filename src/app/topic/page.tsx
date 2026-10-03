@@ -75,7 +75,7 @@ function TopicInner() {
       setCache(prev => ({ ...prev, [key]: data }))
     } catch {
       // Keep the pre-generated lesson rather than wiping it (e.g. no Claude key yet)
-      setTheory(previous || (await getLesson(tid)) || { title: topic?.en || '', keypoints: 'Could not load theory content.', details: '', traps: '', remember: '' })
+      setTheory(previous || (await getLesson(tid)) || { title: topic?.en || '', keypoints: t(lang, 'lessonFailed'), details: '', traps: '', remember: '' })
     }
     setTheoryLoading(false)
   }
@@ -85,7 +85,7 @@ function TopicInner() {
       <div className="min-h-screen">
         <AdBanner /><NavBar />
         <div className="max-w-[640px] mx-auto px-4 pt-16 text-center">
-          <p className="text-stradeo-inkdim mb-6">Topic not found.</p>
+          <p className="text-stradeo-inkdim mb-6">{t(lang, 'topicNotFound')}</p>
           <Link href="/" className="inline-block px-5 py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold">{t(lang, 'home')}</Link>
         </div>
       </div>
@@ -112,9 +112,9 @@ function TopicInner() {
         {/* Tabs */}
         <div className="flex gap-1 mb-5 bg-stradeo-surface2 rounded-[10px] p-1" role="tablist">
           <button onClick={() => setMode('study')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'study' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconStudy size={16} />Study</button>
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'study' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconStudy size={16} />{t(lang, 'study')}</button>
           <button onClick={() => setMode('quiz')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'quiz' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconQuiz size={15} />Quiz</button>
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'quiz' ? 'bg-stradeo-bg2 text-stradeo-ink border border-stradeo-line' : 'text-stradeo-inkdim hover:text-stradeo-ink'} inline-flex items-center justify-center gap-2`}><IconQuiz size={15} />{t(lang, 'quiz')}</button>
         </div>
 
         {/* STUDY TAB */}
@@ -130,7 +130,7 @@ function TopicInner() {
             {theoryLoading && (
               <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-10 text-center">
                 <div className="w-7 h-7 border-[3px] border-stradeo-line border-t-stradeo-ink rounded-full animate-spin-slow mx-auto mb-4" />
-                <p className="text-[15px] text-stradeo-inkdim m-0">Creating your lesson...</p>
+                <p className="text-[15px] text-stradeo-inkdim m-0">{t(lang, 'creatingLesson')}</p>
                 <p className="text-xs text-stradeo-inkfaint mt-1.5">Powered by AI · {LANGUAGES[lang]}</p>
               </div>
             )}
@@ -151,7 +151,7 @@ function TopicInner() {
                 {/* Key Points */}
                 {theory.keypoints && (
                   <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-3">Key Points</div>
+                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-3">{t(lang, 'keyPoints')}</div>
                     {theory.keypoints.split('\n').filter(l => l.trim()).map((line, i) => (
                       <div key={i} className="flex gap-2.5 mb-2 items-start">
                         <span className="text-stradeo-inkfaint text-sm mt-px">•</span>
@@ -164,7 +164,7 @@ function TopicInner() {
                 {/* Details */}
                 {theory.details && (
                   <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-3">Explained</div>
+                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-3">{t(lang, 'explained')}</div>
                     {theory.details.split('\n\n').filter(p => p.trim()).map((para, i) => (
                       <p key={i} className={`text-sm leading-[1.7] text-stradeo-inkdim ${i > 0 ? 'mt-3' : ''}`}>{renderMD(para)}</p>
                     ))}
@@ -174,7 +174,7 @@ function TopicInner() {
                 {/* Traps */}
                 {theory.traps && (
                   <div className="bg-stradeo-accent/[0.06] border border-stradeo-accent/20 rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-accent uppercase tracking-[1px] mb-3 flex items-center gap-2"><IconWarning size={14} />Exam Traps</div>
+                    <div className="text-xs font-semibold text-stradeo-accent uppercase tracking-[1px] mb-3 flex items-center gap-2"><IconWarning size={14} />{t(lang, 'examTraps')}</div>
                     {theory.traps.split('\n').filter(l => l.trim()).map((line, i) => (
                       <div key={i} className="flex gap-2.5 mb-2 items-start">
                         <IconWarning size={13} className="text-stradeo-accent mt-1" />
@@ -187,14 +187,14 @@ function TopicInner() {
                 {/* Remember */}
                 {theory.remember && (
                   <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-3.5 text-center">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-2 flex items-center justify-center gap-2"><IconTip size={14} className="text-stradeo-brandorange" />Remember</div>
+                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-2 flex items-center justify-center gap-2"><IconTip size={14} className="text-stradeo-brandorange" />{t(lang, 'remember')}</div>
                     <p className="m-0 text-[15px] font-semibold leading-relaxed text-stradeo-ink">{renderMD(theory.remember)}</p>
                   </div>
                 )}
 
                 {/* Actions */}
                 <button onClick={() => setMode('quiz')}
-                  className="flex w-full py-3.5 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mt-2"><IconQuiz size={15} />Start Quiz <IconArrowRight size={15} /></button>
+                  className="flex w-full py-3.5 rounded-[10px] items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mt-2"><IconQuiz size={15} />{t(lang, 'startQuiz')} <IconArrowRight size={15} /></button>
               </div>
             )}
           </div>
@@ -206,22 +206,22 @@ function TopicInner() {
             <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 text-center">
               <div className="mb-2 flex justify-center">{isPri ? <IconExam size={36} /> : <IconQuiz size={34} />}</div>
               <h3 className="text-[17px] font-bold mb-1.5">{count} {t(lang, 'questions')}</h3>
-              <p className="text-[13px] text-stradeo-inkfaint">{isPri ? 'Primary topic · 2 questions per exam' : 'Integrative · 1 question per exam'}</p>
+              <p className="text-[13px] text-stradeo-inkfaint">{t(lang, isPri ? 'primaryTopic' : 'secondaryTopic')}</p>
               {accuracy !== null && (
                 <p className={`text-sm font-semibold mt-2 ${accuracy >= 80 ? 'text-stradeo-green' : accuracy >= 50 ? 'text-stradeo-accent' : 'text-stradeo-accent2'}`}>
-                  Current accuracy: <span className="font-mono">{accuracy}%</span>
+                  {t(lang, 'currentAccuracy')}: <span className="font-mono">{accuracy}%</span>
                 </p>
               )}
               <Link href={`/quiz?topic=${tid}`}
-                className="flex w-full py-4 rounded-[10px] inline-flex items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-base font-bold mt-4">
-                Start Quiz <IconArrowRight size={16} />
+                className="flex w-full py-4 rounded-[10px] items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-base font-bold mt-4">
+                {t(lang, 'startQuiz')} <IconArrowRight size={16} />
               </Link>
             </div>
 
             {!theory && (
               <button onClick={() => setMode('study')}
                 className="w-full py-3.5 rounded-[10px] border border-dashed border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink text-[13px] font-semibold mt-3 inline-flex items-center justify-center gap-2">
-                <IconStudy size={15} />Study the theory first?
+                <IconStudy size={15} />{t(lang, 'studyFirst')}
               </button>
             )}
           </div>

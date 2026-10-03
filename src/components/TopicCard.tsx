@@ -38,7 +38,7 @@ export default function TopicCard({ topic, count, accuracy, done }: Props) {
             {accuracy}%
           </span>
         )}
-        <span className="font-mono text-[11px] text-stradeo-inkdim">{done}/{count}</span>
+        <span className="font-mono text-[11px] text-stradeo-inkdim">{Math.min(done, count)}/{count}</span>
       </div>
     </Link>
   )

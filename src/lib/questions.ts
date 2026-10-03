@@ -5,6 +5,7 @@ let questionsCache: Question[] | null = null
 export async function loadQuestions(): Promise<Question[]> {
   if (questionsCache) return questionsCache
   const res = await fetch('/data/questions.json')
+  if (!res.ok) throw new Error(`questions.json ${res.status}`)
   questionsCache = await res.json()
   return questionsCache!
 }

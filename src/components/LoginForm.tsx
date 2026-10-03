@@ -20,7 +20,7 @@ export default function LoginForm() {
     setLoading(true)
     setError('')
     const { error: err } = await signIn(email, password)
-    if (err) setError(t(lang, 'wrongCreds'))
+    if (err) setError(t(lang, err === 'wrongCreds' ? 'wrongCreds' : 'connError'))
     setLoading(false)
   }
 
@@ -46,15 +46,15 @@ export default function LoginForm() {
           <h2 className="text-lg font-bold mb-5">{t(lang, 'login')}</h2>
 
           <div className="mb-4">
-            <label className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">Email</label>
-            <input value={email} onChange={e => setEmail(e.target.value)} type="email" required
+            <label htmlFor="login-email" className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">{t(lang, 'email')}</label>
+            <input id="login-email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} type="email" required
               className="w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink"
               placeholder="you@email.com" />
           </div>
 
           <div className="mb-5">
-            <label className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">{t(lang, 'password')}</label>
-            <input value={password} onChange={e => setPassword(e.target.value)} type="password" required
+            <label htmlFor="login-password" className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">{t(lang, 'password')}</label>
+            <input id="login-password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} type="password" required
               className="w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink"
               placeholder="••••••••" />
           </div>
@@ -71,7 +71,7 @@ export default function LoginForm() {
           </button>
         </form>
 
-        <p className="text-center text-[11px] text-stradeo-inkfaint mt-5">Contact admin for login credentials</p>
+        <p className="text-center text-[11px] text-stradeo-inkfaint mt-5">{t(lang, 'contactAdmin')}</p>
       </div>
     </div>
   )

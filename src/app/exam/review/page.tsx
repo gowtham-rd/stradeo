@@ -46,14 +46,17 @@ export default function ExamReviewPage() {
       if (res.status === AI_NOT_READY) { setExp(p => ({ ...p, [idx]: t(lang, 'aiSoon') })); setExpLoading(p => ({ ...p, [idx]: false })); return }
       if (!res.ok) throw new Error('explain failed')
       const data = await res.json()
-      setExp(p => ({ ...p, [idx]: data.explanation || 'Unavailable.' }))
+      setExp(p => ({ ...p, [idx]: data.explanation || t(lang, 'unavailable') }))
     } catch {
-      setExp(p => ({ ...p, [idx]: 'Could not load.' }))
+      setExp(p => ({ ...p, [idx]: t(lang, 'unavailable') }))
     }
     setExpLoading(p => ({ ...p, [idx]: false }))
   }
 
-  if (loaded && !result) {
+  // Nothing to show until sessionStorage has been read (avoids a flash of 0/30 FAILED).
+  if (!loaded) return <div className="min-h-screen" />
+
+  if (!result) {
     return (
       <div className="min-h-screen">
         <AdBanner /><NavBar />
@@ -90,12 +93,13 @@ export default function ExamReviewPage() {
               h.ok ? 'bg-stradeo-green/[0.03] border-stradeo-green/[0.08]' : 'bg-stradeo-accent2/[0.05] border-stradeo-accent2/[0.12]'
             }`}>
               <div className="flex gap-2.5 items-start">
-                <span className={`mt-0.5 ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>{h.ok ? <IconCheck size={15} /> : <IconCross size={13} />}</span>
+                <span className={`mt-0.5 ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>{h.ok ? <IconCheck size={15} title={t(lang, 'correctBadge')} /> : <IconCross size={13} title={t(lang, 'wrong')} />}</span>
                 <div className="flex-1">
-                  {imgUrl && <img src={imgUrl} alt="" className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
-                  <p className="text-sm leading-[1.5] mb-1">{h.q.q}</p>
-                  <p className={`text-xs ${h.ok ? 'text-stradeo-green/70' : 'text-stradeo-accent2/70'}`}>
-                    {t(lang, 'correct')}: <strong>{h.q.a ? 'VERO' : 'FALSO'}</strong>
+                  {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto my-3.5 border border-stradeo-line" />}
+                  <p lang="it" className="text-sm leading-[1.5] mb-1">{h.q.q}</p>
+                  <p className={`text-xs ${h.ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>
+                    {t(lang, 'yourAnswer')}: <strong>{h.ua === undefined ? t(lang, 'noAnswer') : h.ua ? 'VERO' : 'FALSO'}</strong>
+                    {!h.ok && <> · {t(lang, 'correct')}: <strong>{h.q.a ? 'VERO' : 'FALSO'}</strong></>}
                   </p>
                   {!h.ok && (exp[i] ? (
                     <div className="bg-stradeo-surface2 rounded-[10px] p-3 mt-2">

@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 import type { UserProgress, Question, TopicStats, DayStats, SRData } from '@/types'
@@ -20,11 +20,18 @@ interface ProgressContextType {
   progress: UserProgress
   /** True once the user's saved progress has been fetched. */
   loaded: boolean
+  /** Progress couldn't be fetched; answering is blocked until retryLoad succeeds. */
+  loadError: boolean
+  /** The last save failed (offline, session expired…). */
+  saveError: boolean
+  retryLoad: () => void
   recordAnswer: (question: Question, correct: boolean) => void
   recordAnswers: (entries: { question: Question; correct: boolean }[]) => void
   getDueReviews: () => Question[]
   /** Epoch ms of the next review that isn't due yet, or null if none. */
   nextReviewAt: number | null
+  /** Current streak, 0 if it has lapsed. */
+  streak: number
   getTopicAccuracy: (topicId: number) => number | null
   readiness: number
   topicsCovered: number
@@ -70,6 +77,19 @@ export function normaliseReview(wrong: Question[], sr: Record<string, unknown>):
   return { wrongQuestions, srData }
 }
 
+// Calendar "yesterday" in local time (subtracting 24h breaks across DST changes).
+function localYesterday(): string {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return d.toLocaleDateString('sv')
+}
+
+/** Streak as it stands today: it lapses if the last study day was before yesterday. */
+export function activeStreak(p: Pick<UserProgress, 'streak' | 'lastStudy'>): number {
+  const today = new Date().toLocaleDateString('sv')
+  return p.lastStudy === today || p.lastStudy === localYesterday() ? p.streak : 0
+}
+
 const ProgressContext = createContext<ProgressContextType | null>(null)
 
 // Pure fold of one answer into a progress snapshot (no mutation of prev).
@@ -106,7 +126,7 @@ export function applyAnswer(prev: UserProgress, question: Question, correct: boo
 
   // Streak (batched answers all share one study day)
   const today = new Date().toLocaleDateString('sv')
-  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv')
+  const yesterday = localYesterday()
   let newStreak = prev.streak
   if (prev.lastStudy !== today) {
     newStreak = prev.lastStudy === yesterday ? prev.streak + 1 : 1
@@ -130,46 +150,69 @@ export function applyAnswer(prev: UserProgress, question: Question, correct: boo
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const userId = user?.id ?? null
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS)
   const [loaded, setLoaded] = useState(false)
+  const [loadError, setLoadError] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  const [reloadToken, setReloadToken] = useState(0)
+  // Saves are only allowed once this user's row has been read successfully,
+  // so a failed or slow load can never overwrite real data with defaults.
+  const loadedFor = useRef<string | null>(null)
+  const saveChain = useRef<Promise<void>>(Promise.resolve())
 
-  // Load progress from Supabase
   useEffect(() => {
-    if (!user) { setProgress(DEFAULT_PROGRESS); setLoaded(false); return }
+    loadedFor.current = null
     setLoaded(false)
-    supabase.from('progress').select('*').eq('user_id', user.id).single()
-      .then(({ data }) => {
-        if (data) {
-          setProgress({
-            stats: data.stats || {},
-            totalDone: data.total_done || 0,
-            ...normaliseReview(data.wrong_questions || [], data.sr_data || {}),
-            streak: data.streak || 0,
-            lastStudy: data.last_study,
-            dailyLog: data.daily_log || {},
-          })
-        }
+    setLoadError(false)
+    if (!userId) { setProgress(DEFAULT_PROGRESS); return }
+    let cancelled = false
+    supabase.from('progress').select('*').eq('user_id', userId).maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) { setLoadError(true); return }
+        setProgress(data ? {
+          stats: data.stats || {},
+          totalDone: data.total_done || 0,
+          ...normaliseReview(data.wrong_questions || [], data.sr_data || {}),
+          streak: data.streak || 0,
+          lastStudy: data.last_study,
+          dailyLog: data.daily_log || {},
+        } : DEFAULT_PROGRESS)
+        loadedFor.current = userId
         setLoaded(true)
-      })
-  }, [user])
+      }, () => { if (!cancelled) setLoadError(true) })
+    return () => { cancelled = true }
+  }, [userId, reloadToken])
 
-  // Save progress to Supabase (debounced)
-  const saveProgress = useCallback(async (p: UserProgress) => {
-    if (!user) return
-    await supabase.from('progress').upsert({
-      user_id: user.id,
-      stats: p.stats,
-      total_done: p.totalDone,
-      wrong_questions: p.wrongQuestions,
-      sr_data: p.srData,
-      streak: p.streak,
-      last_study: p.lastStudy,
-      daily_log: p.dailyLog,
-      updated_at: new Date().toISOString(),
+  const retryLoad = useCallback(() => setReloadToken(n => n + 1), [])
+
+  // Saves run one after another so an older snapshot can't land after a newer one.
+  const saveProgress = useCallback((p: UserProgress) => {
+    const id = loadedFor.current
+    if (!id) return
+    saveChain.current = saveChain.current.then(async () => {
+      try {
+        const { error } = await supabase.from('progress').upsert({
+          user_id: id,
+          stats: p.stats,
+          total_done: p.totalDone,
+          wrong_questions: p.wrongQuestions,
+          sr_data: p.srData,
+          streak: p.streak,
+          last_study: p.lastStudy,
+          daily_log: p.dailyLog,
+          updated_at: new Date().toISOString(),
+        })
+        setSaveError(!!error)
+      } catch {
+        setSaveError(true)
+      }
     })
-  }, [user])
+  }, [])
 
   const recordAnswer = useCallback((question: Question, correct: boolean) => {
+    if (!loadedFor.current) return
     setProgress(prev => {
       const updated = applyAnswer(prev, question, correct)
       saveProgress(updated)
@@ -179,7 +222,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   // Record several answers at once (e.g. an exam) as a single state update + save.
   const recordAnswers = useCallback((entries: { question: Question; correct: boolean }[]) => {
-    if (!entries.length) return
+    if (!entries.length || !loadedFor.current) return
     setProgress(prev => {
       const updated = entries.reduce((acc, e) => applyAnswer(acc, e.question, e.correct), prev)
       saveProgress(updated)
@@ -207,7 +250,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const { readiness, topicsCovered } = computeReadiness(progress.stats)
 
   return (
-    <ProgressContext.Provider value={{ progress, loaded, recordAnswer, recordAnswers, getDueReviews, nextReviewAt, getTopicAccuracy, readiness, topicsCovered }}>
+    <ProgressContext.Provider value={{ progress, loaded, loadError, saveError, retryLoad, recordAnswer, recordAnswers, getDueReviews, nextReviewAt, streak: activeStreak(progress), getTopicAccuracy, readiness, topicsCovered }}>
       {children}
     </ProgressContext.Provider>
   )

@@ -5,7 +5,9 @@ export async function POST(req: NextRequest) {
   const denied = await guardAiRequest(req)
   if (denied) return denied
 
-  const { topicNameIt, topicNameEn, language } = await req.json()
+  let body: Record<string, unknown>
+  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
+  const { topicNameIt, topicNameEn, language } = body as Record<string, any>
 
   if (!topicNameIt || !topicNameEn || !language) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })

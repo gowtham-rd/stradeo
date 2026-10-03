@@ -8,6 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { ProgressProvider } from '@/contexts/ProgressContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import AuthGate from '@/components/AuthGate'
 
 export const metadata: Metadata = {
   title: 'Stradeo — Patente B Quiz',
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <LanguageProvider>
               <ProgressProvider>
-                {children}
+                <AuthGate>{children}</AuthGate>
               </ProgressProvider>
             </LanguageProvider>
           </AuthProvider>

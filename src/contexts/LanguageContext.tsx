@@ -23,6 +23,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch { /* storage blocked */ }
   }, [])
 
+  // Keep <html lang> in sync for screen readers and hyphenation.
+  useEffect(() => { document.documentElement.lang = lang }, [lang])
+
   const setLang = useCallback((next: Language) => {
     setLangState(next)
     try { localStorage.setItem(STORAGE_KEY, next) } catch { /* storage blocked */ }
