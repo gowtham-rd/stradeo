@@ -1,6 +1,6 @@
 // Pure progress logic — no React, no Supabase — so it can be unit-tested.
 import type { UserProgress, Question, ExamRecord } from '@/types'
-import { REVIEW_STEPS_MS } from './constants'
+import { REVIEW_STEP_DAYS, dueAfterDays } from './constants'
 import { questionKey } from './questions'
 
 export const DEFAULT_PROGRESS: UserProgress = {
@@ -13,18 +13,29 @@ export const DEFAULT_PROGRESS: UserProgress = {
   dailyLog: {},
   seen: {},
   exams: [],
+  applied: [],
+}
+
+/** How many saved event ids each snapshot remembers (enough for any offline backlog). */
+export const APPLIED_MAX = 500
+/** Short unique id for an answer/exam event. */
+export function newEventId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
 export const EXAM_HISTORY_MAX = 50
 
-/** A single answer, kept until the server has confirmed it (replayed on conflicts). */
+/** A single answer, kept until the server has confirmed it (replayed on conflicts).
+ *  `id` makes it idempotent: an event already in the snapshot's `applied` is skipped. */
 export interface PendingAnswer {
+  id?: string
   question: Question
   correct: boolean
   at: number
 }
 /** A finished exam, kept until the server has confirmed it. */
 export interface PendingExam {
+  id?: string
   exam: ExamRecord
   at: number
 }
@@ -125,7 +136,9 @@ export function normaliseReview(
 export function fromRow(row: any): UserProgress {
   if (!row) return DEFAULT_PROGRESS
   const seen: UserProgress['seen'] = {}
-  for (const [t, ids] of Object.entries(row.seen || {})) if (Array.isArray(ids)) seen[Number(t)] = ids as string[]
+  // The applied-event ids ride along inside the `seen` column under a reserved key.
+  for (const [t, ids] of Object.entries(row.seen || {})) if (t !== APPLIED_KEY && Array.isArray(ids)) seen[Number(t)] = ids as string[]
+  const applied = Array.isArray(row.seen?.[APPLIED_KEY]) ? (row.seen[APPLIED_KEY] as string[]) : []
   return {
     stats: row.stats || {},
     totalDone: row.total_done || 0,
@@ -135,8 +148,11 @@ export function fromRow(row: any): UserProgress {
     dailyLog: row.daily_log || {},
     seen,
     exams: Array.isArray(row.exams) ? (row.exams as ExamRecord[]).filter(isExamRecord) : [],
+    applied,
   }
 }
+
+const APPLIED_KEY = '_applied'
 
 function isExamRecord(e: unknown): e is ExamRecord {
   const x = e as ExamRecord
@@ -153,7 +169,7 @@ export function toRow(p: UserProgress) {
     streak: p.streak,
     last_study: p.lastStudy,
     daily_log: p.dailyLog,
-    seen: p.seen,
+    seen: { ...p.seen, [APPLIED_KEY]: p.applied ?? [] },
     exams: p.exams,
   }
 }
@@ -178,17 +194,17 @@ export function applyAnswer(prev: UserProgress, question: Question, correct: boo
   if (!correct) {
     // Miss: (re)enter review at the start of the schedule.
     if (!inReview) wrongQuestions = [...prev.wrongQuestions, question]
-    srData[key] = { stage: 0, next: now + REVIEW_STEPS_MS[0] }
+    srData[key] = { stage: 0, next: dueAfterDays(now, REVIEW_STEP_DAYS[0]) }
   } else if (inReview) {
     const entry = prev.srData[key]
     if (!entry || now >= entry.next) {
       // On-time correct answer: move one step on, or graduate after the last step.
       const stage = (entry?.stage ?? 0) + 1
-      if (stage >= REVIEW_STEPS_MS.length) {
+      if (stage >= REVIEW_STEP_DAYS.length) {
         wrongQuestions = prev.wrongQuestions.filter(w => questionKey(w) !== key)
         delete srData[key]
       } else {
-        srData[key] = { stage, next: now + REVIEW_STEPS_MS[stage] }
+        srData[key] = { stage, next: dueAfterDays(now, REVIEW_STEP_DAYS[stage]) }
       }
     }
     // Correct before it's due (extra practice): schedule unchanged.
@@ -240,5 +256,16 @@ export function makeExamRecord(questions: Question[], answers: Record<number, bo
 
 /** Replay events (oldest first) on top of a server snapshot. */
 export function replay(base: UserProgress, events: PendingEvent[]): UserProgress {
-  return events.reduce((acc, e) => ('exam' in e ? applyExam(acc, e.exam) : applyAnswer(acc, e.question, e.correct, e.at)), base)
+  return events.reduce((acc, e) => {
+    // Already in this snapshot (saved by another tab, or a save whose reply was lost).
+    if (e.id && acc.applied?.includes(e.id)) return acc
+    const next = 'exam' in e ? applyExam(acc, e.exam) : applyAnswer(acc, e.question, e.correct, e.at)
+    return e.id ? { ...next, applied: [...(acc.applied ?? []), e.id].slice(-APPLIED_MAX) } : next
+  }, base)
+}
+
+/** Events not yet contained in `snapshot` (by id). */
+export function unapplied(snapshot: UserProgress, events: PendingEvent[]): PendingEvent[] {
+  const done = new Set(snapshot.applied ?? [])
+  return events.filter(e => !e.id || !done.has(e.id))
 }

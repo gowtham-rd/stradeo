@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { loadQuestions, loadTopicQuestions, getImageUrl, shuffle, questionKey } from '@/lib/questions'
-import { REVIEW_STEPS_MS } from '@/lib/constants'
+import { REVIEW_STEP_DAYS, dueAfterDays } from '@/lib/constants'
 import { getTopicName, TOPICS } from '@/lib/topics'
 import { t, formatWhen } from '@/lib/i18n'
 import type { Question, QuizState, QuizAction } from '@/types'
@@ -120,10 +120,10 @@ function QuizInner() {
       const due = !entry || now >= entry.next
       const stage = (entry?.stage ?? 0) + 1
       setReviewNote(
-        !ok ? `${t(lang, 'reviewBack')} ${formatWhen(now + REVIEW_STEPS_MS[0], lang, now)}`
+        !ok ? `${t(lang, 'reviewBack')} ${formatWhen(dueAfterDays(now, REVIEW_STEP_DAYS[0]), lang, now)}`
         : !due ? t(lang, 'reviewEarly')
-        : stage >= REVIEW_STEPS_MS.length ? t(lang, 'reviewMastered')
-        : `${t(lang, 'reviewBack')} ${formatWhen(now + REVIEW_STEPS_MS[stage], lang, now)}`
+        : stage >= REVIEW_STEP_DAYS.length ? t(lang, 'reviewMastered')
+        : `${t(lang, 'reviewBack')} ${formatWhen(dueAfterDays(now, REVIEW_STEP_DAYS[stage]), lang, now)}`
       )
     }
     recordAnswer(q, ok)

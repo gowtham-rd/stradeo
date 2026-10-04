@@ -5,7 +5,7 @@ import {
   DEFAULT_PROGRESS, applyAnswer, nextBestTopic, topicScore, replay, normaliseReview, computeReadiness, activeStreak, seenId, seenCount, fromRow, toRow, applyExam, makeExamRecord, EXAM_HISTORY_MAX,
 } from '../src/lib/progress'
 import { questionKey, buildExamQuestions } from '../src/lib/questions'
-import { REVIEW_STEPS_MS } from '../src/lib/constants'
+import { REVIEW_STEP_DAYS, dueAfterDays } from '../src/lib/constants'
 import { TOTAL_QUESTIONS, TOPIC_COUNTS } from '../src/lib/questionCounts'
 import type { Question } from '../src/types'
 
@@ -24,9 +24,9 @@ test('questions with the same text but a different sign are distinct', () => {
 
 test('smart review: miss → 1d → 3d → 7d → graduates', () => {
   let p = applyAnswer(DEFAULT_PROGRESS, A, false, T0)
-  assert.equal(entry(p, A).next, T0 + REVIEW_STEPS_MS[0])
+  assert.equal(entry(p, A).next, dueAfterDays(T0, REVIEW_STEP_DAYS[0]))
   p = applyAnswer(p, A, true, T0 + 1 * DAY)
-  assert.deepEqual(entry(p, A), { stage: 1, next: T0 + 1 * DAY + REVIEW_STEPS_MS[1] })
+  assert.deepEqual(entry(p, A), { stage: 1, next: dueAfterDays(T0 + 1 * DAY, REVIEW_STEP_DAYS[1]) })
   p = applyAnswer(p, A, true, T0 + 4 * DAY)
   assert.equal(entry(p, A).stage, 2)
   p = applyAnswer(p, A, true, T0 + 11 * DAY)
@@ -45,7 +45,7 @@ test('smart review: a miss resets to the start', () => {
   let p = applyAnswer(DEFAULT_PROGRESS, A, false, T0)
   p = applyAnswer(p, A, true, T0 + DAY)
   p = applyAnswer(p, A, false, T0 + 4 * DAY)
-  assert.deepEqual(entry(p, A), { stage: 0, next: T0 + 4 * DAY + REVIEW_STEPS_MS[0] })
+  assert.deepEqual(entry(p, A), { stage: 0, next: dueAfterDays(T0 + 4 * DAY, REVIEW_STEP_DAYS[0]) })
 })
 
 test('smart review: answering one sign never removes another with the same text', () => {
@@ -182,4 +182,27 @@ test('plan: days until the exam and the daily goal', async () => {
   assert.equal(dailyGoal(6776, 10), GOAL_MAX)
   assert.equal(dailyGoal(100, 30), GOAL_MIN)
   assert.equal(dailyGoal(2000, 30), 70) // 66.7 → 70
+})
+
+test('smart review: due from the start of the calendar day, not 24 h to the minute', () => {
+  const missed = new Date(2026, 9, 5, 9, 5).getTime() // Mon 09:05
+  const p = applyAnswer(DEFAULT_PROGRESS, A, false, missed)
+  const next = entry(p, A).next
+  assert.equal(next, new Date(2026, 9, 6, 0, 0).getTime())
+  assert.ok(new Date(2026, 9, 6, 9, 0).getTime() >= next) // Tue 09:00 → already due
+})
+
+test('sync: replaying an event the snapshot already has is a no-op (no double count)', async () => {
+  const { unapplied } = await import('../src/lib/progress')
+  const ev = { id: 'ev1', question: A, correct: false, at: T0 }
+  const once = replay(DEFAULT_PROGRESS, [ev])
+  const twice = replay(once, [ev])
+  assert.equal(twice.totalDone, 1)
+  assert.deepEqual(twice.stats, once.stats)
+  assert.deepEqual(unapplied(once, [ev]), [])
+  // ids survive the database round-trip and don't leak into `seen`
+  const back = fromRow({ ...toRow(once) })
+  assert.deepEqual(back.applied, ['ev1'])
+  assert.equal(seenCount(back.seen), 1)
+  assert.equal(replay(back, [ev]).totalDone, 1)
 })

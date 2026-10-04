@@ -1,11 +1,10 @@
+import plugin from 'tailwindcss/plugin'
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
-      // Short screens (iPhone SE in Safari with its toolbars): tighter onboarding/login.
-      screens: { short: { raw: '(max-height: 600px)' } },
       colors: {
         stradeo: {
           bg: 'rgb(var(--bg) / <alpha-value>)',
@@ -91,6 +90,8 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `short:` — short screens (iPhone SE in Safari with its toolbars): tighter onboarding/login.
+    plugin(({ addVariant }) => addVariant('short', '@media (max-height: 600px)')),],
 }
 export default config

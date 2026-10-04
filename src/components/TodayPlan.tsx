@@ -1,12 +1,12 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { t } from '@/lib/i18n'
 import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
-import { daysUntil, dailyGoal, localDay } from '@/lib/plan'
+import { daysUntil, dailyGoal } from '@/lib/plan'
+import { useToday } from '@/lib/useToday'
 import { IconCalendar, IconCheck, IconArrowRight, IconFinish } from './icons'
 
 // Slim strip under the greeting: exam countdown (or a prompt to set the date) and
@@ -15,9 +15,8 @@ export default function TodayPlan() {
   const { user } = useAuth()
   const { lang } = useLanguage()
   const { progress, seenCount } = useProgress()
-  // Date-dependent: computed after mount so server and client markup match.
-  const [today, setToday] = useState<string | null>(null)
-  useEffect(() => { setToday(localDay()) }, [])
+  // Date-dependent: after mount, and refreshed at midnight / when the app reopens.
+  const today = useToday()
   if (!today) return <div className="h-[68px] mb-4" />
 
   const days = daysUntil(user?.examDate, new Date())

@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext'
 import type { UserProgress, Question, ExamRecord } from '@/types'
 import { questionKey } from '@/lib/questions'
 import {
-  DEFAULT_PROGRESS, type PendingEvent, activeStreak, makeExamRecord, computeReadiness, fromRow, toRow, replay, seenCount,
+  DEFAULT_PROGRESS, type PendingEvent, newEventId, unapplied, activeStreak, makeExamRecord, computeReadiness, fromRow, toRow, replay, seenCount,
 } from '@/lib/progress'
 
 export { computeReadiness, READINESS_MIN_ANSWERS, applyAnswer, normaliseReview, activeStreak } from '@/lib/progress'
@@ -86,9 +86,19 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const flushing = useRef(false)
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const persist = useCallback(() => {
+  // Bumped by a reset, so a save that was already in flight can't touch the new state.
+  const generation = useRef(0)
+
+  // The device copy is shared by every tab: keep the other tabs' unsaved answers too
+  // (merged by event id) instead of overwriting them, and drop anything already saved.
+  const persist = useCallback((replace = false) => {
     const s = server.current
-    if (s) writeStore(s.userId, { data: s.data, version: s.version, exists: s.exists, pending: pending.current })
+    if (!s) return
+    const mine = pending.current
+    const ids = new Set(mine.map(e => e.id))
+    const others = replace ? [] : (readStore(s.userId)?.pending ?? []).filter(e => e.id && !ids.has(e.id))
+    const merged = unapplied(s.data, [...others, ...mine]).sort((a, b) => a.at - b.at)
+    writeStore(s.userId, { data: s.data, version: s.version, exists: s.exists, pending: merged })
   }, [])
 
   const fetchRow = useCallback(async (id: string) => {
@@ -113,10 +123,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (!userId) { setProgress(DEFAULT_PROGRESS); return }
     let cancelled = false
     const stored = readStore(userId)
-    pending.current = stored?.pending ?? []
+    // Copies from older versions have no event ids: give them one so they're saved once.
+    pending.current = (stored?.pending ?? []).map(e => (e.id ? e : { ...e, id: newEventId() }))
     fetchRow(userId).then(row => {
       if (cancelled) return
       server.current = { userId, ...row }
+      pending.current = unapplied(row.data, pending.current)
       setProgress(replay(row.data, pending.current))
       setLoaded(true)
       persist()
@@ -141,6 +153,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const flush = useCallback(async () => {
     if (flushing.current) return
     flushing.current = true
+    const gen = generation.current
     if (retryTimer.current) { clearTimeout(retryTimer.current); retryTimer.current = null }
     try {
       for (let attempt = 0; pending.current.length && attempt < 5; attempt++) {
@@ -165,6 +178,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           ok = !error // a duplicate-key error means another device created the row first
         }
         if (server.current?.userId !== base.userId) return // signed out meanwhile
+        if (gen !== generation.current) return // progress was reset meanwhile
         if (ok) {
           server.current = { userId: base.userId, data: target, version: nextVersion, exists: true }
           pending.current = pending.current.slice(batch.length)
@@ -172,8 +186,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         } else {
           // Someone else saved first: rebase our pending answers on their snapshot.
           const latest = await fetchRow(base.userId)
-          if (server.current?.userId !== base.userId) return
+          if (server.current?.userId !== base.userId || gen !== generation.current) return
           server.current = { userId: base.userId, ...latest }
+          // Drop answers that are already in it (e.g. our own save whose reply was lost).
+          pending.current = unapplied(latest.data, pending.current)
           setProgress(replay(latest.data, pending.current))
           persist()
         }
@@ -207,7 +223,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const recordAnswers = useCallback((entries: { question: Question; correct: boolean }[]) => {
     if (!entries.length || !server.current) return // not loaded: never save over unloaded data
     const at = Date.now()
-    const answers = entries.map(e => ({ question: e.question, correct: e.correct, at }))
+    const answers = entries.map(e => ({ id: newEventId(), question: e.question, correct: e.correct, at }))
     pending.current = [...pending.current, ...answers]
     persist()
     setProgress(prev => replay(prev, answers))
@@ -219,8 +235,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const at = Date.now()
     const exam = makeExamRecord(questions, answers, at, secs)
     const events: PendingEvent[] = [
-      ...questions.flatMap((q, i) => (i in answers ? [{ question: q, correct: answers[i] === q.a, at }] : [])),
-      { exam, at },
+      ...questions.flatMap((q, i) => (i in answers ? [{ id: newEventId(), question: q, correct: answers[i] === q.a, at }] : [])),
+      { id: newEventId(), exam, at },
     ]
     pending.current = [...pending.current, ...events]
     persist()
@@ -236,28 +252,45 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const resetProgress = useCallback(async (): Promise<boolean> => {
     const base = server.current
     if (!base) return false
+    // Keep the unsaved answers until the reset is confirmed, so a failed reset loses nothing.
+    const kept = pending.current
+    generation.current++
     pending.current = []
     if (retryTimer.current) { clearTimeout(retryTimer.current); retryTimer.current = null }
     try {
-      // Not conditional on version: a reset must win over any device's save.
-      const latest = await fetchRow(base.userId)
-      const nextVersion = Math.max(base.version, latest.version) + 1
-      const write = () => {
-        const row = { ...rowFor(DEFAULT_PROGRESS), version: nextVersion, updated_at: new Date().toISOString() }
-        return latest.exists
-          ? supabase.from('progress').update(row).eq('user_id', base.userId)
-          : supabase.from('progress').insert({ user_id: base.userId, ...row })
+      // Conditional on the version like every save, retried on conflict: a device saving
+      // at the same moment then rebases onto the reset instead of writing old data back.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const latest = await fetchRow(base.userId)
+        const nextVersion = latest.version + 1
+        // Remember which events were saved, so stale copies in other tabs aren't re-added.
+        const fresh = { ...DEFAULT_PROGRESS, applied: latest.data.applied ?? [] }
+        const row = { ...rowFor(fresh), version: nextVersion, updated_at: new Date().toISOString() }
+        let ok: boolean
+        if (latest.exists) {
+          const res = await supabase.from('progress').update(row).eq('user_id', base.userId).eq('version', latest.version).select('version')
+          if (isMissingExams(res.error)) { examsColumn = false; attempt--; continue }
+          if (res.error) throw res.error
+          ok = !!res.data && res.data.length > 0
+        } else {
+          const res = await supabase.from('progress').insert({ user_id: base.userId, ...row })
+          if (isMissingExams(res.error)) { examsColumn = false; attempt--; continue }
+          ok = !res.error
+        }
+        if (!ok) continue
+        server.current = { userId: base.userId, data: fresh, version: nextVersion, exists: true }
+        // Answers given while the reset was saving belong to the new start: keep them.
+        setProgress(replay(fresh, pending.current))
+        setSaveError(false)
+        persist(true)
+        if (pending.current.length) void flushRef.current()
+        return true
       }
-      let { error } = await write()
-      if (isMissingExams(error)) { examsColumn = false; ({ error } = await write()) }
-      if (error) throw error
-      server.current = { userId: base.userId, data: DEFAULT_PROGRESS, version: nextVersion, exists: true }
-      pending.current = []
-      setProgress(DEFAULT_PROGRESS)
-      setSaveError(false)
-      persist()
-      return true
+      throw new Error('reset conflict')
     } catch {
+      pending.current = [...kept, ...pending.current]
+      persist()
+      if (pending.current.length) void flushRef.current()
       return false
     }
   }, [fetchRow, persist])

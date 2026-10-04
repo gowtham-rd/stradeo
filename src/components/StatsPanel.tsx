@@ -1,5 +1,6 @@
 'use client'
 import { useMemo } from 'react'
+import { useToday } from '@/lib/useToday'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { t } from '@/lib/i18n'
@@ -8,6 +9,7 @@ import { IconStreak, IconCalendar, IconAccuracy } from '@/components/icons'
 export default function StatsPanel() {
   const { lang } = useLanguage()
   const { progress, streak } = useProgress()
+  const todayKey = useToday() // re-computes the 7-day window when the date changes
 
   const { days, dayData, dayLabels, weekTotal, weekAcc } = useMemo(() => {
     const d: string[] = []
@@ -25,7 +27,7 @@ export default function StatsPanel() {
       return dt.toLocaleDateString(lang, { weekday: 'short' })
     })
     return { days: d, dayData: dd, dayLabels: labels, weekTotal: wt, weekAcc: wt > 0 ? Math.round(wc / wt * 100) : 0 }
-  }, [progress.dailyLog, lang])
+  }, [progress.dailyLog, lang, todayKey])
 
   const maxTotal = Math.max(...dayData.map(d => d.total), 1)
   const todayStr = new Date().toLocaleDateString('sv')

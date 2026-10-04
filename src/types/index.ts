@@ -42,7 +42,7 @@ export interface DayStats {
 }
 
 export interface SRData {
-  /** Correct on-time reviews so far (0 = just missed). Graduates at REVIEW_STEPS_MS.length. */
+  /** Correct on-time reviews so far (0 = just missed). Graduates at REVIEW_STEP_DAYS.length. */
   stage: number
   /** Epoch ms when the question is next due. */
   next: number
@@ -60,6 +60,8 @@ export interface UserProgress {
   seen: Record<number, string[]>
   /** Finished exam simulations, oldest first (last EXAM_HISTORY_MAX kept). */
   exams: ExamRecord[]
+  /** Ids of the latest saved answer/exam events, so replaying one twice is a no-op. */
+  applied?: string[]
 }
 
 /** One finished exam, stored compactly: question ids + one character per answer. */
