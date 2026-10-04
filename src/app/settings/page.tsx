@@ -11,7 +11,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import HashtagMark from '@/components/HashtagMark'
 import TextSizeSlider from '@/components/TextSizeSlider'
 import { localDay } from '@/lib/plan'
-import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip, IconStudy } from '@/components/icons'
+import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip } from '@/components/icons'
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -76,7 +76,6 @@ export default function SettingsPage() {
           <ul className="space-y-2.5 mb-4">
             <Upcoming icon={<IconTranslate size={14} />} title="soonTranslationsTitle" body="soonTranslationsBody" />
             <Upcoming icon={<IconTip size={14} />} title="soonExplanationsTitle" body="soonExplanationsBody" />
-            <Upcoming icon={<IconStudy size={14} />} title="soonLessonsTitle" body="soonLessonsBody" />
           </ul>
           <Link href="/privacy" className="flex items-center justify-between rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-ink hover:border-stradeo-ink">
             {t(lang, 'privacyLink')} <IconArrowRight size={13} />

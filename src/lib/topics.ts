@@ -1,7 +1,7 @@
 import { TopicMeta } from '@/types'
 
 export const TOPICS: TopicMeta[] = [
-  { id: 1, it: "Definizioni generali", en: "General Definitions", ta: "பொது வரையறைகள்", hi: "सामान्य परिभाषाएं" },
+  { id: 1, it: "Definizioni generali e doveri", en: "Definitions & Road Duties", ta: "வரையறைகள் & சாலைக் கடமைகள்", hi: "परिभाषाएँ और सड़क कर्तव्य" },
   { id: 2, it: "Segnali di pericolo", en: "Danger Signs", ta: "ஆபத்து அறிகுறிகள்", hi: "खतरे के संकेत" },
   { id: 3, it: "Segnali di divieto", en: "Prohibition Signs", ta: "தடை அறிகுறிகள்", hi: "निषेध संकेत" },
   { id: 4, it: "Segnali di obbligo", en: "Mandatory Signs", ta: "கட்டாய அறிகுறிகள்", hi: "अनिवार्य संकेत" },
@@ -16,14 +16,14 @@ export const TOPICS: TopicMeta[] = [
   { id: 13, it: "Norme di circolazione", en: "Traffic Rules", ta: "போக்குவரத்து விதிகள்", hi: "यातायात नियम" },
   { id: 14, it: "Precedenza incroci", en: "Right of Way", ta: "வழிமுன்னுரிமை", hi: "रास्ते का अधिकार" },
   { id: 15, it: "Sorpasso", en: "Overtaking", ta: "முந்துதல்", hi: "ओवरटेकिंग" },
-  { id: 16, it: "Fermata e sosta", en: "Stopping & Parking", ta: "நிறுத்தம்", hi: "रुकना और पार्किंग" },
+  { id: 16, it: "Fermata e sosta", en: "Stopping & Parking", ta: "நிறுத்தம் & பார்க்கிங்", hi: "रुकना और पार्किंग" },
   { id: 17, it: "Norme varie", en: "Misc Rules", ta: "இதர விதிகள்", hi: "विविध नियम" },
-  { id: 18, it: "Luci e clacson", en: "Lights & Horn", ta: "விளக்குகள்", hi: "लाइट और हॉर्न" },
-  { id: 19, it: "Cinture e casco", en: "Seatbelts", ta: "சீட்பெல்ட்", hi: "सीटबेल्ट" },
-  { id: 20, it: "Patente e sanzioni", en: "License & Penalties", ta: "உரிமம்", hi: "लाइसेंस" },
+  { id: 18, it: "Luci e clacson", en: "Lights & Horn", ta: "விளக்குகள் & ஹாரன்", hi: "लाइट और हॉर्न" },
+  { id: 19, it: "Cinture e casco", en: "Seatbelts & Helmets", ta: "சீட் பெல்ட் & ஹெல்மெட்", hi: "सीट बेल्ट और हेलमेट" },
+  { id: 20, it: "Patente e sanzioni", en: "License & Penalties", ta: "உரிமம் & அபராதங்கள்", hi: "लाइसेंस और दंड" },
   { id: 21, it: "Incidenti stradali", en: "Accidents", ta: "விபத்துகள்", hi: "दुर्घटनाएं" },
-  { id: 22, it: "Alcool e primo soccorso", en: "Alcohol & First Aid", ta: "முதலுதவி", hi: "प्राथमिक चिकित्सा" },
-  { id: 23, it: "Responsabilità e RCA", en: "Liability & Insurance", ta: "காப்பீடு", hi: "बीमा" },
+  { id: 22, it: "Alcool e primo soccorso", en: "Alcohol & First Aid", ta: "மது & முதலுதவி", hi: "शराब और प्राथमिक चिकित्सा" },
+  { id: 23, it: "Responsabilità e RCA", en: "Liability & Insurance", ta: "பொறுப்பு & காப்பீடு", hi: "दायित्व और बीमा" },
   { id: 24, it: "Ambiente", en: "Environment", ta: "சுற்றுச்சூழல்", hi: "पर्यावरण" },
   { id: 25, it: "Elementi del veicolo", en: "Vehicle Components", ta: "வாகன உதிரிகள்", hi: "वाहन घटक" },
 ]

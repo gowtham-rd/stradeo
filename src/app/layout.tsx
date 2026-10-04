@@ -16,7 +16,7 @@ import StartupImages from '@/components/StartupImages'
 
 export const metadata: Metadata = {
   title: 'Stradeo — Patente B Quiz',
-  description: 'Your Italian driving license companion. 7,139 official Ministry questions.',
+  description: 'Your Italian driving license companion. 7,138 official Ministry questions.',
   applicationName: 'Stradeo',
   appleWebApp: { capable: true, title: 'Stradeo', statusBarStyle: 'default' },
 }
