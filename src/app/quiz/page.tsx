@@ -214,7 +214,7 @@ function QuizInner() {
             )}
 
             {/* Why: the rule behind the answer (when available), after any answer */}
-            {state.answer !== null && <WhyBox key={state.currentIndex} question={q} className="mb-4" tone={state.answer === q.a ? 'plain' : 'orange'} />}
+            {state.answer !== null && <WhyBox key={`why-${state.currentIndex}`} question={q} className="mb-4" tone={state.answer === q.a ? 'plain' : 'orange'} />}
 
             {/* Smart Review outcome */}
             {state.answer !== null && reviewNote && (
@@ -227,7 +227,7 @@ function QuizInner() {
 
             {/* Next (not last) */}
             {state.answer !== null && !isLast && (
-              <button onClick={() => dispatch({ type: 'NEXT' })}
+              <button onClick={() => { dispatch({ type: 'NEXT' }); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
                 className="flex w-full items-center justify-center gap-2 py-3.5 rounded-[10px] bg-stradeo-ink text-stradeo-bg text-[15px] font-semibold">
                 {t(lang, 'next')} <IconArrowRight size={15} />
               </button>
