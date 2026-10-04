@@ -6,7 +6,6 @@ import { t } from '@/lib/i18n'
 import { getTopicName } from '@/lib/topics'
 import { topicScore, nextBestTopic } from '@/lib/progress'
 import TopicCard from './TopicCard'
-import HomeCards from './HomeCards'
 import { TOPICS } from '@/lib/topics'
 import { TOPIC_COUNTS } from '@/lib/questionCounts'
 import { useCountUp } from '@/lib/useCountUp'
@@ -113,32 +112,12 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
   const { lang } = useLanguage()
   const { progress, getTopicAccuracy, seenCount } = useProgress()
   const next = nextBestTopic(progress.stats)
-  // Topic tapped on the map: shown as a card beside "Biggest gain next".
+  // One topic slot: "Biggest gain next" by default, or the topic tapped on the map.
+  // Tapping the same circle again (or "Biggest gain") goes back. Same height either way.
   const [picked, setPicked] = useState<number | null>(null)
-  const [jump, setJump] = useState<{ index: number; seq: number } | undefined>()
-  const pick = (id: number) => {
-    setPicked(id)
-    setJump(j => ({ index: next ? 1 : 0, seq: (j?.seq ?? 0) + 1 }))
-  }
-  const topicSlide = (id: number, label: string, hint?: string) => {
-    const meta = TOPICS.find(x => x.id === id)!
-    return {
-      label,
-      content: (
-        <div className="text-left">
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{label}</span>
-            {hint && <span className="text-[11px] text-stradeo-inkfaint">{hint}</span>}
-          </div>
-          <TopicCard compact topic={meta} count={TOPIC_COUNTS[id] || 0} accuracy={getTopicAccuracy(id)} done={seenCount(id)} />
-        </div>
-      ),
-    }
-  }
-  const slides = [
-    ...(next ? [topicSlide(next, t(lang, 'nextUp'), picked ? undefined : t(lang, 'tapSquareShort'))] : []),
-    ...(picked ? [topicSlide(picked, t(lang, 'selectedTopic'))] : []),
-  ]
+  const pick = (id: number) => setPicked(p => (p === id ? null : id))
+  const shownId = picked ?? next
+  const shownMeta = shownId ? TOPICS.find(x => x.id === shownId)! : null
 
   return (
     <div className="rounded-[14px] bg-stradeo-bg2 border border-stradeo-line p-4 flex flex-col justify-between">
@@ -175,9 +154,19 @@ export function TopicMapCard({ topicsCovered }: { topicsCovered: number }) {
         </div>
       </div>
 
-      {/* Biggest gain next + tapped topic, as swipeable cards */}
-      {slides.length > 0 && (
-        <HomeCards key={slides.map(x => x.label).join('|')} cards={slides} goTo={jump} className="mt-3" />
+      {/* Biggest gain next, or the tapped topic */}
+      {shownMeta && (
+        <div className="mt-3 text-left">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, picked ? 'selectedTopic' : 'nextUp')}</span>
+            {picked && next
+              ? <button type="button" onClick={() => setPicked(null)} className="text-[11px] font-semibold text-stradeo-blue">{t(lang, 'nextUp')} ↺</button>
+              : <span className="text-[11px] text-stradeo-inkfaint">{t(lang, 'tapSquareShort')}</span>}
+          </div>
+          <div key={shownMeta.id} className="animate-rise">
+            <TopicCard compact topic={shownMeta} count={TOPIC_COUNTS[shownMeta.id] || 0} accuracy={getTopicAccuracy(shownMeta.id)} done={seenCount(shownMeta.id)} />
+          </div>
+        </div>
       )}
     </div>
   )
