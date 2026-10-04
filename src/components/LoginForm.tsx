@@ -29,7 +29,7 @@ export default function LoginForm() {
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4"><StradeoMark size={72} /></div>
           <h1 className="text-[32px] font-bold tracking-tight mb-1 leading-tight">Stradeo</h1>
-          <p className="text-sm text-stradeo-inkdim"><span className="font-mono">7,138</span> official Patente B questions</p>
+          <p className="text-sm text-stradeo-inkdim"><span className="font-mono">7,106</span> official Patente B questions</p>
         </div>
 
         <div className="flex justify-center gap-1.5 mb-7">

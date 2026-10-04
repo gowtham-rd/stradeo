@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Stradeo — Patente B Quiz',
     short_name: 'Stradeo',
-    description: 'Practise the Italian patente B theory exam: 7,138 official questions, lessons and exam simulations.',
+    description: 'Practise the Italian patente B theory exam: 7,106 official questions, lessons and exam simulations.',
     start_url: '/',
     scope: '/',
     display: 'standalone',
