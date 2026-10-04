@@ -47,44 +47,45 @@ export default function WelcomePage() {
     else setStep('install')
   }
 
-  const field = 'w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink'
+  const field = 'w-full px-4 py-2.5 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink'
   const label = 'block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5'
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 animate-fade-in-up">
+    <div className="screen"><div className="screen-inner animate-fade-in-up">
       <div className="w-full max-w-[400px]">
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-3"><StradeoMark size={60} /></div>
-          <h1 className="text-[26px] font-bold tracking-tight leading-tight">{t(lang, 'welcomeTitle')}</h1>
+        <div className="mb-4 short:mb-2.5 flex items-center justify-center gap-3">
+          <StradeoMark size={40} />
+          <h1 className="text-[22px] font-bold tracking-tight leading-tight">{t(lang, 'welcomeTitle')}</h1>
         </div>
-        <div className="flex justify-center gap-1.5 mb-6">
-          {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
-            <button key={k} type="button" onClick={() => setLang(k)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'}`}>{name}</button>
-          ))}
-        </div>
+        {step !== 'install' && (
+          <div className="flex justify-center gap-1.5 mb-4">
+            {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
+              <button key={k} type="button" onClick={() => setLang(k)}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'}`}>{name}</button>
+            ))}
+          </div>
+        )}
 
-        <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6">
+        <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 short:p-4">
           {step === 'checking' && <p className="text-[14px] text-stradeo-inkdim" role="status">{t(lang, 'pwChecking')}</p>}
 
           {step === 'invalid' && (
             <>
-              <p className="text-[14px] leading-relaxed text-stradeo-ink mb-5">{t(lang, 'welcomeInvalid')}</p>
-              <a href="/login" className="block w-full py-3.5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-center text-base font-bold">{t(lang, 'pwBack')}</a>
+              <p className="text-[14px] leading-relaxed text-stradeo-ink mb-4">{t(lang, 'welcomeInvalid')}</p>
+              <a href="/login" className="block w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-center text-base font-bold">{t(lang, 'pwBack')}</a>
             </>
           )}
 
           {step === 'password' && (
             <form onSubmit={save}>
-              {/* Step dots: 1 password, 2 install */}
               <Steps at={1} />
-              <p className="text-[14px] leading-relaxed text-stradeo-ink mb-5">{t(lang, 'welcomeHint')}</p>
+              <p className="text-[14px] leading-snug text-stradeo-ink mb-4">{t(lang, 'welcomeHint')}</p>
               <label htmlFor="w-pw" className={label}>{t(lang, 'pwNew')}</label>
-              <input id="w-pw" type="password" autoComplete="new-password" required minLength={8} autoFocus value={pw} onChange={e => setPw(e.target.value)} className={`${field} mb-4`} />
+              <input id="w-pw" type="password" autoComplete="new-password" required minLength={8} autoFocus value={pw} onChange={e => setPw(e.target.value)} className={`${field} mb-3`} />
               <label htmlFor="w-pw2" className={label}>{t(lang, 'pwConfirm')}</label>
-              <input id="w-pw2" type="password" autoComplete="new-password" required minLength={8} value={pw2} onChange={e => setPw2(e.target.value)} className={`${field} mb-2`} />
-              <p className="mb-4 text-[12px] text-stradeo-inkfaint">{t(lang, 'pwTooShort')}</p>
-              {error && <div className="bg-stradeo-accent2/10 rounded-lg px-3.5 py-2.5 mb-4 text-[13px] text-stradeo-accent2">{error}</div>}
-              <button type="submit" disabled={saving} className="w-full py-3.5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
+              <input id="w-pw2" type="password" autoComplete="new-password" required minLength={8} value={pw2} onChange={e => setPw2(e.target.value)} className={`${field} mb-1.5`} />
+              <p className="mb-3 text-[12px] text-stradeo-inkfaint">{t(lang, 'pwTooShort')}</p>
+              {error && <div className="bg-stradeo-accent2/10 rounded-lg px-3.5 py-2 mb-3 text-[13px] text-stradeo-accent2">{error}</div>}
+              <button type="submit" disabled={saving} className="w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
                 {saving ? '...' : t(lang, 'pwSave')}
               </button>
             </form>
@@ -93,27 +94,28 @@ export default function WelcomePage() {
           {step === 'install' && (
             <div className="animate-fade-in">
               <Steps at={2} />
-              <p className="mb-4 flex items-center gap-2 text-[13px] font-semibold text-stradeo-green"><IconCheck size={12} />{t(lang, 'pwChosen')}</p>
-              <h2 className="text-lg font-bold mb-3">{t(lang, 'installTitle')}</h2>
-              <InstallGuide />
-              <p className="mt-4 text-[13px] leading-relaxed text-stradeo-ink">{added ? t(lang, 'installOpenIcon') : t(lang, 'installThen')}</p>
+              <p className="mb-1 flex short:hidden items-center gap-1.5 text-[12px] font-semibold text-stradeo-green"><IconCheck size={11} />{t(lang, 'pwChosen')}</p>
+              <h2 className="text-[17px] font-bold leading-snug short:mb-2.5">{t(lang, 'installTitle')}</h2>
+              <p className="mt-1 mb-3 short:hidden text-[12px] leading-snug text-stradeo-inkdim">{t(lang, 'installWhy')}</p>
+              <InstallGuide compact />
+              <p className="mt-3 short:mt-2 text-[13px] leading-snug text-stradeo-ink">{added ? t(lang, 'installOpenIcon') : t(lang, 'installThen')}</p>
               {!added && (
                 <button type="button" onClick={() => setAdded(true)}
-                  className="mt-4 w-full py-3.5 rounded-[10px] bg-stradeo-ink text-stradeo-bg text-base font-bold">{t(lang, 'installDone')}</button>
+                  className="mt-3 short:mt-2 w-full py-3 short:py-2.5 rounded-[10px] bg-stradeo-ink text-stradeo-bg text-base font-bold">{t(lang, 'installDone')}</button>
               )}
               <button type="button" onClick={() => router.replace('/')}
-                className="mt-3 w-full text-center text-[12px] font-semibold text-stradeo-inkdim underline hover:text-stradeo-ink">{t(lang, 'continueBrowser')}</button>
+                className="mt-2.5 w-full text-center text-[12px] font-semibold text-stradeo-inkdim underline hover:text-stradeo-ink">{t(lang, 'continueBrowser')}</button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </div></div>
   )
 }
 
 function Steps({ at }: { at: 1 | 2 }) {
   return (
-    <div className="mb-4 flex gap-1.5" aria-hidden="true">
+    <div className="mb-3 flex gap-1.5" aria-hidden="true">
       {[1, 2].map(n => <span key={n} className={`h-1.5 flex-1 rounded-full ${n <= at ? 'bg-stradeo-brandorange' : 'bg-stradeo-line'}`} />)}
     </div>
   )

@@ -56,12 +56,12 @@ export default function InstallGuide({ compact = false }: { compact?: boolean })
           <IconAddSquare size={16} />{t(lang, 'installBtn')}
         </button>
       ) : (
-        <ol className="space-y-2">
+        <ol className="space-y-1.5">
           {steps.map(([icon, key], i) => (
-            <li key={key} className="flex items-center gap-3 rounded-[10px] border border-stradeo-line bg-stradeo-bg px-3 py-2.5">
+            <li key={key} className="flex items-center gap-3 rounded-[10px] border border-stradeo-line bg-stradeo-bg px-3 py-2 short:py-1.5">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-stradeo-ink font-mono text-[12px] text-stradeo-bg">{i + 1}</span>
               <span className="flex-1 text-[13px] leading-snug">{t(lang, key)}</span>
-              <span className="flex h-8 min-w-8 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-blue/10 px-2 text-stradeo-blue">{icon}</span>
+              <span className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-blue/10 px-2 text-stradeo-blue">{icon}</span>
             </li>
           ))}
         </ol>

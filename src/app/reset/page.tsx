@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
 
   const field = 'w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink'
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 animate-fade-in-up">
+    <div className="screen"><div className="screen-inner animate-fade-in-up">
       <div className="w-full max-w-[380px]">
         <div className="flex justify-center mb-8"><StradeoMark size={56} /></div>
         <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6">
@@ -92,6 +92,6 @@ export default function ResetPasswordPage() {
           )}
         </div>
       </div>
-    </div>
+    </div></div>
   )
 }

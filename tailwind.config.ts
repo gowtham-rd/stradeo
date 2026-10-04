@@ -4,6 +4,8 @@ const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
+      // Short screens (iPhone SE in Safari with its toolbars): tighter onboarding/login.
+      screens: { short: { raw: '(max-height: 600px)' } },
       colors: {
         stradeo: {
           bg: 'rgb(var(--bg) / <alpha-value>)',

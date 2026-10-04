@@ -46,15 +46,15 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 animate-fade-in-up">
+    <div className="screen"><div className="screen-inner animate-fade-in-up">
       <div className="w-full max-w-[380px]">
-        <div className="text-center mb-10">
-          <div className="flex justify-center mb-4"><StradeoMark size={72} /></div>
-          <h1 className="text-[32px] font-bold tracking-tight mb-1 leading-tight">Stradeo</h1>
-          <p className="text-sm text-stradeo-inkdim"><span className="font-mono">{TOTAL_QUESTIONS.toLocaleString(lang)}</span> {t(lang, 'appQuestions')}</p>
+        <div className="text-center mb-5 short:mb-3">
+          <div className="flex justify-center mb-2.5 short:hidden"><StradeoMark size={52} /></div>
+          <h1 className="text-[26px] font-bold tracking-tight leading-tight">Stradeo</h1>
+          <p className="text-sm text-stradeo-inkdim short:hidden"><span className="font-mono">{TOTAL_QUESTIONS.toLocaleString(lang)}</span> {t(lang, 'appQuestions')}</p>
         </div>
 
-        <div className="flex justify-center gap-1.5 mb-7">
+        <div className="flex justify-center gap-1.5 mb-4 short:mb-3">
           {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
             <button key={k} onClick={() => setLang(k)}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'}`}
@@ -63,7 +63,7 @@ export default function LoginForm() {
         </div>
 
         {mode !== 'login' ? (
-          <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 animate-fade-in">
+          <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 animate-fade-in">
             <h2 className="text-lg font-bold mb-2">{t(lang, 'pwResetTitle')}</h2>
             {mode === 'sent' ? (
               <p className="text-[14px] leading-relaxed text-stradeo-ink mb-5" role="status">{t(lang, 'pwLinkSent')}</p>
@@ -72,11 +72,11 @@ export default function LoginForm() {
                 <p className="text-[13px] leading-relaxed text-stradeo-inkdim mb-4">{t(lang, 'pwResetHint')}</p>
                 <label htmlFor="reset-email" className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">{t(lang, 'email')}</label>
                 <input id="reset-email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} type="email" required autoFocus
-                  className="w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink mb-4"
+                  className="w-full px-4 py-2.5 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink mb-4"
                   placeholder="you@email.com" />
                 {error && <div className="bg-stradeo-accent2/10 rounded-lg px-3.5 py-2.5 mb-4 text-[13px] text-stradeo-accent2">{error}</div>}
                 <button type="submit" disabled={loading}
-                  className="w-full py-3.5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
+                  className="w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
                   {loading ? '...' : t(lang, 'pwSendLink')}
                 </button>
               </form>
@@ -87,20 +87,20 @@ export default function LoginForm() {
             </button>
           </div>
         ) : (
-        <form onSubmit={handleSubmit} className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6">
-          <h2 className="text-lg font-bold mb-5">{t(lang, 'login')}</h2>
+        <form onSubmit={handleSubmit} className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
+          <h2 className="text-lg font-bold mb-3">{t(lang, 'login')}</h2>
 
-          <div className="mb-4">
+          <div className="mb-3">
             <label htmlFor="login-email" className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">{t(lang, 'email')}</label>
             <input id="login-email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} type="email" required
-              className="w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink"
+              className="w-full px-4 py-2.5 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink"
               placeholder="you@email.com" />
           </div>
 
-          <div className="mb-5">
+          <div className="mb-4">
             <label htmlFor="login-password" className="block text-xs font-semibold text-stradeo-inkdim uppercase tracking-wider mb-1.5">{t(lang, 'password')}</label>
             <input id="login-password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} type="password" required
-              className="w-full px-4 py-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink"
+              className="w-full px-4 py-2.5 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-[15px] outline-none focus:border-stradeo-ink"
               placeholder="••••••••" />
           </div>
 
@@ -111,7 +111,7 @@ export default function LoginForm() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full py-3.5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
+            className="w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
             {loading ? '...' : t(lang, 'loginBtn')}
           </button>
           <button type="button" onClick={() => { setMode('forgot'); setError('') }}
@@ -122,7 +122,7 @@ export default function LoginForm() {
         )}
 
         {inBrowserOnPhone && (
-          <div className="mt-4 rounded-[14px] border border-stradeo-line bg-stradeo-bg2">
+          <div className="mt-3 rounded-[14px] border border-stradeo-line bg-stradeo-bg2">
             <button type="button" onClick={() => setShowInstall(v => !v)} aria-expanded={showInstall}
               className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-semibold">
               <IconPhone size={15} className="text-stradeo-blue" />{t(lang, 'installCard')}
@@ -132,8 +132,8 @@ export default function LoginForm() {
           </div>
         )}
 
-        <p className="text-center text-[11px] text-stradeo-inkfaint mt-5">{t(lang, 'contactAdmin')} · <a href="/privacy" className="underline hover:text-stradeo-ink">Privacy</a></p>
+        <p className="text-center text-[11px] text-stradeo-inkfaint mt-4">{t(lang, 'contactAdmin')} · <a href="/privacy" className="underline hover:text-stradeo-ink">Privacy</a></p>
       </div>
-    </div>
+    </div></div>
   )
 }
