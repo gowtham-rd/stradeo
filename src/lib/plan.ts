@@ -23,3 +23,32 @@ export function dailyGoal(unseen: number, daysLeft: number | null): number {
   const raw = Math.ceil(Math.max(0, unseen) / daysLeft)
   return Math.min(GOAL_MAX, Math.max(GOAL_MIN, Math.ceil(raw / 5) * 5))
 }
+
+// ── Which topic the home "Start / Continue studying" button opens ─────────────
+/** A topic counts as done when nearly all its questions were answered, or when at
+ *  least half were answered with 90%+ correct. */
+export function topicDone(seen: number, count: number, accuracy: number | null): boolean {
+  if (count <= 0) return true
+  return seen >= count * 0.95 || (seen >= count * 0.5 && (accuracy ?? 0) >= 90)
+}
+
+/** First pass: topics in order (1 → 25), staying on the last opened one until it's
+ *  done, then moving to the next unfinished one. Once every topic has been started:
+ *  the topic that would raise readiness most (`bestGain`), else the last one. */
+export function studyTarget(opts: {
+  last: number | null
+  seen: (t: number) => number
+  count: (t: number) => number
+  accuracy: (t: number) => number | null
+  bestGain: number | null
+}): number {
+  const { last, seen, count, accuracy, bestGain } = opts
+  const topics = Array.from({ length: 25 }, (_, i) => i + 1)
+  const done = (t: number) => topicDone(seen(t), count(t), accuracy(t))
+  if (topics.every(t => seen(t) > 0)) return bestGain ?? last ?? 1
+  if (last && !done(last)) return last
+  // Next unfinished topic after the last one, wrapping round to the start.
+  const from = last ?? 0
+  const order = [...topics.filter(t => t > from), ...topics.filter(t => t <= from)]
+  return order.find(t => !done(t)) ?? bestGain ?? 1
+}

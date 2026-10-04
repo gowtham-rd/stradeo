@@ -206,3 +206,21 @@ test('sync: replaying an event the snapshot already has is a no-op (no double co
   assert.equal(seenCount(back.seen), 1)
   assert.equal(replay(back, [ev]).totalDone, 1)
 })
+
+test('study button: in order, stays until done, then moves on; best gain once all started', async () => {
+  const { studyTarget } = await import('../src/lib/plan')
+  const count = () => 100
+  const base = { count, bestGain: 7 }
+  // newbie
+  assert.equal(studyTarget({ ...base, last: null, seen: () => 0, accuracy: () => null }), 1)
+  // half-way through topic 1
+  assert.equal(studyTarget({ ...base, last: 1, seen: t => (t === 1 ? 40 : 0), accuracy: () => 70 }), 1)
+  // topic 1 finished → topic 2
+  assert.equal(studyTarget({ ...base, last: 1, seen: t => (t === 1 ? 96 : 0), accuracy: () => 70 }), 2)
+  // half answered with 92% also counts as done
+  assert.equal(studyTarget({ ...base, last: 1, seen: t => (t === 1 ? 50 : 0), accuracy: t => (t === 1 ? 92 : null) }), 2)
+  // jumped to topic 5 and finished it → 6 (not back to 1)
+  assert.equal(studyTarget({ ...base, last: 5, seen: t => (t === 5 ? 100 : 0), accuracy: () => null }), 6)
+  // every topic started → biggest gain
+  assert.equal(studyTarget({ ...base, last: 3, seen: () => 10, accuracy: () => 60 }), 7)
+})

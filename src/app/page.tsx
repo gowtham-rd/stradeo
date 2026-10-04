@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
+import { studyTarget } from '@/lib/plan'
 import { TOPICS, getTopicName } from '@/lib/topics'
 import { t, type UIKey } from '@/lib/i18n'
 import { daysSince, greetingLine } from '@/lib/greeting'
@@ -137,12 +138,19 @@ function Greeting({ name, lastStudy, readiness, streak }: { name: string; lastSt
 
 function StudyButton() {
   const { lang } = useLanguage()
-  const { progress, getTopicAccuracy } = useProgress()
+  const { progress, getTopicAccuracy, seenCount } = useProgress()
   // Read after mount (device storage), so server and client markup match.
   const [last, setLast] = useState<number | null | undefined>(undefined)
   useEffect(() => { setLast(getLastTopic()) }, [])
   const started = progress.totalDone > 0 || !!last
-  const topic = last ?? nextBestTopic(progress.stats) ?? 1
+  // First pass in order 1 → 25 (moving on once a topic is done), then biggest gain.
+  const topic = studyTarget({
+    last: last ?? null,
+    seen: t => seenCount(t),
+    count: t => TOPIC_COUNTS[t] || 0,
+    accuracy: t => getTopicAccuracy(t),
+    bestGain: nextBestTopic(progress.stats),
+  })
   const acc = getTopicAccuracy(topic)
   return (
     <Link href={`/topic?id=${topic}`}
