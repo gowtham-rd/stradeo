@@ -180,6 +180,23 @@ export const IconChevronRight = (p: P) => (
   </Svg>
 )
 
+/** Topics: grid of square tiles. */
+export const IconTopics = (p: P) => (
+  <Svg {...p}>
+    <path d="M2.5 2.5h8.25v8.25H2.5zM13.25 2.5h8.25v8.25h-8.25zM2.5 13.25h8.25v8.25H2.5z" />
+    <path fillRule="evenodd" d="M13.25 13.25h8.25v8.25h-8.25zM15.5 15.5v3.75h3.75V15.5z" />
+  </Svg>
+)
+
+/** Timer: square stopwatch with crown and a hand. */
+export const IconTimer = (p: P) => (
+  <Svg {...p}>
+    <path d="M9 1h6v2.5H9z" />
+    <path fillRule="evenodd" d="M3 5h18v17H3zM5.5 7.5v12h13v-12z" />
+    <path d="M10.75 9.5h2.5v5.25h-2.5z" />
+  </Svg>
+)
+
 // ── Glyphs ──────────────────────────────────────────────────────────────────
 export const IconCheck = (p: P) => (
   <Svg {...p}>
@@ -236,6 +253,8 @@ export const ICONS = {
   chevronLeft: IconChevronLeft,
   chevronRight: IconChevronRight,
   home: IconHome,
+  topics: IconTopics,
+  timer: IconTimer,
   history: IconHistory,
 } as const
 

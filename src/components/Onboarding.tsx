@@ -7,7 +7,11 @@ import { LANGUAGES, t } from '@/lib/i18n'
 import { localDay } from '@/lib/plan'
 import type { Language } from '@/types'
 import StradeoMark from './StradeoMark'
-import { IconCalendar, IconCheck, IconChevronLeft, IconArrowRight } from './icons'
+import { IconCalendar, IconCheck, IconChevronLeft, IconArrowRight, IconCross, IconExam, IconReview, IconStack, IconTimer, IconTip, IconTopics } from './icons'
+import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
+import { EXAM_DURATION, EXAM_QUESTIONS, MAX_ERRORS } from '@/lib/constants'
+
+const STEPS = 5 // two info screens, then name, language, exam date
 
 // English name under each language, so it's recognisable whatever the UI language.
 const LANG_SUB: Record<Language, string> = { en: 'English', it: 'Italian', ta: 'Tamil', hi: 'Hindi' }
@@ -39,16 +43,16 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
     onDone()
   }
 
-  const canContinue = step === 0 ? name.trim().length > 0 : step === 2 ? unknown || !!date : true
-  const last = step === 2
+  const canContinue = step === 2 ? name.trim().length > 0 : step === 4 ? unknown || !!date : true
+  const last = step === STEPS - 1
 
   return (
     <div className="flex flex-col max-w-[480px] mx-auto px-5 pt-[max(20px,env(safe-area-inset-top))] pb-36">
       {/* Header: mark, progress, skip */}
       <div className="flex items-center gap-3">
         <StradeoMark size={32} />
-        <div className="flex-1 flex gap-1.5" aria-label={t(lang, 'setupStep').replace('{n}', String(step + 1))}>
-          {[0, 1, 2].map(i => (
+        <div className="flex-1 flex gap-1.5" aria-label={t(lang, 'setupStep').replace('{n}', String(step + 1)).replace('{total}', String(STEPS))}>
+          {Array.from({ length: STEPS }, (_, i) => (
             <span key={i} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${i <= step ? 'bg-stradeo-ink' : 'bg-stradeo-surface2'}`} />
           ))}
         </div>
@@ -59,11 +63,49 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
       {/* Step */}
       <div className="pt-10">
         <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">
-          {t(lang, 'setupWelcome')} · {t(lang, 'setupStep').replace('{n}', String(step + 1))}
+          {t(lang, 'setupWelcome')} · {t(lang, 'setupStep').replace('{n}', String(step + 1)).replace('{total}', String(STEPS))}
         </div>
         <div key={step} className={dir > 0 ? 'animate-slide-from-right' : 'animate-slide-from-left'}>
           {step === 0 && (
-            <form onSubmit={e => { e.preventDefault(); if (canContinue) go(1) }}>
+            <>
+              <h1 className="text-[26px] leading-tight font-bold tracking-tight mt-2">{t(lang, 'introTitle')}</h1>
+              <div className="mt-7 grid gap-3">
+                <Fact icon={<IconStack size={22} />} tone="text-stradeo-blue bg-stradeo-blue/10" value={TOTAL_QUESTIONS.toLocaleString(lang)} label={t(lang, 'introQuestions')} />
+                <Fact icon={<IconTopics size={22} />} tone="text-stradeo-brandorange bg-stradeo-brandorange/10" value="25" label={t(lang, 'introTopics')} />
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2.5">
+                {([[IconExam, 'examSim', 'text-stradeo-ink bg-stradeo-surface2'], [IconTip, 'readinessCard', 'text-stradeo-green bg-stradeo-green/10'], [IconReview, 'smartReview', 'text-stradeo-blue bg-stradeo-blue/10']] as const).map(([I, key, tone]) => (
+                  <div key={key} className="flex flex-col items-center gap-2 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 px-2 py-3.5 text-center">
+                    <span className={`flex h-10 w-10 items-center justify-center rounded-[10px] ${tone}`}><I size={18} /></span>
+                    <span className="text-[12px] font-semibold leading-tight">{t(lang, key)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === 1 && (
+            <>
+              <h1 className="text-[26px] leading-tight font-bold tracking-tight mt-2">{t(lang, 'examTitle')}</h1>
+              <div className="mt-7 grid grid-cols-3 gap-2.5">
+                <Tile icon={<IconExam size={20} />} tone="text-stradeo-ink bg-stradeo-surface2" value={String(EXAM_QUESTIONS)} label={t(lang, 'examQuestions')} />
+                <Tile icon={<IconTimer size={20} />} tone="text-stradeo-blue bg-stradeo-blue/10" value={String(EXAM_DURATION / 60)} label={t(lang, 'examMinutes')} />
+                <Tile icon={<IconCross size={16} />} tone="text-stradeo-accent2 bg-stradeo-accent2/10" value={String(MAX_ERRORS)} label={t(lang, 'examErrors')} />
+              </div>
+              {/* What answering looks like: the exam's own VERO / FALSO buttons */}
+              <div className="mt-6 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-4">
+                <p className="text-[14px] leading-relaxed text-stradeo-ink">{t(lang, 'examAnswer')}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2.5" aria-hidden="true">
+                  <span className="flex h-12 items-center justify-center gap-2 rounded-[10px] border border-stradeo-green/40 bg-stradeo-green/10 text-[15px] font-bold tracking-[1px] text-stradeo-green"><IconCheck size={14} />VERO</span>
+                  <span className="flex h-12 items-center justify-center gap-2 rounded-[10px] border border-stradeo-accent2/40 bg-stradeo-accent2/10 text-[15px] font-bold tracking-[1px] text-stradeo-accent2"><IconCross size={12} />FALSO</span>
+                </div>
+              </div>
+              <p className="mt-4 text-[13px] leading-relaxed text-stradeo-inkdim">{t(lang, 'examItalian')}</p>
+            </>
+          )}
+
+          {step === 2 && (
+            <form onSubmit={e => { e.preventDefault(); if (canContinue) go(3) }}>
               <h1 className="text-[26px] leading-tight font-bold tracking-tight mt-2">{t(lang, 'setupNameTitle')}</h1>
               <p className="text-[14px] text-stradeo-inkdim mt-2">{t(lang, 'setupNameHint')}</p>
               <input value={name} onChange={e => setName(e.target.value)} maxLength={40} autoComplete="nickname" enterKeyHint="next"
@@ -72,7 +114,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
             </form>
           )}
 
-          {step === 1 && (
+          {step === 3 && (
             <>
               <h1 className="text-[26px] leading-tight font-bold tracking-tight mt-2">{t(lang, 'setupLangTitle')}</h1>
               <p className="text-[14px] text-stradeo-inkdim mt-2">{t(lang, 'setupLangHint')}</p>
@@ -90,7 +132,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
             </>
           )}
 
-          {step === 2 && (
+          {step === 4 && (
             <>
               <h1 className="text-[26px] leading-tight font-bold tracking-tight mt-2">{t(lang, 'setupDateTitle')}</h1>
               <p className="text-[14px] text-stradeo-inkdim mt-2">{t(lang, 'setupDateHint')}</p>
@@ -132,6 +174,28 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
       </div>
       </div>
       </div>, document.body)}
+    </div>
+  )
+}
+
+function Fact({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: string; label: string }) {
+  return (
+    <div className="flex items-center gap-4 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-4">
+      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] ${tone}`}>{icon}</span>
+      <span className="min-w-0">
+        <span className="block font-mono text-[28px] leading-none tracking-tight">{value}</span>
+        <span className="block mt-1.5 text-[13px] leading-snug text-stradeo-inkdim">{label}</span>
+      </span>
+    </div>
+  )
+}
+
+function Tile({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center rounded-[14px] border border-stradeo-line bg-stradeo-bg2 px-2 py-4 text-center">
+      <span className={`flex h-10 w-10 items-center justify-center rounded-[10px] ${tone}`}>{icon}</span>
+      <span className="mt-2.5 font-mono text-[26px] leading-none">{value}</span>
+      <span className="mt-1.5 text-[11px] leading-tight text-stradeo-inkdim">{label}</span>
     </div>
   )
 }
