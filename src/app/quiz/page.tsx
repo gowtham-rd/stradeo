@@ -7,15 +7,16 @@ import { useProgress } from '@/contexts/ProgressContext'
 import { loadQuestions, loadTopicQuestions, getImageUrl, shuffle, questionKey } from '@/lib/questions'
 import { REVIEW_STEPS_MS } from '@/lib/constants'
 import { getTopicName, TOPICS } from '@/lib/topics'
-import { LANG_PROMPT, t, formatWhen } from '@/lib/i18n'
+import { t, formatWhen } from '@/lib/i18n'
 import type { Question, QuizState, QuizAction } from '@/types'
 import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
-import TranslateButton from '@/components/TranslateButton'
+import QuestionText from '@/components/QuestionText'
+import SignImage, { preloadImages } from '@/components/SignImage'
 import { setLastTopic } from '@/lib/lastTopic'
+import { getExplanation } from '@/lib/qtext'
 import ReportQuestion from '@/components/ReportQuestion'
-import { aiPost, AI_ENABLED, AI_NOT_READY, AI_LIMIT } from '@/lib/api'
-import { IconReview, IconCheck, IconCross, IconTip, IconRoadworks, IconArrowRight } from '@/components/icons'
+import { IconReview, IconCheck, IconCross, IconTip, IconArrowRight } from '@/components/icons'
 
 const initialState: QuizState = {
   questions: [],
@@ -71,7 +72,6 @@ function QuizInner() {
 
   // AI explanation for the current wrong answer
   const [exp, setExp] = useState<string | null>(null)
-  const [expLoading, setExpLoading] = useState(false)
 
   async function buildQuestions(): Promise<Question[]> {
     if (isReview) {
@@ -98,7 +98,9 @@ function QuizInner() {
   }, [isReview, topicId, progressLoaded])
 
   // Reset explanation whenever the question changes
-  useEffect(() => { setExp(null); setExpLoading(false); setReviewNote(null) }, [state.currentIndex])
+  useEffect(() => { setExp(null); setReviewNote(null) }, [state.currentIndex])
+  // Fetch the next sign while this question is being answered, so it appears instantly.
+  useEffect(() => { preloadImages([getImageUrl(state.questions[state.currentIndex + 1]?.i)]) }, [state.currentIndex, state.questions])
 
   const total = state.questions.length
   const q = state.questions[state.currentIndex]
@@ -109,21 +111,11 @@ function QuizInner() {
     ? t(lang, 'smartReview')
     : topicId ? getTopicName(topicId, lang) : t(lang, 'randomQuiz')
 
-  async function fetchExplanation(question: string, correctAnswer: boolean) {
-    if (!AI_ENABLED) { setExp(t(lang, 'explainSoon')); setExpLoading(false); return }
-    setExpLoading(true)
+  // Built-in explanation for a missed question (shown only when one exists).
+  async function fetchExplanation(question: Question) {
     setExp(null)
-    try {
-      const res = await aiPost('/api/explain', ({ question, correctAnswer, language: LANG_PROMPT[lang] }))
-      if (res.status === AI_NOT_READY) { setExp(t(lang, 'explainSoon')); setExpLoading(false); return }
-      if (res.status === AI_LIMIT) { setExp(t(lang, 'aiLimit')); setExpLoading(false); return }
-      if (!res.ok) throw new Error('explain failed')
-      const data = await res.json()
-      setExp(data.explanation || t(lang, 'unavailable'))
-    } catch {
-      setExp(t(lang, 'unavailable'))
-    }
-    setExpLoading(false)
+    const why = await getExplanation(question, lang)
+    setExp(why)
   }
 
   function handleAnswer(value: boolean) {
@@ -144,7 +136,7 @@ function QuizInner() {
     }
     recordAnswer(q, ok)
     dispatch({ type: 'ANSWER', value })
-    if (!ok) fetchExplanation(q.q, q.a)
+    if (!ok) void fetchExplanation(q)
   }
 
   function restart() {
@@ -199,9 +191,8 @@ function QuizInner() {
             <div className={`bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 mb-4 ${
               state.animation === 'ok' ? 'animate-pulse-green' : state.animation === 'no' ? 'animate-shake' : ''
             }`}>
-              {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[170px] rounded-[10px] mx-auto mb-4 border border-stradeo-line" />}
-              <p lang="it" className="text-[17px] leading-relaxed font-normal">{q.q}</p>
-              <TranslateButton key={questionKey(q)} question={q.q} />
+              {imgUrl && <SignImage src={imgUrl} alt={t(lang, 'signAlt')} height={160} className="mb-4" />}
+              <QuestionText key={questionKey(q)} question={q} />
             </div>
 
             {/* Answer buttons (recolor after answering) */}
@@ -225,21 +216,14 @@ function QuizInner() {
             </div>
             </div>
 
-            {/* Wrong → explanation */}
-            {state.answer !== null && state.answer !== q.a && (
+            {/* Wrong → explanation (when available) */}
+            {state.answer !== null && state.answer !== q.a && exp && (
               <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-4 animate-rise">
                 <div className="flex items-center gap-2 mb-2">
                   <IconTip size={16} className="text-stradeo-brandorange" />
                   <span className="text-[13px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span>
                 </div>
-                {expLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-stradeo-line border-t-stradeo-ink rounded-full animate-spin-slow" />
-                    <span className="text-sm text-stradeo-inkdim">{t(lang, 'gettingExp')}</span>
-                  </div>
-                ) : (
-                  <p className="text-sm leading-relaxed text-stradeo-ink">{exp === t(lang, 'aiSoon') || exp === t(lang, 'explainSoon') ? <span className="inline-flex items-start gap-2 text-stradeo-inkdim"><IconRoadworks size={16} className="text-stradeo-brandorange mt-0.5" />{exp}</span> : exp}</p>
-                )}
+                <p className="text-sm leading-relaxed text-stradeo-ink">{exp}</p>
               </div>
             )}
 

@@ -7,7 +7,8 @@ import { loadQuestions, buildExamQuestions, getImageUrl } from '@/lib/questions'
 import { t } from '@/lib/i18n'
 import { EXAM_DURATION } from '@/lib/constants'
 import type { ExamState, ExamAction } from '@/types'
-import TranslateButton from '@/components/TranslateButton'
+import QuestionText from '@/components/QuestionText'
+import SignImage, { preloadImages } from '@/components/SignImage'
 import { PULL_GUARD_ATTR, PULL_EVENT } from '@/components/PullToRefresh'
 import { IconCross, IconChevronLeft, IconChevronRight, IconWarning, IconFinish } from '@/components/icons'
 
@@ -61,7 +62,9 @@ export default function ExamPage() {
     let cancelled = false
     loadQuestions().then(all => {
       if (cancelled) return
-      dispatch({ type: 'START', questions: buildExamQuestions(all), endTime: Date.now() + EXAM_DURATION * 1000 })
+      const qs = buildExamQuestions(all)
+      preloadImages(qs.map(x => getImageUrl(x.i)))
+      dispatch({ type: 'START', questions: qs, endTime: Date.now() + EXAM_DURATION * 1000 })
       setLoading(false)
     }, () => { if (!cancelled) setLoadFailed(true) })
     return () => { cancelled = true }
@@ -269,11 +272,8 @@ export default function ExamPage() {
       <main className="flex-1 max-w-[640px] w-full mx-auto px-4 pt-4 pb-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div key={current} className={`${dir > 0 ? 'animate-slide-from-right' : 'animate-slide-from-left'}`}>
           <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5">
-            {imgUrl && (
-              <img src={imgUrl} alt={t(lang, 'signAlt')} className="max-w-[200px] max-h-[160px] rounded-[10px] mx-auto mb-4 border border-stradeo-line" />
-            )}
-            <p lang="it" className="text-[17px] leading-relaxed">{q.q}</p>
-            <TranslateButton key={current} question={q.q} />
+            {imgUrl && <SignImage src={imgUrl} alt={t(lang, 'signAlt')} height={160} className="mb-4" />}
+            <QuestionText key={current} question={q} />
           </div>
 
         </div>

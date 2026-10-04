@@ -4,17 +4,16 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { getImageUrl, loadQuestions, questionKey } from '@/lib/questions'
+import { loadQuestions } from '@/lib/questions'
 import { seenId } from '@/lib/progress'
-import ReportQuestion from '@/components/ReportQuestion'
-import QuestionHelp from '@/components/QuestionHelp'
+import ResultRow from '@/components/ResultRow'
 import { MAX_ERRORS } from '@/lib/constants'
 import { t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import ExamHistoryChart from '@/components/ExamHistoryChart'
 import { useCountUp } from '@/lib/useCountUp'
-import { IconExam, IconFinish, IconCheck, IconCross, IconHistory, IconHome } from '@/components/icons'
+import { IconExam, IconFinish, IconCross, IconHistory, IconHome, IconChevronDown } from '@/components/icons'
 
 interface Result {
   at: number
@@ -34,7 +33,8 @@ function ResultsInner() {
   const atParam = Number(params.get('at')) || null
   const [result, setResult] = useState<Result | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading')
-  const [filter, setFilter] = useState<'all' | 'errors'>('all')
+  const [openRow, setOpenRow] = useState<number | null>(null)
+  const [showCorrect, setShowCorrect] = useState(false)
 
   const exams = progress.exams || []
 
@@ -42,7 +42,7 @@ function ResultsInner() {
   // from the stored history (question ids → questions).
   useEffect(() => {
     let cancelled = false
-    setFilter('all')
+    setOpenRow(null); setShowCorrect(false)
     try {
       const raw = sessionStorage.getItem('stradeo_exam_result')
       if (raw) {
@@ -84,7 +84,15 @@ function ResultsInner() {
   const errors = total - score
   const passed = errors <= MAX_ERRORS
   const shownScore = Math.round(useCountUp(state === 'ready' ? score : 0, 900))
-  const visible = filter === 'errors' ? rows.filter(r => !r.ok) : rows
+  const mistakes = rows.filter(r => !r.ok && r.ua !== undefined)
+  const unanswered = rows.filter(r => r.ua === undefined)
+  const correct = rows.filter(r => r.ok)
+  // Answer map: open that question (and its section) and scroll to it.
+  const jumpTo = (i: number) => {
+    if (rows[i]?.ok) setShowCorrect(true)
+    setOpenRow(i)
+    requestAnimationFrame(() => document.getElementById(`q${i + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
 
 
   if (state === 'missing') {
@@ -133,14 +141,14 @@ function ResultsInner() {
         {/* Answer map: one square per question; tap to jump to it below */}
         <div className="grid grid-cols-10 gap-1 mt-4">
           {rows.map(r => (
-            <a key={r.i} href={`#q${r.i + 1}`} onClick={() => setFilter('all')}
+            <button type="button" key={r.i} onClick={() => jumpTo(r.i)}
               aria-label={`${t(lang, 'questionN')} ${r.i + 1}: ${r.ok ? t(lang, 'correctBadge') : r.ua === undefined ? t(lang, 'noAnswer') : t(lang, 'wrong')}`}
               style={{ animationDelay: `${r.i * 18}ms` }}
               className={`h-7 rounded-[5px] flex items-center justify-center font-mono text-[10px] animate-rise ${
                 r.ok ? 'bg-stradeo-green/[0.14] text-stradeo-green' : r.ua === undefined ? 'border border-stradeo-accent text-stradeo-accent' : 'bg-stradeo-accent2/[0.14] text-stradeo-accent2'
               }`}>
               {r.i + 1}
-            </a>
+            </button>
           ))}
         </div>
       </section>
@@ -158,51 +166,42 @@ function ResultsInner() {
         </section>
       )}
 
-      {/* Question list */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'review')}</div>
-        <div className="inline-flex h-8 items-center gap-0.5 rounded-lg border border-stradeo-line bg-stradeo-bg2 p-0.5 text-[13px]" role="tablist">
-          {(['all', 'errors'] as const).map(f => (
-            <button key={f} role="tab" aria-selected={filter === f} onClick={() => setFilter(f)}
-              className={`h-full rounded-md px-2.5 ${filter === f ? 'bg-stradeo-ink text-stradeo-bg font-semibold' : 'text-stradeo-inkdim hover:text-stradeo-ink'}`}>
-              {f === 'all' ? `${t(lang, 'showAll')} ${total}` : `${t(lang, 'showErrors')} ${errors}`}
-            </button>
+      {/* Questions, grouped: mistakes and unanswered open, correct folded away */}
+      {([
+        ['secMistakes', mistakes, 'text-stradeo-accent2'],
+        ['secUnanswered', unanswered, 'text-stradeo-accent'],
+      ] as const).map(([key, list, tone]) => list.length > 0 && (
+        <section key={key} className="mb-4">
+          <h2 className="mb-2 flex items-baseline gap-2 text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">
+            {t(lang, key)} <span className={`font-mono ${tone}`}>{list.length}</span>
+          </h2>
+          {list.map(r => (
+            <ResultRow key={r.i} n={r.i + 1} q={r.q} ua={r.ua} ok={r.ok}
+              open={openRow === r.i} onToggle={() => setOpenRow(o => (o === r.i ? null : r.i))} />
           ))}
-        </div>
-      </div>
+        </section>
+      ))}
 
-      {visible.map(({ i, q, ua, ok }, n) => {
-        const imgUrl = getImageUrl(q.i)
-        return (
-          <article id={`q${i + 1}`} key={i} style={{ animationDelay: `${Math.min(n, 8) * 35}ms` }}
-            className="scroll-mt-20 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-4 mb-2 animate-rise">
-            <div className="flex gap-3 items-start">
-              <div className={`flex h-7 min-w-[28px] items-center justify-center rounded-[8px] font-mono text-[12px] ${ok ? 'bg-stradeo-green/[0.12] text-stradeo-green' : 'bg-stradeo-accent2/[0.12] text-stradeo-accent2'}`}>
-                {i + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                {imgUrl && <img src={imgUrl} alt={t(lang, 'signAlt')} loading="lazy" className="max-w-[150px] max-h-[130px] rounded-[10px] mb-2.5 border border-stradeo-line" />}
-                <p lang="it" className="text-[15px] leading-[1.5]">{q.q}</p>
-                <div className="grid grid-cols-2 gap-2 mt-3">
-                  <div className={`rounded-[8px] px-2.5 py-2 ${ok ? 'bg-stradeo-green/[0.08]' : 'bg-stradeo-accent2/[0.08]'}`}>
-                    <div className="text-[10px] font-bold uppercase tracking-[1px] text-stradeo-inkdim">{t(lang, 'yourAnswer')}</div>
-                    <div className={`mt-0.5 inline-flex items-center gap-1.5 text-[13px] font-bold ${ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}>
-                      {ok ? <IconCheck size={12} /> : <IconCross size={10} />}
-                      {ua === undefined ? t(lang, 'noAnswer') : ua ? 'VERO' : 'FALSO'}
-                    </div>
-                  </div>
-                  <div className="rounded-[8px] px-2.5 py-2 bg-stradeo-surface2">
-                    <div className="text-[10px] font-bold uppercase tracking-[1px] text-stradeo-inkdim">{t(lang, 'correctAnswer')}</div>
-                    <div className="mt-0.5 text-[13px] font-bold text-stradeo-ink">{q.a ? 'VERO' : 'FALSO'}</div>
-                  </div>
-                </div>
-                <QuestionHelp question={q} showWhy={!ok} />
-                {!ok && <ReportQuestion key={questionKey(q)} question={q} />}
-              </div>
+      {correct.length > 0 && (
+        <section className="mb-4">
+          <button type="button" onClick={() => setShowCorrect(v => !v)} aria-expanded={showCorrect}
+            className="mb-2 flex w-full items-center gap-2 text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">
+            {t(lang, 'secCorrect')} <span className="font-mono text-stradeo-green">{correct.length}</span>
+            <span className="ml-auto inline-flex items-center gap-1 normal-case tracking-normal text-[12px] font-semibold text-stradeo-blue">
+              {t(lang, showCorrect ? 'hideCorrect' : 'showCorrect')}
+              <IconChevronDown size={11} className={`transition-transform duration-300 ${showCorrect ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
+          <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${showCorrect ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+            <div className="overflow-hidden">
+              {correct.map(r => (
+                <ResultRow key={r.i} n={r.i + 1} q={r.q} ua={r.ua} ok={r.ok}
+                  open={openRow === r.i} onToggle={() => setOpenRow(o => (o === r.i ? null : r.i))} />
+              ))}
             </div>
-          </article>
-        )
-      })}
+          </div>
+        </section>
+      )}
 
       <div className="grid grid-cols-2 gap-2.5 mt-5">
         <Link href="/" className="py-3.5 rounded-[10px] border border-stradeo-line text-stradeo-ink text-sm font-semibold inline-flex items-center justify-center gap-2 hover:border-stradeo-ink"><IconHome size={14} />{t(lang, 'home')}</Link>
