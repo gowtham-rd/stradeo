@@ -292,26 +292,26 @@ export default function ExamPage() {
             </button>
           ))}
         </div>
-        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[auto_1fr_auto] gap-2.5 items-center">
+        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[1fr_58px_1fr] gap-2 items-center">
           <button onClick={() => go(current - 1)} disabled={current === 0} aria-label={t(lang, 'prev')}
-            className="h-12 px-4 rounded-[10px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center gap-1.5 disabled:opacity-35 disabled:active:scale-100">
-            <IconChevronLeft size={14} /><span className="hidden min-[380px]:inline">{t(lang, 'prev')}</span>
+            className="h-12 w-full min-w-0 px-1.5 text-[15px] rounded-[10px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center justify-center gap-1 disabled:opacity-35 disabled:active:scale-100">
+            <IconChevronLeft size={12} /><span className="truncate">{t(lang, 'prev')}</span>
           </button>
           {/* Answered count; doubles as a Submit button before the last question */}
           <button onClick={() => setConfirmSubmit(true)} disabled={isLast}
             className="h-12 flex flex-col items-center justify-center rounded-[10px] text-stradeo-inkdim hover:text-stradeo-ink disabled:active:scale-100">
             <span className="text-[13px] leading-none"><span className="font-mono text-stradeo-ink">{answeredCount}</span>/{total}</span>
-            {!isLast && <span className="mt-1 text-[11px] font-semibold uppercase tracking-[1px] leading-none">{t(lang, 'submitExam')}</span>}
+            {!isLast && <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.5px] leading-none">{t(lang, 'submitExam')}</span>}
           </button>
           {isLast ? (
             <button onClick={() => setConfirmSubmit(true)}
-              className="h-12 px-5 rounded-[10px] concentric-br bg-stradeo-brand text-stradeo-onbrand font-bold inline-flex items-center gap-2">
-              <IconFinish size={15} />{t(lang, 'submitExam')}
+              className="h-12 w-full min-w-0 px-2 text-[15px] rounded-[10px] concentric-br bg-stradeo-brand text-stradeo-onbrand font-bold inline-flex items-center justify-center gap-2">
+              <IconFinish size={15} /><span className="truncate">{t(lang, 'submitExam')}</span>
             </button>
           ) : (
             <button onClick={() => go(current + 1)}
-              className="h-12 px-5 rounded-[10px] concentric-br bg-stradeo-ink text-stradeo-bg font-bold inline-flex items-center gap-1.5">
-              {t(lang, 'next')}<IconChevronRight size={14} />
+              className="h-12 w-full min-w-0 px-2 text-[15px] rounded-[10px] concentric-br bg-stradeo-ink text-stradeo-bg font-bold inline-flex items-center justify-center gap-1.5">
+              <span className="truncate">{t(lang, 'next')}</span><IconChevronRight size={14} />
             </button>
           )}
         </div>
