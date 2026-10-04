@@ -100,7 +100,7 @@ function TopicInner() {
   return (
     <div className="min-h-screen">
       <AdBanner /><NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10">
+      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-5">
           <div className={`min-w-[38px] h-[38px] rounded-[10px] flex items-center justify-center font-mono text-sm ${isPri ? 'bg-stradeo-surface2 text-stradeo-ink' : 'bg-stradeo-surface2 text-stradeo-inkfaint'}`}>

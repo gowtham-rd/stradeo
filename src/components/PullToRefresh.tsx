@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { t } from '@/lib/i18n'
-import { IconReview, IconCross } from './icons'
+import StradeoMark from './StradeoMark'
 
 const THRESHOLD = 72 // px of pull (after resistance) that triggers
 const MAX = 110
@@ -22,6 +22,18 @@ export default function PullToRefresh() {
   const [guarded, setGuarded] = useState(false)
   const start = useRef<{ x: number; y: number; axis: 'x' | 'y' | null } | null>(null)
   const pullRef = useRef(0)
+
+  // Slide the page with the finger; ease back (or hold open while refreshing).
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--pull', `${pull}px`)
+    if (state === 'pulling') { root.classList.add('pulling'); root.classList.remove('pull-settle'); return }
+    root.classList.remove('pulling')
+    if (pull > 0) { root.classList.add('pull-settle'); return }
+    root.classList.add('pull-settle')
+    const id = setTimeout(() => root.classList.remove('pull-settle'), 360)
+    return () => clearTimeout(id)
+  }, [pull, state])
 
   useEffect(() => {
     const blocked = (target: EventTarget | null) => {
@@ -85,30 +97,33 @@ export default function PullToRefresh() {
   }, [state])
 
   const ready = pull >= THRESHOLD
+  const progress = Math.min(1, pull / THRESHOLD)
   const label = state === 'refreshing' ? t(lang, 'refreshing')
     : guarded ? (ready ? t(lang, 'releaseExit') : '')
     : ready ? t(lang, 'releaseRefresh') : t(lang, 'pullRefresh')
   const visible = state !== 'idle' || pull > 0
 
+  // Same look as the splash screen: the Stradeo tile with its little loading bar.
   return (
     <div aria-hidden={!visible} role="status"
-      className="pointer-events-none fixed inset-x-0 z-40 flex flex-col items-center"
+      className="pointer-events-none fixed inset-x-0 z-0 flex flex-col items-center"
       style={{
-        top: 'calc(env(safe-area-inset-top) + 56px)',
-        transform: `translateY(${pull - 48}px)`,
-        opacity: visible ? Math.min(1, pull / 30) : 0,
-        transition: state === 'pulling' ? 'none' : 'transform 0.3s cubic-bezier(0.2,0.8,0.2,1), opacity 0.3s',
+        // Centred in the gap the page leaves at the top as it slides down.
+        top: `calc(env(safe-area-inset-top) + ${Math.max(0, pull - 64) / 2}px)`,
+        opacity: visible ? Math.min(1, Math.max(0, (pull - 20) / 30)) : 0,
+        transition: state === 'pulling' ? 'none' : 'top 0.35s cubic-bezier(0.2,0.8,0.2,1), opacity 0.3s',
       }}>
-      <span className={`flex h-10 w-10 items-center justify-center rounded-full border shadow-sm ${
-        guarded && ready ? 'border-stradeo-accent2/50 bg-stradeo-accent2/15 text-stradeo-accent2'
-          : ready || state === 'refreshing' ? 'border-stradeo-brandorange/50 bg-stradeo-bg2 text-stradeo-brandorange'
-          : 'border-stradeo-line bg-stradeo-bg2 text-stradeo-inkdim'}`}>
-        {guarded
-          ? <IconCross size={13} />
-          : <IconReview size={17} className={state === 'refreshing' ? 'animate-spin-slow' : ''}
-              style={state === 'refreshing' ? undefined : { transform: `rotate(${(pull / THRESHOLD) * 300}deg)` }} />}
+      <span className="block transition-transform duration-150"
+        style={{ transform: `scale(${state === 'refreshing' ? 1 : 0.7 + 0.3 * progress}) rotate(${state === 'refreshing' ? 0 : (1 - progress) * -12}deg)` }}>
+        <StradeoMark size={30} />
       </span>
-      {label && <span className="mt-1.5 rounded-full bg-stradeo-bg2/90 px-2 py-0.5 text-[11px] font-semibold text-stradeo-inkdim">{label}</span>}
+      <span className="mt-1.5 block h-1 w-10 overflow-hidden rounded bg-stradeo-surface2">
+        {state === 'refreshing'
+          ? <span className="block h-full w-full rounded bg-stradeo-ink" style={{ animation: 'loadslide 0.9s ease-in-out infinite' }} />
+          : <span className={`block h-full rounded transition-colors ${guarded && ready ? 'bg-stradeo-accent2' : ready ? 'bg-stradeo-brandorange' : 'bg-stradeo-ink'}`}
+              style={{ width: `${progress * 100}%` }} />}
+      </span>
+      {label && <span className="mt-1 text-[11px] font-semibold leading-4 text-stradeo-inkdim whitespace-nowrap">{label}</span>}
     </div>
   )
 }

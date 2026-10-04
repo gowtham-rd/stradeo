@@ -156,7 +156,7 @@ function QuizInner() {
     <div className="min-h-screen">
       <AdBanner />
       <NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10">
+      <div className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
         {loading ? (
           <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-6 animate-pulse">
             <div className="h-4 w-2/3 rounded bg-stradeo-surface2 mb-3" />

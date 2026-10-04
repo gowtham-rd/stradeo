@@ -22,6 +22,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
+  // Draw edge to edge on iPhone; bars pad themselves with env(safe-area-inset-*).
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#FAFAF8' },
     { media: '(prefers-color-scheme: dark)', color: '#0B0B0A' },

@@ -109,7 +109,7 @@ function ResultsInner() {
   const dateLabel = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(result.at || Date.now())
 
   return (
-    <div className="max-w-[640px] mx-auto px-4 pt-5 pb-10 animate-page-in">
+    <div className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] animate-page-in">
       {/* Score */}
       <section className="rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5 mb-3">
         <div className="flex items-center justify-between mb-3">

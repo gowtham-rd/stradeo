@@ -130,3 +130,19 @@ button:active {
 
 /* Carousel dot: fills over one autoplay interval */
 @keyframes dotfill { from { width: 0% } to { width: 100% } }
+
+/* Installed app on iPhone: controls that sit at the bottom edge get outer-bottom
+   corners that follow the curve of the screen (concentric), like iOS's own. */
+@media (display-mode: standalone) and (max-width: 639px) {
+  .concentric-bl { border-bottom-left-radius: 28px; }
+  .concentric-br { border-bottom-right-radius: 28px; }
+  .concentric-b { border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; }
+}
+
+/* Splash / refresh loading bar */
+@keyframes loadslide { from { transform: translateX(-100%) } to { transform: translateX(100%) } }
+
+/* Pull-to-refresh: while pulling, the page slides down (the indicator sits in the gap).
+   Only applied during the gesture, so fixed elements are never affected otherwise. */
+html.pulling .page-shift { transform: translateY(var(--pull, 0px)); position: relative; z-index: 1; }
+html.pull-settle .page-shift { transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); transform: translateY(var(--pull, 0px)); position: relative; z-index: 1; }

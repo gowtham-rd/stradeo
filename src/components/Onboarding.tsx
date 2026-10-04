@@ -120,12 +120,12 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
       <div className="flex gap-2.5">
         {step > 0 && (
           <button onClick={() => go(step - 1)} disabled={saving} aria-label={t(lang, 'back')}
-            className="h-14 px-4 rounded-[12px] border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center gap-1.5">
+            className="h-14 px-4 rounded-[12px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center gap-1.5">
             <IconChevronLeft size={14} />{t(lang, 'back')}
           </button>
         )}
         <button onClick={() => (last ? finish() : go(step + 1))} disabled={!canContinue || saving}
-          className="flex-1 h-14 rounded-[12px] bg-stradeo-brand text-stradeo-onbrand text-[16px] font-bold inline-flex items-center justify-center gap-2 disabled:bg-stradeo-surface2 disabled:text-stradeo-inkfaint">
+          className={`flex-1 h-14 rounded-[12px] concentric-br ${step === 0 ? 'concentric-bl' : ''} bg-stradeo-brand text-stradeo-onbrand text-[16px] font-bold inline-flex items-center justify-center gap-2 disabled:bg-stradeo-surface2 disabled:text-stradeo-inkfaint`}>
           {saving ? <span className="w-4 h-4 border-2 border-stradeo-onbrand/30 border-t-stradeo-onbrand rounded-full animate-spin-slow" />
             : <>{t(lang, last ? 'letsGo' : 'continueBtn')}<IconArrowRight size={15} /></>}
         </button>

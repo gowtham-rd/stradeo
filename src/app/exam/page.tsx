@@ -222,7 +222,7 @@ export default function ExamPage() {
     <div className="min-h-[100dvh] flex flex-col">
       {/* Header: question number · timer · exit, then the numbered strip */}
       <div className="sticky top-0 z-20 bg-stradeo-nav backdrop-blur-[20px] border-b border-stradeo-line">
-        <div className="max-w-[640px] mx-auto px-4 pt-3 pb-2.5">
+        <div className="max-w-[640px] mx-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2.5">
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'examSim')}</div>
@@ -294,7 +294,7 @@ export default function ExamPage() {
         </div>
         <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[auto_1fr_auto] gap-2.5 items-center">
           <button onClick={() => go(current - 1)} disabled={current === 0} aria-label={t(lang, 'prev')}
-            className="h-12 px-4 rounded-[10px] border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center gap-1.5 disabled:opacity-35 disabled:active:scale-100">
+            className="h-12 px-4 rounded-[10px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center gap-1.5 disabled:opacity-35 disabled:active:scale-100">
             <IconChevronLeft size={14} /><span className="hidden min-[380px]:inline">{t(lang, 'prev')}</span>
           </button>
           {/* Answered count; doubles as a Submit button before the last question */}
@@ -305,12 +305,12 @@ export default function ExamPage() {
           </button>
           {isLast ? (
             <button onClick={() => setConfirmSubmit(true)}
-              className="h-12 px-5 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand font-bold inline-flex items-center gap-2">
+              className="h-12 px-5 rounded-[10px] concentric-br bg-stradeo-brand text-stradeo-onbrand font-bold inline-flex items-center gap-2">
               <IconFinish size={15} />{t(lang, 'submitExam')}
             </button>
           ) : (
             <button onClick={() => go(current + 1)}
-              className="h-12 px-5 rounded-[10px] bg-stradeo-ink text-stradeo-bg font-bold inline-flex items-center gap-1.5">
+              className="h-12 px-5 rounded-[10px] concentric-br bg-stradeo-ink text-stradeo-bg font-bold inline-flex items-center gap-1.5">
               {t(lang, 'next')}<IconChevronRight size={14} />
             </button>
           )}
@@ -396,7 +396,7 @@ function Sheet({ labelledBy, onClose, children }: { labelledBy: string; onClose:
   return (
     <div role="dialog" aria-modal="true" aria-labelledby={labelledBy} onClick={e => { if (e.target === e.currentTarget) onClose() }}
       className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/40 p-3 sm:p-4 animate-backdrop-in">
-      <div className="w-full max-w-[420px] rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5 pb-[max(20px,env(safe-area-inset-bottom))] animate-sheet-up">
+      <div className="w-full max-w-[420px] rounded-[14px] concentric-b border border-stradeo-line bg-stradeo-bg2 p-5 pb-[max(20px,env(safe-area-inset-bottom))] animate-sheet-up">
         {children}
       </div>
     </div>

@@ -56,7 +56,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       <AdBanner />
       <NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-4 pb-10">
+      <div className="max-w-[640px] mx-auto px-4 pt-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
         {/* Greeting: name, then a line for the time of day / how it's going */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak} />
 

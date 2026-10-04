@@ -21,7 +21,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <main className="max-w-[640px] mx-auto px-4 pt-5 pb-10">
+      <main className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
         <h1 className="text-[22px] font-bold mb-5 inline-flex items-center gap-2.5"><IconSettings size={20} />{t(lang, 'settings')}</h1>
 
         {/* Name + Appearance: side by side on wider screens, stacked on phones */}
@@ -215,7 +215,7 @@ function ResetDialog({ onClose }: { onClose: () => void }) {
     <div role="dialog" aria-modal="true" aria-labelledby="reset-title"
       className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/40 p-4 animate-backdrop-in"
       onKeyDown={e => { if (e.key === 'Escape' && state !== 'working') onClose() }}>
-      <div className="w-full max-w-[420px] rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5 animate-sheet-up">
+      <div className="w-full max-w-[420px] rounded-[14px] concentric-b border border-stradeo-line bg-stradeo-bg2 p-5 pb-[max(20px,env(safe-area-inset-bottom))] animate-sheet-up">
         {state === 'done' ? (
           <>
             <h2 id="reset-title" className="text-lg font-bold mb-1 inline-flex items-center gap-2"><IconCheck size={16} className="text-stradeo-green" />{t(lang, 'resetDone')}</h2>
