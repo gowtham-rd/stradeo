@@ -8,6 +8,7 @@ import type { Question } from '@/types'
 import SignImage from './SignImage'
 import QuestionText from './QuestionText'
 import ReportQuestion from './ReportQuestion'
+import WhyBox from './WhyBox'
 import { IconCheck, IconCross, IconTip, IconChevronDown } from './icons'
 
 // One question on the results page: a compact row (number, sign thumbnail, two lines
@@ -86,12 +87,7 @@ export default function ResultRow({ n, q, ua, ok, open, onToggle }: {
                     <div className="mt-0.5 text-[13px] font-bold text-stradeo-ink">{word(q.a)}</div>
                   </div>
                 </div>
-                {why && (
-                  <div className="mt-3 rounded-[10px] bg-stradeo-brandorange/[0.07] p-3">
-                    <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[1px] text-stradeo-brandorange"><IconTip size={12} />{t(lang, 'why')}</div>
-                    <p className="text-[14px] leading-relaxed text-stradeo-ink">{why}</p>
-                  </div>
-                )}
+                <WhyBox question={q} className="mt-3" />
                 <ReportQuestion key={questionKey(q)} question={q} />
               </div>
             </div>

@@ -29,10 +29,24 @@ export async function getTranslation(q: Question, lang: Language): Promise<strin
   return file?.[seenId(q)]?.q ?? null
 }
 
-/** Short explanation of the rule behind the answer, in `lang` (falls back to English). */
+/** Short explanation of the rule behind the answer, in `lang` (Italian for Italian;
+ *  other languages fall back to English). */
 export async function getExplanation(q: Question, lang: Language): Promise<string | null> {
+  return (await getExplanations(q, lang)).main
+}
+
+/** The explanation in the learner's language and in the other one of the pair
+ *  Italiano ↔ (their language, or English), for the in-place language switch. */
+export async function getExplanations(q: Question, lang: Language): Promise<{
+  main: string | null; alt: string | null; mainLang: Language; altLang: Language
+}> {
   const id = seenId(q)
-  const own = lang === 'it' ? null : (await loadTopic(lang, q.t))?.[id]?.why
-  if (own) return own
-  return (await loadTopic('en', q.t))?.[id]?.why ?? null
+  const why = async (l: Language) => (await loadTopic(l, q.t))?.[id]?.why ?? null
+  const it = await why('it')
+  if (lang === 'it') return { main: it, alt: await why('en'), mainLang: 'it', altLang: 'en' }
+  const own = lang === 'en' ? null : await why(lang)
+  const en = own ? null : await why('en')
+  const main = own ?? en ?? it
+  const mainLang: Language = own ? lang : en ? 'en' : 'it'
+  return { main, alt: mainLang === 'it' ? null : it, mainLang, altLang: 'it' }
 }

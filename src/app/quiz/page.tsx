@@ -14,7 +14,7 @@ import AdBanner from '@/components/AdBanner'
 import QuestionText from '@/components/QuestionText'
 import SignImage, { preloadImages } from '@/components/SignImage'
 import { setLastTopic } from '@/lib/lastTopic'
-import { getExplanation } from '@/lib/qtext'
+import WhyBox from '@/components/WhyBox'
 import ReportQuestion from '@/components/ReportQuestion'
 import { IconReview, IconCheck, IconCross, IconTip, IconArrowRight } from '@/components/icons'
 
@@ -71,7 +71,6 @@ function QuizInner() {
   const [reviewNote, setReviewNote] = useState<string | null>(null)
 
   // AI explanation for the current wrong answer
-  const [exp, setExp] = useState<string | null>(null)
 
   async function buildQuestions(): Promise<Question[]> {
     if (isReview) {
@@ -98,7 +97,7 @@ function QuizInner() {
   }, [isReview, topicId, progressLoaded])
 
   // Reset explanation whenever the question changes
-  useEffect(() => { setExp(null); setReviewNote(null) }, [state.currentIndex])
+  useEffect(() => { setReviewNote(null) }, [state.currentIndex])
   // Fetch the next sign while this question is being answered, so it appears instantly.
   useEffect(() => { preloadImages([getImageUrl(state.questions[state.currentIndex + 1]?.i)]) }, [state.currentIndex, state.questions])
 
@@ -110,13 +109,6 @@ function QuizInner() {
   const title = isReview
     ? t(lang, 'smartReview')
     : topicId ? getTopicName(topicId, lang) : t(lang, 'randomQuiz')
-
-  // Built-in explanation for a missed question (shown only when one exists).
-  async function fetchExplanation(question: Question) {
-    setExp(null)
-    const why = await getExplanation(question, lang)
-    setExp(why)
-  }
 
   function handleAnswer(value: boolean) {
     if (state.answer !== null || !q) return
@@ -136,11 +128,9 @@ function QuizInner() {
     }
     recordAnswer(q, ok)
     dispatch({ type: 'ANSWER', value })
-    if (!ok) void fetchExplanation(q)
   }
 
   function restart() {
-    setExp(null)
     buildQuestions().then(qs => dispatch({ type: 'START', questions: qs, isReview }))
   }
 
@@ -216,23 +206,15 @@ function QuizInner() {
             </div>
             </div>
 
-            {/* Wrong → explanation (when available) */}
-            {state.answer !== null && state.answer !== q.a && exp && (
-              <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-4 animate-rise">
-                <div className="flex items-center gap-2 mb-2">
-                  <IconTip size={16} className="text-stradeo-brandorange" />
-                  <span className="text-[13px] font-semibold text-stradeo-inkdim uppercase tracking-[1px]">{t(lang, 'why')}</span>
-                </div>
-                <p className="text-sm leading-relaxed text-stradeo-ink">{exp}</p>
-              </div>
-            )}
-
             {/* Correct badge */}
             {state.answer !== null && state.answer === q.a && (
               <div className="bg-stradeo-green/[0.06] border border-stradeo-green/[0.12] rounded-[14px] px-4 py-3.5 mb-4 text-center animate-rise">
                 <span className="text-sm text-stradeo-green font-semibold inline-flex items-center gap-1.5"><IconCheck size={14} />{t(lang, 'correctBadge')}</span>
               </div>
             )}
+
+            {/* Why: the rule behind the answer (when available), after any answer */}
+            {state.answer !== null && <WhyBox key={state.currentIndex} question={q} className="mb-4" tone={state.answer === q.a ? 'plain' : 'orange'} />}
 
             {/* Smart Review outcome */}
             {state.answer !== null && reviewNote && (
