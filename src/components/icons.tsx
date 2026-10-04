@@ -228,6 +228,33 @@ export const IconChevronDown = (p: P) => (
   </Svg>
 )
 
+// Share (iOS style): box open at the top with an arrow leaving it.
+export const IconShare = (p: P) => (
+  <Svg {...p}>
+    <path d="M11 3.5 7.5 7l1.4 1.4L11 6.3V15h2V6.3l2.1 2.1L16.5 7 13 3.5 12 2.5z" />
+    <path d="M5 10h4v2H7v8h10v-8h-2v-2h4v12H5z" />
+  </Svg>
+)
+// Add to Home Screen: square with a plus.
+export const IconAddSquare = (p: P) => (
+  <Svg {...p}>
+    <path d="M3 3h18v18H3zm2 2v14h14V5z" />
+    <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" />
+  </Svg>
+)
+// Vertical "more" menu (three squares, matching the cut-corner style).
+export const IconMore = (p: P) => (
+  <Svg {...p}>
+    <path d="M10.5 3.5h3v3h-3zM10.5 10.5h3v3h-3zM10.5 17.5h3v3h-3z" />
+  </Svg>
+)
+// Phone outline.
+export const IconPhone = (p: P) => (
+  <Svg {...p}>
+    <path d="M6 2h12v20H6zm2 2v16h8V4z" />
+    <path d="M10.5 17h3v1.5h-3z" />
+  </Svg>
+)
 export const ICONS = {
   exam: IconExam,
   review: IconReview,

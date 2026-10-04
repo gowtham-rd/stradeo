@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import StradeoMark from './StradeoMark'
@@ -7,6 +7,9 @@ import { LANGUAGES, t } from '@/lib/i18n'
 import type { Language } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
+import { isStandalone, devicePlatform } from '@/lib/authLink'
+import InstallGuide from './InstallGuide'
+import { IconChevronDown, IconPhone } from './icons'
 
 export default function LoginForm() {
   const { signIn } = useAuth()
@@ -17,6 +20,10 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   // 'forgot': ask for a reset link instead of logging in; 'sent': link requested.
   const [mode, setMode] = useState<'login' | 'forgot' | 'sent'>('login')
+  // On a phone browser (not the installed app), offer the Home Screen steps.
+  const [showInstall, setShowInstall] = useState(false)
+  const [inBrowserOnPhone, setInBrowserOnPhone] = useState(false)
+  useEffect(() => { setInBrowserOnPhone(!isStandalone() && devicePlatform() !== 'desktop') }, [])
 
   const sendReset = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,6 +119,17 @@ export default function LoginForm() {
             {t(lang, 'pwForgot')}
           </button>
         </form>
+        )}
+
+        {inBrowserOnPhone && (
+          <div className="mt-4 rounded-[14px] border border-stradeo-line bg-stradeo-bg2">
+            <button type="button" onClick={() => setShowInstall(v => !v)} aria-expanded={showInstall}
+              className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-semibold">
+              <IconPhone size={15} className="text-stradeo-blue" />{t(lang, 'installCard')}
+              <IconChevronDown size={11} className={`ml-auto text-stradeo-inkfaint transition-transform ${showInstall ? 'rotate-180' : ''}`} />
+            </button>
+            {showInstall && <div className="px-4 pb-4"><InstallGuide compact /></div>}
+          </div>
         )}
 
         <p className="text-center text-[11px] text-stradeo-inkfaint mt-5">{t(lang, 'contactAdmin')} · <a href="/privacy" className="underline hover:text-stradeo-ink">Privacy</a></p>

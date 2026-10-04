@@ -9,6 +9,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext'
 import { ProgressProvider } from '@/contexts/ProgressContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import AuthGate from '@/components/AuthGate'
+import AuthLinkRouter from '@/components/AuthLinkRouter'
 import ServiceWorker from '@/components/ServiceWorker'
 import PullToRefresh from '@/components/PullToRefresh'
 import { noFlashTextSize } from '@/lib/textSize'
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <LanguageProvider>
               <ProgressProvider>
+                <AuthLinkRouter />
                 <AuthGate>{children}</AuthGate>
                 <ServiceWorker />
                 <PullToRefresh />
