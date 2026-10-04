@@ -9,7 +9,7 @@ import { IconWarning } from './icons'
 
 // Home ('/') shows its own login form and '/login' is public; every other page
 // needs a signed-in user, otherwise answers would be silently lost.
-const PUBLIC = new Set(['/', '/login', '/privacy'])
+const PUBLIC = new Set(['/', '/login', '/privacy', '/reset'])
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()

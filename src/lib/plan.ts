@@ -14,7 +14,7 @@ export function daysUntil(examDate: string | null | undefined, now = new Date())
 
 export const GOAL_DEFAULT = 30
 export const GOAL_MIN = 20
-export const GOAL_MAX = 150
+export const GOAL_MAX = 100
 
 /** Questions to answer today: spread the questions not yet seen over the days left
  *  (rounded to 5, between GOAL_MIN and GOAL_MAX). No date, exam day or passed: GOAL_DEFAULT. */
