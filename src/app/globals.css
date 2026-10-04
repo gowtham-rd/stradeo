@@ -155,3 +155,8 @@ html.pull-settle .page-shift { transition: transform 0.35s cubic-bezier(0.2, 0.8
   min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
   padding: max(14px, env(safe-area-inset-top)) 20px max(14px, env(safe-area-inset-bottom));
 }
+
+/* The text size is a CSS zoom on <html>, which also scales viewport units: a plain
+   100vh/100dvh page would be up to 40% taller than the screen and always scroll.
+   Divide by the zoom so "full height" means the real screen height. */
+.min-h-screen { min-height: calc(100dvh / var(--zoom, 1)); }

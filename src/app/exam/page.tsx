@@ -222,7 +222,7 @@ export default function ExamPage() {
   const answer = state.answers[current]
 
   return (
-    <div className="min-h-[100dvh] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header: question number · timer · exit, then the numbered strip */}
       <div className="sticky top-0 z-20 bg-stradeo-nav backdrop-blur-[20px] border-b border-stradeo-line">
         <div className="max-w-[640px] mx-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2.5">

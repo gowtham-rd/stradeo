@@ -14,6 +14,8 @@ export function readTextStep(): number {
 export function applyTextStep(step: number) {
   const scale = TEXT_SCALES[step] ?? 1
   document.documentElement.style.setProperty('zoom', scale === 1 ? '' : String(scale))
+  // Full-height layouts divide by this so the zoom can't make them taller than the screen.
+  document.documentElement.style.setProperty('--zoom', String(scale))
   try {
     if (step === DEFAULT_TEXT_STEP) localStorage.removeItem(KEY)
     else localStorage.setItem(KEY, String(step))
@@ -21,4 +23,4 @@ export function applyTextStep(step: number) {
 }
 
 /** Inline script for <head>: applies the saved size before first paint (no jump). */
-export const noFlashTextSize = `try{var s=localStorage.getItem('${KEY}'),z=${JSON.stringify(TEXT_SCALES)}[s===null?${DEFAULT_TEXT_STEP}:+s];if(z&&z!==1)document.documentElement.style.zoom=z;}catch(e){}`
+export const noFlashTextSize = `try{var s=localStorage.getItem('${KEY}'),z=${JSON.stringify(TEXT_SCALES)}[s===null?${DEFAULT_TEXT_STEP}:+s];if(z){document.documentElement.style.setProperty('--zoom',z);if(z!==1)document.documentElement.style.zoom=z;}}catch(e){}`

@@ -98,6 +98,9 @@ function QuizInner() {
 
   // Reset explanation whenever the question changes
   useEffect(() => { setReviewNote(null) }, [state.currentIndex])
+  // Each new question starts at the top (after it has rendered, so iOS doesn't keep
+  // the old scroll position).
+  useEffect(() => { if (state.currentIndex > 0) window.scrollTo(0, 0) }, [state.currentIndex])
   // Fetch the next sign while this question is being answered, so it appears instantly.
   useEffect(() => { preloadImages([getImageUrl(state.questions[state.currentIndex + 1]?.i)]) }, [state.currentIndex, state.questions])
 
@@ -227,7 +230,7 @@ function QuizInner() {
 
             {/* Next (not last) */}
             {state.answer !== null && !isLast && (
-              <button onClick={() => { dispatch({ type: 'NEXT' }); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+              <button onClick={() => dispatch({ type: 'NEXT' })}
                 className="flex w-full items-center justify-center gap-2 py-3.5 rounded-[10px] bg-stradeo-ink text-stradeo-bg text-[15px] font-semibold">
                 {t(lang, 'next')} <IconArrowRight size={15} />
               </button>
