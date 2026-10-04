@@ -27,10 +27,12 @@ export default function ExamHistoryChart({ exams, selected, onSelect, max = 10, 
         {/* Plot area below a 16px band for the score labels */}
         <div className="absolute inset-x-0 bottom-0 top-4">
           {/* Pass line */}
-          <div className="absolute inset-x-0 border-t border-dashed border-stradeo-green/60" style={{ top: `${passY}%` }} aria-hidden="true">
-            <span className="absolute right-0 -top-[15px] font-mono text-[10px] text-stradeo-green">{pass}</span>
+          {/* Pass line, with its value in a gutter of its own so it never meets a bar's score */}
+          <div className="absolute left-0 right-0 flex items-center gap-1 -translate-y-1/2" style={{ top: `${passY}%` }} aria-hidden="true">
+            <span className="flex-1 border-t border-dashed border-stradeo-green/60" />
+            <span className="w-4 text-right font-mono text-[10px] leading-none text-stradeo-green">{pass}</span>
           </div>
-          <div className="absolute inset-0 flex items-end gap-1.5">
+          <div className="absolute inset-y-0 left-0 right-5 flex items-end gap-1.5">
             {shown.map(e => {
               const ok = e.total - e.score <= MAX_ERRORS
               const dim = selected !== undefined && selected !== e.at
@@ -57,7 +59,7 @@ export default function ExamHistoryChart({ exams, selected, onSelect, max = 10, 
           </div>
         </div>
       </div>
-      <div className="flex gap-1.5 mt-1.5 border-t border-stradeo-line pt-1.5">
+      <div className="flex gap-1.5 mt-1.5 border-t border-stradeo-line pt-1.5 pr-5">
         {shown.map(e => (
           <div key={e.at} className={`flex-1 min-w-0 text-center font-mono text-[10px] truncate ${selected === e.at ? 'text-stradeo-ink font-bold' : 'text-stradeo-inkfaint'}`}>
             {dateFmt.format(e.at)}
