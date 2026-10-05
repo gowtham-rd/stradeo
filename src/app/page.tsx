@@ -171,41 +171,40 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
         goal: dailyGoal(unseen, examDaysLeft), doneToday: dailyLog[today]?.total ?? 0, unseen }),
     })
   }, [loaded, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, unseen, dailyLog])
-  const h1Ref = useRef<HTMLHeadingElement>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
-  // Always one line: the font shrinks (26 → 18px) so the text fits beside the icon.
-  // Names are capped at NAME_MAX, so "…" is only a last resort. Set on the element
-  // directly; the icon is sized in em, so it follows.
+  // Greeting on one line, and the time-of-day icon filling the space it leaves on the
+  // right: as wide as that space, up to the height of both lines (64px), at least 32px.
+  // The heading's font shrinks (26 → 18px) only when the text wouldn't fit beside the
+  // smallest icon; the line below wraps before it runs under the icon. Sizes are set
+  // on the elements directly; measured again when the web font loads or the width changes.
   useLayoutEffect(() => {
-    const el = textRef.current, box = h1Ref.current
-    if (!el || !box) return
-    // Text width scales with the font size, so one measurement at the current size
-    // gives the size that fits: text + icon (1em) + 8px gap = the line. Rounded down to
-    // half a pixel, between 18 and 26px. Only the width is watched (a height change
-    // from the new size must not trigger another fit).
+    const el = textRef.current, wrap = wrapRef.current
+    const h1 = el?.parentElement, line = wrap?.querySelector('p') as HTMLElement | null
+    if (!el || !wrap || !h1 || !line) return
+    const GAP = 12, MIN = 32, MAX = 64
     let lastW = -1
     const fit = () => {
-      const cur = parseFloat(box.style.fontSize) || 26
-      el.style.flexShrink = '0'
+      const W = wrap.clientWidth
+      const cur = parseFloat(h1.style.fontSize) || 26
+      el.style.maxWidth = 'none'
       const perPx = (el.scrollWidth + 1) / cur
-      el.style.flexShrink = ''
-      const f = Math.floor(((box.clientWidth - 8) / (perPx + 1)) * 2) / 2
-      const next = Math.max(18, Math.min(26, f))
-      // Shrink whenever needed; grow only by a whole pixel or more (no back-and-forth
-      // from rounding).
-      if (next < cur || next - cur >= 1) box.style.fontSize = next + 'px'
+      el.style.maxWidth = ''
+      let f = Math.max(18, Math.min(26, Math.floor(((W - GAP - MIN) / perPx) * 2) / 2))
+      if (!(f < cur || f - cur >= 1)) f = cur // grow only by a whole pixel (no rounding back-and-forth)
+      h1.style.fontSize = f + 'px'
+      const icon = Math.round(Math.max(MIN, Math.min(MAX, W - perPx * f - GAP)))
+      wrap.style.setProperty('--hello-icon', icon + 'px')
+      line.style.maxWidth = W - icon - GAP + 'px'
     }
     fit()
-    const family = getComputedStyle(box).fontFamily
+    const family = getComputedStyle(h1).fontFamily
     document.fonts?.load(`700 26px ${family}`).then(fit, () => {})
-    // Again when a web font finishes loading (the fallback font has other widths)
-    // and when the screen width changes.
     document.fonts?.addEventListener?.('loadingdone', fit)
-    // The text's own width changes too when the web font swaps in.
     const ro = new ResizeObserver(entries => {
-      for (const e of entries) if (e.target === el || e.contentRect.width !== lastW) { if (e.target === box) lastW = e.contentRect.width; fit(); return }
+      for (const e of entries) if (e.target === el || e.contentRect.width !== lastW) { if (e.target === wrap) lastW = e.contentRect.width; fit(); return }
     })
-    ro.observe(box); ro.observe(el)
+    ro.observe(wrap); ro.observe(el)
     return () => { document.fonts?.removeEventListener?.('loadingdone', fit); ro.disconnect() }
   }, [g, name, lang])
   const days = daysSince(lastStudy)
@@ -213,15 +212,15 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
   const when = days === null || days < 2 ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
   const first = name.slice(0, NAME_MAX).replace(/[\s!.?,]+$/, '')
   return (
-    <div className="mb-4 min-h-[64px]">
-      <h1 ref={h1Ref} style={{ fontSize: 26 }} className={`flex items-center gap-2 whitespace-nowrap leading-tight font-bold tracking-tight transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
-        <span ref={textRef} className="min-w-0 truncate">{g ? (first ? `${t(lang, g.hello)}, ${first}!` : `${t(lang, g.hello)}!`) : '\u00a0'}</span>
-        {g && <HelloIcon k={g.hello} />}
+    <div ref={wrapRef} className="relative mb-4 min-h-[64px]">
+      <h1 style={{ fontSize: 26 }} className={`whitespace-nowrap leading-tight font-bold tracking-tight transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
+        <span ref={textRef} className="inline-block max-w-full align-bottom truncate">{g ? (first ? `${t(lang, g.hello)}, ${first}!` : `${t(lang, g.hello)}!`) : '\u00a0'}</span>
       </h1>
       <p className={`text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
         {g ? fill(t(lang, g.line.key), g.line, lang) : '\u00a0'}
         {g && when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}
       </p>
+      {g && <HelloIcon k={g.hello} />}
     </div>
   )
 }
@@ -230,7 +229,11 @@ const MILESTONES_KEY = 'stradeo-milestones'
 const HELLO_ICONS: Record<string, typeof IconSun> = { helloMorning: IconSunrise, helloAfternoon: IconSun, helloEvening: IconSunset, helloNight: IconMoon }
 function HelloIcon({ k }: { k: string }) {
   const I = HELLO_ICONS[k] ?? IconSun
-  return <I className="shrink-0 w-[1em] h-[1em] text-stradeo-brandorange" />
+  return (
+    <span className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+      <I className="w-[var(--hello-icon,40px)] h-[var(--hello-icon,40px)] text-stradeo-brandorange animate-fade-in" />
+    </span>
+  )
 }
 // Puts the line's numbers in, formatted for the language (7,106 / 7.106).
 const fill = (text: string, l: Line, lang: string) => {
