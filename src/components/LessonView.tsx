@@ -5,7 +5,11 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { t } from '@/lib/i18n'
 import { getTopicName } from '@/lib/topics'
 import { loadTopicQuestions, getImageUrl } from '@/lib/questions'
-import type { TheoryContent } from '@/types'
+import { getLesson } from '@/lib/lessons'
+import { questionsForSections } from '@/lib/sectionMatch'
+import { lessonRead, markSectionRead } from '@/lib/lessonRead'
+import SectionCheck from './SectionCheck'
+import type { Question, TheoryContent } from '@/types'
 import { IconTip, IconWarning, IconChevronDown, IconArrowRight, IconQuiz, IconCross, IconCheck } from './icons'
 
 // Acronyms and sign words that are written in capitals on purpose.
@@ -78,11 +82,45 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
   const minutes = Math.max(1, Math.round(wordsOf([theory.keypoints, theory.details, theory.traps, theory.remember].join(' ')) / 200))
 
   const [open, setOpen] = useState<number | null>(null)
+  // Sections already read on this device (ticked, and counted on Home).
+  const [read, setReadSections] = useState<number[]>([])
+  useEffect(() => { setReadSections(lessonRead(tid)?.read ?? []) }, [tid])
+  const markRead = (i: number) => {
+    if (read.includes(i)) return
+    markSectionRead(tid, i, sections.length)
+    setReadSections(r => [...r, i])
+  }
+  // A section counts as read once its "Check yourself" is done (or, if it has
+  // no questions, once you reach its end while it's open).
+  const endObs = useRef<IntersectionObserver | null>(null)
+  useEffect(() => {
+    endObs.current = new IntersectionObserver(entries => {
+      for (const e of entries) if (e.isIntersecting) { const i = Number((e.target as HTMLElement).dataset.sec); if (!Number.isNaN(i)) markRead(i) }
+    }, { threshold: 1 })
+    return () => endObs.current?.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tid, sections.length, read.length])
   const [allPoints, setAllPoints] = useState(false)
   const shownPoints = allPoints ? points : points.slice(0, 5)
 
   // Pictures used by this topic's questions, most-asked first.
   const [pictures, setPictures] = useState<{ img: string; url: string; n: number }[]>([])
+  // For "Check yourself": the exam questions that fit each section, matched on the
+  // Italian lesson (same sections, same order) because the questions are Italian.
+  const [pools, setPools] = useState<Question[][]>([])
+  useEffect(() => {
+    let alive = true
+    Promise.all([loadTopicQuestions(tid), getLesson(tid, 'it').catch(() => null)]).then(([qs, it]) => {
+      if (!alive) return
+      const itSections = it?.lang === 'it' ? sectionsOf(it.lesson.details || '') : []
+      const texts = sections.map((s, i) => {
+        const its = itSections.length === sections.length ? itSections[i] : null
+        return [its?.title, ...(its?.paras ?? []), s.title, ...s.paras].join(' ')
+      })
+      setPools(questionsForSections(texts, qs))
+    }, () => {})
+    return () => { alive = false }
+  }, [tid, sections])
   useEffect(() => {
     let alive = true
     loadTopicQuestions(tid).then(qs => {
@@ -97,13 +135,13 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
 
   // How far down the lesson you are, for the bar at the bottom.
   const endRef = useRef<HTMLDivElement>(null)
-  const [read, setRead] = useState(0)
+  const [scrolled, setScrolled] = useState(0)
   useEffect(() => {
     const on = () => {
       const el = endRef.current
       if (!el) return
       const total = el.getBoundingClientRect().top + window.scrollY - window.innerHeight
-      setRead(total <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / total)))
+      setScrolled(total <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / total)))
     }
     on()
     window.addEventListener('scroll', on, { passive: true })
@@ -124,7 +162,7 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
       <div className="mb-3.5 px-0.5">
         <p className="text-[13px] leading-snug text-stradeo-inkdim">{theory.title}</p>
         <p className="mt-1.5 font-mono text-[12px] text-stradeo-inkfaint">
-          {t(lang, 'readMinutes').replace('{n}', String(minutes))} · {sections.length} {t(lang, 'lessonSections')} · {traps.length} {t(lang, 'examTraps').toLowerCase()}
+          {t(lang, 'readMinutes').replace('{n}', String(minutes))} · {read.length > 0 ? `${read.length}/${sections.length} ${t(lang, 'sectionsRead')}` : `${sections.length} ${t(lang, 'lessonSections')}`} · {traps.length} {t(lang, 'examTraps').toLowerCase()}
         </p>
       </div>
 
@@ -212,7 +250,7 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
                 <div key={i} id={`sec-${i}`} className="scroll-mt-20">
                   <button type="button" onClick={() => setOpen(isOpen ? null : i)} aria-expanded={isOpen}
                     className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
-                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] font-mono text-[11px] ${isOpen ? 'bg-stradeo-ink text-stradeo-bg' : 'bg-stradeo-surface2 text-stradeo-inkdim'}`}>{i + 1}</span>
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] font-mono text-[11px] transition-colors ${read.includes(i) ? 'bg-stradeo-green text-white' : isOpen ? 'bg-stradeo-ink text-stradeo-bg' : 'bg-stradeo-surface2 text-stradeo-inkdim'}`}>{read.includes(i) ? <IconCheck size={11} /> : i + 1}</span>
                     <span className="flex-1 text-[14.5px] font-semibold leading-snug">{s.title || theory.title}</span>
                     <IconChevronDown size={12} className={`shrink-0 text-stradeo-inkfaint transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -220,12 +258,17 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
                     <div className="overflow-hidden">
                       <div className="px-4 pb-4 pl-[52px] space-y-3">
                         {s.paras.map((para, j) => <p key={j} className="text-[14px] leading-[1.65] text-stradeo-ink"><Rich text={para} /></p>)}
-                        {i < sections.length - 1 && (
+                        {/* Without check questions, reaching the end of the section counts as read. */}
+                        {isOpen && !(pools[i]?.length) && <span data-sec={i} ref={el => { if (el) endObs.current?.observe(el) }} className="block h-px" aria-hidden="true" />}
+                      </div>
+                      {isOpen && (pools[i]?.length ?? 0) > 0 && <div className="px-3 pb-3"><SectionCheck pool={pools[i]} onDone={() => markRead(i)} /></div>}
+                      {i < sections.length - 1 && (
+                        <div className="px-4 pb-4">
                           <button type="button" onClick={() => jump(i + 1)} className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-stradeo-blue">
                             {t(lang, 'nextSection')}: {sections[i + 1].title} <IconArrowRight size={11} />
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -242,10 +285,10 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between text-[11px] text-stradeo-inkdim">
               <span className="truncate">{getTopicName(tid, lang)}</span>
-              <span className="font-mono">{Math.round(read * 100)}%</span>
+              <span className="font-mono">{Math.round(scrolled * 100)}%</span>
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stradeo-surface2">
-              <div className="h-full rounded-full bg-stradeo-brandorange transition-[width] duration-200" style={{ width: `${read * 100}%` }} />
+              <div className="h-full rounded-full bg-stradeo-brandorange transition-[width] duration-200" style={{ width: `${scrolled * 100}%` }} />
             </div>
           </div>
           <Link href={`/quiz?topic=${tid}`} className="flex h-11 shrink-0 items-center gap-2 rounded-[10px] bg-stradeo-brand px-4 text-[14px] font-bold text-stradeo-onbrand">
