@@ -328,10 +328,11 @@ export const IconSun = (p: P) => (
   <Svg {...p}><circle cx="12" cy="12" r="4.2" />{rays(12, 12, 6.2, [0, 45, 90, 135, 180, 225, 270, 315])}</Svg>
 )
 export const IconSunrise = (p: P) => (
-  <Svg {...p}><path d="M6.5 17a5.5 5.5 0 0 1 11 0z" />{rays(12, 17, 7.4, [-90, -45, 0, 45, 90])}<rect x="2" y="19" width="20" height="2" /></Svg>
+  <Svg {...p}><path d="M6.5 15a5.5 5.5 0 0 1 11 0z" />{rays(12, 15, 7.4, [-90, -45, 0, 45, 90])}<rect x="2" y="17" width="20" height="2" /></Svg>
 )
+// Drawn centred on the 24px grid, so the glyph sits in the middle of its box.
 export const IconSunset = (p: P) => (
-  <Svg {...p}><path d="M6.5 15a5.5 5.5 0 0 1 11 0z" /><rect x="2" y="16.5" width="20" height="2" /><rect x="5" y="20" width="14" height="2" /></Svg>
+  <Svg {...p}><path d="M6.5 11.5a5.5 5.5 0 0 1 11 0z" /><rect x="2" y="13" width="20" height="2" /><rect x="5" y="16.5" width="14" height="2" /></Svg>
 )
 export const IconMoon = (p: P) => (
   <Svg {...p}><path d="M14.5 3a8.5 8.5 0 1 0 6.5 13.9A7 7 0 0 1 14.5 3z" /></Svg>
