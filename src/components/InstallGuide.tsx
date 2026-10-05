@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { t } from '@/lib/i18n'
 import { devicePlatform } from '@/lib/authLink'
 import StradeoMark from './StradeoMark'
-import { IconShare, IconAddSquare, IconMore, IconCheck } from './icons'
+import { IconShare, IconAddSquare, IconMore, IconCheck, IconMenu } from './icons'
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
 
@@ -37,7 +37,9 @@ export default function InstallGuide({ compact = false }: { compact?: boolean })
   if (platform === 'desktop') return <p className="text-[13px] leading-relaxed text-stradeo-inkdim">{t(lang, 'installDesktop')}</p>
 
   const steps = platform === 'ios'
-    ? [[<IconShare key="i" size={16} />, 'installIos1'], [<IconAddSquare key="i" size={16} />, 'installIos2'], [<span key="i" className="font-bold text-[12px]">Add</span>, 'installIos3']] as const
+    // Newer Safari (iOS 26) keeps Share inside the menu (three bars); older Safari
+    // has Share right in the bottom bar, which the note under the steps covers.
+    ? [[<IconMenu key="i" size={15} />, 'installIosMenu'], [<IconShare key="i" size={16} />, 'installIos1'], [<IconAddSquare key="i" size={16} />, 'installIos2'], [<span key="i" className="font-bold text-[12px]">Add</span>, 'installIos3']] as const
     : [[<IconMore key="i" size={16} />, 'installAnd1'], [<IconAddSquare key="i" size={16} />, 'installAnd2'], [<IconCheck key="i" size={13} />, 'installAnd3']] as const
 
   return (
@@ -56,14 +58,15 @@ export default function InstallGuide({ compact = false }: { compact?: boolean })
           <IconAddSquare size={16} />{t(lang, 'installBtn')}
         </button>
       ) : (
-        <ol className="space-y-1.5 stagger">
+        <ol className="space-y-1.5 short:space-y-1 stagger">
           {steps.map(([icon, key], i) => (
-            <li key={key} className="flex items-center gap-3 rounded-[10px] border border-stradeo-line bg-stradeo-bg px-3 py-2 short:py-1.5">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-stradeo-ink font-mono text-[12px] text-stradeo-bg">{i + 1}</span>
-              <span className="flex-1 text-[13px] leading-snug">{t(lang, key)}</span>
-              <span className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-blue/10 px-2 text-stradeo-blue">{icon}</span>
+            <li key={key} className="flex items-center gap-3 short:gap-2.5 rounded-[10px] border border-stradeo-line bg-stradeo-bg px-3 short:px-2.5 py-1.5 short:py-1">
+              <span className="flex h-6 w-6 short:h-5 short:w-5 shrink-0 items-center justify-center rounded-[6px] bg-stradeo-ink font-mono text-[12px] short:text-[11px] text-stradeo-bg">{i + 1}</span>
+              <span className="flex-1 text-[13px] short:text-[12.5px] leading-snug">{t(lang, key)}</span>
+              <span className="flex h-7 min-w-7 short:h-6 short:min-w-6 shrink-0 items-center justify-center rounded-[8px] bg-stradeo-blue/10 px-2 short:px-1.5 text-stradeo-blue">{icon}</span>
             </li>
           ))}
+          {platform === 'ios' && <li className="pt-0.5 text-[11px] leading-snug text-stradeo-inkdim">{t(lang, 'installIosOld')}</li>}
         </ol>
       )}
     </div>

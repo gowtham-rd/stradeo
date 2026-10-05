@@ -242,6 +242,12 @@ export const IconAddSquare = (p: P) => (
     <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" />
   </Svg>
 )
+// Menu: three bars (Safari's menu button on newer iPhones).
+export const IconMenu = (p: P) => (
+  <Svg {...p}>
+    <path d="M3 5h18v2.5H3zM3 10.75h18v2.5H3zM3 16.5h18V19H3z" />
+  </Svg>
+)
 // Vertical "more" menu (three squares, matching the cut-corner style).
 export const IconMore = (p: P) => (
   <Svg {...p}>

@@ -53,7 +53,7 @@ export default function WelcomePage() {
   return (
     <div className="screen"><div className="screen-inner animate-fade-in-up">
       <div className="w-full max-w-[400px]">
-        <div className="mb-4 short:mb-2.5 flex items-center justify-center gap-3">
+        <div className="mb-3 short:mb-2 flex items-center justify-center gap-3">
           <StradeoMark size={40} />
           <h1 className="text-[22px] font-bold tracking-tight leading-tight">{t(lang, 'welcomeTitle')}</h1>
         </div>
@@ -67,7 +67,7 @@ export default function WelcomePage() {
           </div>
         )}
 
-        <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 short:p-4">
+        <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-4 roomy:p-5 short:p-3.5">
           {step === 'checking' && <p className="text-[14px] text-stradeo-inkdim" role="status">{t(lang, 'pwChecking')}</p>}
 
           {step === 'invalid' && (
@@ -97,10 +97,10 @@ export default function WelcomePage() {
             <div className="animate-fade-in">
               <Steps at={2} />
               <p className="mb-1 flex short:hidden items-center gap-1.5 text-[12px] font-semibold text-stradeo-green"><IconCheck size={11} />{t(lang, 'pwChosen')}</p>
-              <h2 className="text-[17px] font-bold leading-snug short:mb-2.5">{t(lang, 'installTitle')}</h2>
-              <p className="mt-1 mb-3 short:hidden text-[12px] leading-snug text-stradeo-inkdim">{t(lang, 'installWhy')}</p>
+              <h2 className="text-[17px] short:text-[16px] font-bold leading-snug mb-2.5 roomy:mb-0"><span className="short:hidden">{t(lang, 'installTitle')}</span><span className="hidden short:inline">{t(lang, 'installTitleShort')}</span></h2>
+              <p className="mt-1 mb-3 hidden roomy:block text-[12px] leading-snug text-stradeo-inkdim">{t(lang, 'installWhy')}</p>
               <InstallGuide compact />
-              <p className="mt-3 short:mt-2 text-[13px] leading-snug text-stradeo-ink">{added ? t(lang, 'installOpenIcon') : t(lang, 'installThen')}</p>
+              <p className="mt-2.5 short:mt-2 text-[13px] short:text-[12.5px] leading-snug text-stradeo-ink">{added ? t(lang, 'installOpenIcon') : t(lang, 'installThen')}</p>
               {!added && (
                 <button type="button" onClick={() => setAdded(true)}
                   className="mt-3 short:mt-2 w-full py-3 short:py-2.5 rounded-[10px] bg-stradeo-ink text-stradeo-bg text-base font-bold">{t(lang, 'installDone')}</button>
