@@ -1,6 +1,6 @@
 // Draws the exam result as a 1080×1350 image (4:5 — fits WhatsApp, Instagram
 // and the camera roll). Drawn on a canvas in the app, so it works offline.
-// Always the dark brand look, whatever theme the app is in.
+// Follows the app's theme: dark or light, same colours as the screens.
 
 export interface CardData {
   score: number
@@ -12,13 +12,19 @@ export interface CardData {
   at: number
   name?: string
   locale: string
+  dark: boolean
   labels: { verdict: string; errors: string; max: string; time: string; footer: string }
 }
 
-const C = {
-  bg: '#0B0B0A', panel: '#171716', line: '#2A2A27', ink: '#F4F4F1', dim: '#8A8A83', faint: '#6B6B65',
-  ok: '#4CC27F', bad: '#EF6A6F', none: '#F08A43', brand: '#FFD600', orange: '#FF7A00',
+const DARK = {
+  bg: '#0B0B0A', line: '#2A2A27', ink: '#F4F4F1', dim: '#8A8A83', faint: '#6B6B65',
+  ok: '#4CC27F', bad: '#EF6A6F', none: '#F08A43', brand: '#FFD600', orange: '#FF7A00', glow: '30', tint: '26',
 }
+const LIGHT: typeof DARK = {
+  bg: '#FAFAF8', line: '#E6E5E0', ink: '#0B0B0A', dim: '#6B6B65', faint: '#8A8A83',
+  ok: '#1F8A4C', bad: '#C0262D', none: '#C2540A', brand: '#FFD600', orange: '#FF7A00', glow: '1C', tint: '1F',
+}
+let C = DARK
 const SANS = '"Titillium Web", system-ui, sans-serif'
 const MONO = '"JetBrains Mono", ui-monospace, monospace'
 export const W = 1080, H = 1350
@@ -32,7 +38,7 @@ function mark(x: CanvasRenderingContext2D, X: number, Y: number, s: number) {
   const k = s / 64
   x.save(); x.translate(X, Y); x.scale(k, k)
   x.fillStyle = C.orange; rr(x, 0, 0, 64, 64, 14); x.fill()
-  x.fillStyle = C.bg
+  x.fillStyle = '#0B0B0A'
   const poly = (p: number[]) => { x.beginPath(); x.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) x.lineTo(p[i], p[i + 1]); x.closePath(); x.fill() }
   poly([21.2, 8.9, 27.8, 8.9, 19.4, 55.1, 10.6, 55.1]); poly([36.2, 8.9, 42.8, 8.9, 53.4, 55.1, 44.6, 55.1])
   x.fillRect(29.4, 10.5, 5.2, 9); x.fillRect(29, 25.5, 6, 11); x.fillRect(28.6, 42.5, 6.8, 12.6)
@@ -46,13 +52,14 @@ export async function drawCard(d: CardData): Promise<Blob> {
   ]).catch(() => {})
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H
   const x = cv.getContext('2d')!
+  C = d.dark ? DARK : LIGHT
   const tone = d.passed ? C.ok : C.bad
   const P = 84
 
   x.fillStyle = C.bg; x.fillRect(0, 0, W, H)
   // Soft glow of the result colour behind the score.
   const g = x.createRadialGradient(W * 0.3, 470, 40, W * 0.3, 470, 620)
-  g.addColorStop(0, tone + '30'); g.addColorStop(1, tone + '00')
+  g.addColorStop(0, tone + C.glow); g.addColorStop(1, tone + '00')
   x.fillStyle = g; x.fillRect(0, 0, W, H)
   x.textBaseline = 'alphabetic'
 
@@ -68,7 +75,7 @@ export async function drawCard(d: CardData): Promise<Blob> {
   let y = 300
   x.font = `700 40px ${SANS}`
   const vw = x.measureText(d.labels.verdict).width + 64
-  x.fillStyle = tone + '24'; rr(x, P, y - 52, vw, 72, 16); x.fill()
+  x.fillStyle = tone + C.tint; rr(x, P, y - 52, vw, 72, 16); x.fill()
   x.fillStyle = tone; x.fillText(d.labels.verdict, P + 32, y - 2)
 
   // Score.
@@ -92,7 +99,7 @@ export async function drawCard(d: CardData): Promise<Blob> {
     const X = P + (i % cols) * (cw + gap), Y = top + Math.floor(i / cols) * (ch + gap)
     const c = m === 'ok' ? C.ok : m === 'wrong' ? C.bad : C.none
     if (m === 'none') { x.strokeStyle = c; x.lineWidth = 3; rr(x, X + 1.5, Y + 1.5, cw - 3, ch - 3, 12); x.stroke() }
-    else { x.fillStyle = c + '26'; rr(x, X, Y, cw, ch, 12); x.fill() }
+    else { x.fillStyle = c + C.tint; rr(x, X, Y, cw, ch, 12); x.fill() }
     x.fillStyle = c; x.fillText(String(i + 1), X + cw / 2, Y + ch / 2 + 9)
   })
   x.textAlign = 'left'

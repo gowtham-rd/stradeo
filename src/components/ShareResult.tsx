@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import { t } from '@/lib/i18n'
 import { drawCard, type CardData } from '@/lib/shareCard'
 import { toast } from '@/lib/toast'
@@ -12,18 +13,27 @@ const LOCALE = { en: 'en-GB', it: 'it-IT', ta: 'ta-IN', hi: 'hi-IN' } as const
 // Share / save the exam result as an image. The image is drawn as soon as the
 // result is shown, so tapping Share opens the share sheet straight away (iPhone
 // only allows that directly from the tap).
-export default function ShareResult(props: Omit<CardData, 'labels' | 'locale' | 'name'>) {
+export default function ShareResult(props: Omit<CardData, 'labels' | 'locale' | 'name' | 'dark'>) {
   const { lang } = useLanguage()
   const { user } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [canShare, setCanShare] = useState(false)
-  const key = props.marks.join('') + props.at + lang
+  // Same look as the app right now: Light, Dark, or the phone's setting on Auto.
+  const { theme } = useTheme()
+  const [dark, setDark] = useState(true)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const read = () => setDark(theme === 'dark' || (theme === 'auto' && mq.matches))
+    read(); mq.addEventListener('change', read)
+    return () => mq.removeEventListener('change', read)
+  }, [theme])
+  const key = props.marks.join('') + props.at + lang + dark
 
   useEffect(() => {
     let off = false
     setFile(null)
     drawCard({
-      ...props, locale: LOCALE[lang], name: user?.name || undefined,
+      ...props, dark, locale: LOCALE[lang], name: user?.name || undefined,
       labels: {
         verdict: t(lang, props.passed ? 'passed' : 'failed'), errors: t(lang, 'errors'), max: t(lang, 'max3'),
         time: t(lang, 'timeUsed'), footer: t(lang, 'shareFooter'),
