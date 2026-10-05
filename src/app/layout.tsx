@@ -17,10 +17,18 @@ import { noFlashTextSize } from '@/lib/textSize'
 import StartupImages from '@/components/StartupImages'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://stradeo.quattroventi.xyz'),
   title: 'Stradeo — Patente B Quiz',
   description: 'Your Italian driving license companion. 7,106 official Ministry questions.',
   applicationName: 'Stradeo',
   appleWebApp: { capable: true, title: 'Stradeo', statusBarStyle: 'default' },
+  // Link previews (WhatsApp, Telegram, iMessage): image is src/app/opengraph-image.png.
+  openGraph: {
+    type: 'website', siteName: 'Stradeo', url: '/', locale: 'en_GB',
+    title: 'Stradeo — Pass your patente B theory exam',
+    description: '7,106 official Ministry questions, exam simulations and lessons in English, Italiano, தமிழ் and हिन्दी.',
+  },
+  twitter: { card: 'summary_large_image', title: 'Stradeo — Pass your patente B theory exam' },
 }
 
 export const viewport: Viewport = {

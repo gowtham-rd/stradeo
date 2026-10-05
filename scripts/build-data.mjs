@@ -18,3 +18,9 @@ export const TOTAL_QUESTIONS = ${all.length}
 export const TOPIC_COUNTS: Record<number, number> = ${JSON.stringify(counts)}
 `)
 console.log(`${all.length} questions, ${Object.keys(byTopic).length} topics`)
+
+// Every road sign image, so the service worker can download them all for offline use.
+import { readdirSync } from 'node:fs'
+const signs = readdirSync('public/images/signs').filter(f => /\.(png|jpe?g|webp|gif|svg)$/i.test(f)).sort()
+writeFileSync('public/data/signs.json', JSON.stringify(signs))
+console.log(`${signs.length} sign images listed`)
