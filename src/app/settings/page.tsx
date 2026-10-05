@@ -12,7 +12,7 @@ import HashtagMark from '@/components/HashtagMark'
 import TextSizeSlider from '@/components/TextSizeSlider'
 import { localDay } from '@/lib/plan'
 import { toast } from '@/lib/toast'
-import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip } from '@/components/icons'
+import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate } from '@/components/icons'
 
 const DATE_LOCALE: Record<Language, string> = { en: 'en-GB', it: 'it-IT', ta: 'ta-IN', hi: 'hi-IN' }
 
@@ -77,8 +77,7 @@ export default function SettingsPage() {
             <IconRoadworks size={15} className="text-stradeo-brandorange" />{t(lang, 'comingSoon')}
           </h3>
           <ul className="space-y-2.5 mb-4">
-            <Upcoming icon={<IconTranslate size={14} />} title="soonTranslationsTitle" body="soonTranslationsBody" />
-            <Upcoming icon={<IconTip size={14} />} title="soonExplanationsTitle" body="soonExplanationsBody" />
+            <Upcoming icon={<IconTranslate size={14} />} title="soonTaHiTitle" body="soonTaHiBody" />
           </ul>
           <Link href="/privacy" className="flex items-center justify-between rounded-[10px] border border-stradeo-line px-4 py-3 text-sm font-semibold text-stradeo-ink hover:border-stradeo-ink">
             {t(lang, 'privacyLink')} <IconArrowRight size={13} />
