@@ -32,7 +32,7 @@ export default function ReadinessScore({ readiness, totalCorrect, totalWrong, to
 
   // Count up from 0; number and meter take the colour of the band the *animated* value is in,
   // so they pass red → orange → green as they rise.
-  const shown = useCountUp(readiness)
+  const shown = useCountUp(readiness, 1200, 'readiness')
   const band = shown >= 90 ? 'green' : shown >= 50 ? 'accent' : 'accent2'
   const scoreClass = !hasStarted ? 'text-stradeo-inkfaint'
     : { green: 'text-stradeo-green', accent: 'text-stradeo-accent', accent2: 'text-stradeo-accent2' }[band]

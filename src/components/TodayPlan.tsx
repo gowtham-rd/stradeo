@@ -19,7 +19,7 @@ export default function TodayPlan() {
   // Date-dependent: after mount, and refreshed at midnight / when the app reopens.
   const today = useToday()
   const doneRaw = today ? (progress.dailyLog[today]?.total ?? 0) : 0
-  const doneShown = Math.round(useCountUp(doneRaw, 700))
+  const doneShown = Math.round(useCountUp(doneRaw, 700, 'today'))
   if (!today) return <div className="h-[68px] mb-4" />
 
   const days = daysUntil(user?.examDate, new Date())

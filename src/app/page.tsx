@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -32,23 +32,34 @@ const HOME_CARD_MS = 2500
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, loaded: progressLoaded, seenCount, getDueReviews, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
-  const [showSplash, setShowSplash] = useState(true)
+  const { progress, loaded: progressLoaded, loadError, seenCount, getDueReviews, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
+  // Set when the calm placeholder was shown, so the real Home fades in once over it.
+  const hadPlaceholder = useRef(false)
+  // 'unknown' until we've checked this visit: the page's first paint is then a plain
+  // background, so a reload never flashes the splash for a split second.
+  const [splash, setSplash] = useState<'unknown' | 'show' | 'done'>('unknown')
   const [setupDone, setSetupDone] = useState(false)
 
   useEffect(() => {
     // Show the splash once per browser session, not every time Home opens.
     let seen = false
     try { seen = sessionStorage.getItem('stradeo-splash') === '1'; sessionStorage.setItem('stradeo-splash', '1') } catch { /* storage blocked */ }
-    if (seen) { setShowSplash(false); return }
-    const timer = setTimeout(() => setShowSplash(false), 1800)
+    if (seen) { setSplash('done'); return }
+    setSplash('show')
+    const timer = setTimeout(() => setSplash('done'), 1800)
     return () => clearTimeout(timer)
   }, [])
 
-  if (showSplash) return <SplashScreen />
-  if (authLoading) return <SplashScreen />
+  if (splash === 'unknown') return <div className="min-h-screen bg-stradeo-bg" />
+  if (splash === 'show') return <SplashScreen />
+  // Signing in from the saved session takes a moment: keep the plain background.
+  if (authLoading) return <div className="min-h-screen bg-stradeo-bg" />
   if (!user) return <LoginForm />
   if (!user.onboarded && !setupDone) return <Onboarding onDone={() => setSetupDone(true)} />
+
+  // No copy of this account's progress on the phone yet (first sign-in): a still
+  // placeholder with the page's shape instead of empty numbers that then jump.
+  if (!progressLoaded && !loadError) { hadPlaceholder.current = true; return <HomePlaceholder /> }
 
   const dueCount = getDueReviews().length
   const totalC = Object.values(progress.stats).reduce((a, s) => a + s.c, 0)
@@ -59,7 +70,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       <AdBanner />
       <NavBar />
-      <div className="max-w-[640px] mx-auto px-4 pt-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
+      <div className={`max-w-[640px] mx-auto px-4 pt-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] ${hadPlaceholder.current ? 'animate-fade-in' : ''}`}>
         {/* Greeting: name, then a line for the time of day / how it's going */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak}
           dueCount={dueCount} examDate={user.examDate} totalDone={progress.totalDone}
@@ -199,5 +210,23 @@ function StudyButton() {
         <span className="font-mono">{String(topic).padStart(2, '0')}</span> · {getTopicName(topic, lang)}{acc !== null ? ` · ${acc}%` : ''}
       </span>
     </Link>
+  )
+}
+
+function HomePlaceholder() {
+  const block = 'rounded-[14px] border border-stradeo-line bg-stradeo-bg2'
+  return (
+    <div className="min-h-screen" aria-busy="true">
+      <NavBar />
+      <div className="max-w-[640px] mx-auto px-4 pt-4">
+        <div className="mb-4 h-[64px]">
+          <div className="h-7 w-2/3 rounded-md bg-stradeo-surface2" />
+          <div className="mt-2.5 h-4 w-1/2 rounded bg-stradeo-surface2" />
+        </div>
+        <div className={`${block} h-[76px] mb-4`} />
+        <div className={`${block} h-[330px] mb-4`} />
+        <div className={`${block} h-[58px]`} />
+      </div>
+    </div>
   )
 }

@@ -125,6 +125,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const stored = readStore(userId)
     // Copies from older versions have no event ids: give them one so they're saved once.
     pending.current = (stored?.pending ?? []).map(e => (e.id ? e : { ...e, id: newEventId() }))
+    // Show this device's copy straight away (no empty screen while the server
+    // answers); the server copy replaces it quietly when it arrives.
+    if (stored) { setProgress(replay(stored.data, pending.current)); setLoaded(true) }
     fetchRow(userId).then(row => {
       if (cancelled) return
       server.current = { userId, ...row }

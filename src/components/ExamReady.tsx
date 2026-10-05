@@ -5,6 +5,8 @@ import { useProgress } from '@/contexts/ProgressContext'
 import { t } from '@/lib/i18n'
 import { MAX_ERRORS } from '@/lib/constants'
 import { IconFinish, IconChevronRight } from './icons'
+import { useState } from 'react'
+import { firstTimeThisVisit } from '@/lib/useCountUp'
 
 export const READY_WINDOW = 5
 export const READY_NEED = 4
@@ -22,6 +24,8 @@ export function examReadiness(exams: { score: number; total: number }[]) {
 export default function ExamReady() {
   const { lang } = useLanguage()
   const { progress, loaded } = useProgress()
+  // The squares pop in once per visit, not on every reload.
+  const [intro] = useState(() => typeof window !== 'undefined' && firstTimeThisVisit('ready-strip'))
   const { last, passed, ready } = examReadiness(progress.exams || [])
   const slots = Array.from({ length: READY_WINDOW }, (_, i) => last[i - (READY_WINDOW - last.length)])
   const more = READY_WINDOW - last.length
@@ -32,11 +36,11 @@ export default function ExamReady() {
     : t(lang, 'readyNotYet').replace('{p}', String(passed))
 
   return (
-    <Link href="/exam" className={`mb-2 flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 transition-colors ${ready ? 'border-stradeo-green/40 bg-stradeo-green/[0.06]' : 'border-stradeo-line bg-stradeo-bg2 hover:border-stradeo-ink'} ${loaded ? 'animate-fade-in' : 'opacity-0'}`}>
+    <Link href="/exam" className={`mb-2 flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 transition-colors ${ready ? 'border-stradeo-green/40 bg-stradeo-green/[0.06]' : 'border-stradeo-line bg-stradeo-bg2 hover:border-stradeo-ink'} ${loaded ? '' : 'opacity-0'}`}>
       <span className="flex gap-1" role="img" aria-label={`${passed}/${last.length}`}>
         {slots.map((s, i) => (
           <span key={i} style={{ animationDelay: `${120 + i * 70}ms` }}
-            className={`h-5 w-3.5 rounded-[3px] ${loaded ? 'animate-pop' : ''} ${s === undefined ? 'border border-dashed border-stradeo-line' : s ? 'bg-stradeo-green' : 'bg-stradeo-accent2'}`} />
+            className={`h-5 w-3.5 rounded-[3px] ${loaded && intro ? 'animate-pop' : ''} ${s === undefined ? 'border border-dashed border-stradeo-line' : s ? 'bg-stradeo-green' : 'bg-stradeo-accent2'}`} />
         ))}
       </span>
       <span className="min-w-0 flex-1 leading-tight">
