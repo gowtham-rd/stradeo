@@ -11,7 +11,10 @@ import ThemeToggle from '@/components/ThemeToggle'
 import HashtagMark from '@/components/HashtagMark'
 import TextSizeSlider from '@/components/TextSizeSlider'
 import { localDay } from '@/lib/plan'
+import { toast } from '@/lib/toast'
 import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate, IconTip } from '@/components/icons'
+
+const DATE_LOCALE: Record<Language, string> = { en: 'en-GB', it: 'it-IT', ta: 'ta-IN', hi: 'hi-IN' }
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -41,7 +44,7 @@ export default function SettingsPage() {
         <Section title={t(lang, 'learnThrough')}>
           <div role="radiogroup" aria-label={t(lang, 'learnThrough')} className="grid grid-cols-2 gap-2">
             {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
-              <button key={k} role="radio" aria-checked={lang === k} onClick={() => setLang(k)}
+              <button key={k} role="radio" aria-checked={lang === k} onClick={() => { if (k !== lang) { setLang(k); toast({ tone: 'ok', title: t(k, 'langChanged'), note: name }) } }}
                 className={`flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-sm font-semibold text-left ${
                   lang === k ? 'border-stradeo-ink text-stradeo-ink' : 'border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'
                 }`}>
@@ -137,6 +140,8 @@ function NameEditor() {
     setState('saving')
     const { error } = await updateName(value)
     setState(error ? 'error' : 'saved')
+    if (error) toast({ tone: 'error', title: t(lang, 'saveFailedTitle'), note: t(lang, 'saveFailedNote') })
+    else { toast({ tone: 'ok', title: t(lang, 'nameSaved'), note: value.trim() }); (document.activeElement as HTMLElement | null)?.blur() }
   }
 
   return (
@@ -151,10 +156,8 @@ function NameEditor() {
           {t(lang, 'save')}
         </button>
       </div>
-      <p className={`text-[12px] mt-2.5 ${state === 'error' ? 'text-stradeo-accent2' : 'text-stradeo-inkfaint'}`}>
-        {state === 'saved' ? <span className="inline-flex items-center gap-1"><IconCheck size={11} />{t(lang, 'saved')}</span>
-          : state === 'error' ? t(lang, 'connError')
-          : t(lang, 'nameHint')}
+      <p className="text-[12px] mt-2.5 text-stradeo-inkfaint">
+        {t(lang, 'nameHint')}
       </p>
     </form>
   )
@@ -170,6 +173,9 @@ function ExamDateEditor() {
     setState('saving')
     const { error } = await updateProfile({ examDate: next })
     setState(error ? 'error' : 'saved')
+    if (error) toast({ tone: 'error', title: t(lang, 'saveFailedTitle'), note: t(lang, 'saveFailedNote') })
+    else if (next) toast({ tone: 'ok', title: t(lang, 'examDateSaved'), note: new Date(next + 'T12:00').toLocaleDateString(DATE_LOCALE[lang], { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) })
+    else toast({ tone: 'ok', title: t(lang, 'examDateCleared') })
   }
 
   return (
@@ -188,10 +194,8 @@ function ExamDateEditor() {
           </button>
         )}
       </div>
-      <p className={`text-[12px] mt-2.5 ${state === 'error' ? 'text-stradeo-accent2' : 'text-stradeo-inkfaint'}`}>
-        {state === 'saved' ? <span className="inline-flex items-center gap-1"><IconCheck size={11} />{t(lang, 'saved')}</span>
-          : state === 'error' ? t(lang, 'connError')
-          : t(lang, 'examDateHint')}
+      <p className="text-[12px] mt-2.5 text-stradeo-inkfaint">
+        {t(lang, 'examDateHint')}
       </p>
     </div>
   )
