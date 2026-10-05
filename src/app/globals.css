@@ -99,12 +99,28 @@ button {
   font: inherit;
 }
 
-button {
-  transition: all 0.15s ease;
+/* Motion: one curve and three speeds, used everywhere. */
+:root { --ease: cubic-bezier(0.2, 0.8, 0.2, 1); --t-fast: 160ms; --t-base: 240ms; --t-slow: 360ms; }
+
+/* Every button and link-button presses down a little. Only paint/transform
+   properties transition (never layout), so presses stay smooth at 60 fps. */
+button, a.press {
+  transition: transform var(--t-fast) var(--ease), background-color var(--t-fast) ease,
+    color var(--t-fast) ease, border-color var(--t-fast) ease, opacity var(--t-fast) ease, box-shadow var(--t-fast) ease;
 }
-button:active {
-  transform: scale(0.97);
-}
+button:active:not(:disabled), a.press:active { transform: scale(0.97); }
+
+/* Lists and card groups arrive in a short cascade (children of .stagger). */
+.stagger > * { animation: rise var(--t-slow) var(--ease) backwards; }
+.stagger > *:nth-child(2) { animation-delay: 30ms } .stagger > *:nth-child(3) { animation-delay: 60ms }
+.stagger > *:nth-child(4) { animation-delay: 90ms } .stagger > *:nth-child(5) { animation-delay: 120ms }
+.stagger > *:nth-child(6) { animation-delay: 150ms } .stagger > *:nth-child(7) { animation-delay: 180ms }
+.stagger > *:nth-child(8) { animation-delay: 210ms } .stagger > *:nth-child(n+9) { animation-delay: 240ms }
+@keyframes rise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+
+/* Bars fill from their start edge when they first appear. */
+.origin-bar-x { transform-origin: left center; }
+.origin-bar-y { transform-origin: center bottom; }
 
 @media (prefers-reduced-motion: reduce) {
   *,

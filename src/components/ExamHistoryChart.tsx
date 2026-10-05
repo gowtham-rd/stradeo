@@ -45,7 +45,7 @@ export default function ExamHistoryChart({ exams, selected, onSelect, max = 10, 
                   className={`relative flex-1 h-full flex items-end justify-center min-w-0 ${onSelect ? 'cursor-pointer active:scale-95' : ''}`}>
                   <span className={`absolute left-0 right-0 text-center font-mono text-[10px] transition-opacity ${dim ? 'opacity-40' : ''} ${ok ? 'text-stradeo-green' : 'text-stradeo-accent2'}`}
                     style={{ bottom: `calc(${h}% + 3px)`, minHeight: 0 }}>{e.score}</span>
-                  <span className={`w-full max-w-[28px] min-h-[3px] rounded-t-[4px] transition-[opacity,height] duration-500 ${ok ? 'bg-stradeo-green' : 'bg-stradeo-accent2'} ${dim ? 'opacity-30' : ''}`}
+                  <span className={`w-full max-w-[28px] min-h-[3px] rounded-t-[4px] animate-grow-y origin-bar-y transition-[opacity,height] duration-500 ${ok ? 'bg-stradeo-green' : 'bg-stradeo-accent2'} ${dim ? 'opacity-30' : ''}`}
                     style={{ height: `${h}%` }} />
                 </Bar>
               )

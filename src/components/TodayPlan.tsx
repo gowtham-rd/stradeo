@@ -7,6 +7,7 @@ import { t } from '@/lib/i18n'
 import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { daysUntil, dailyGoal } from '@/lib/plan'
 import { useToday } from '@/lib/useToday'
+import { useCountUp } from '@/lib/useCountUp'
 import { IconCalendar, IconCheck, IconArrowRight, IconFinish } from './icons'
 
 // Slim strip under the greeting: exam countdown (or a prompt to set the date) and
@@ -17,6 +18,8 @@ export default function TodayPlan() {
   const { progress, seenCount } = useProgress()
   // Date-dependent: after mount, and refreshed at midnight / when the app reopens.
   const today = useToday()
+  const doneRaw = today ? (progress.dailyLog[today]?.total ?? 0) : 0
+  const doneShown = Math.round(useCountUp(doneRaw, 700))
   if (!today) return <div className="h-[68px] mb-4" />
 
   const days = daysUntil(user?.examDate, new Date())
@@ -59,11 +62,11 @@ export default function TodayPlan() {
           <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-stradeo-inkdim">{t(lang, 'todayLabel')}</span>
           {reached
             ? <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-stradeo-green"><IconCheck size={11} />{t(lang, 'goalDone')}</span>
-            : <span className="font-mono text-[13px]"><span className="text-stradeo-ink">{done}</span><span className="text-stradeo-inkfaint">/{goal}</span></span>}
+            : <span className="font-mono text-[13px]"><span className="text-stradeo-ink">{doneShown}</span><span className="text-stradeo-inkfaint">/{goal}</span></span>}
         </div>
         <div className="mt-2 h-2 rounded-[4px] bg-stradeo-surface2 overflow-hidden" role="meter" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={done}
           aria-label={`${t(lang, 'todayLabel')}: ${done} ${t(lang, 'goalOf').replace('{n}', String(goal))}`}>
-          <div className={`h-full rounded-[4px] transition-[width] duration-700 ${reached ? 'bg-stradeo-green' : 'bg-stradeo-ink'}`} style={{ width: `${pct}%` }} />
+          <div className={`h-full rounded-[4px] transition-[width] duration-700 animate-grow-x origin-bar-x ${reached ? 'bg-stradeo-green' : 'bg-stradeo-ink'}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
     </div>

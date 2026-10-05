@@ -30,18 +30,24 @@ const config: Config = {
         sans: ['"Titillium Web"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
+      // One motion language: ease-out curve, 160 / 240 / 360 ms (see globals.css).
       animation: {
-        'fade-in': 'fadeIn 0.3s ease',
-        'fade-in-up': 'fadeInUp 0.5s ease-out',
+        'fade-in': 'fadeIn 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'fade-in-up': 'fadeInUp 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'spin-slow': 'spin 0.8s linear infinite',
         'pulse-green': 'pulseGreen 0.4s',
         'shake': 'shake 0.3s',
         'page-in': 'pageIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'page-forward': 'slideFromRightSoft 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'page-back': 'slideFromLeftSoft 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'slide-from-right': 'slideFromRight 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'slide-from-left': 'slideFromLeft 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'sheet-up': 'sheetUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both',
         'backdrop-in': 'backdropIn 0.2s ease both',
         'rise': 'rise 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'grow-x': 'growX 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'grow-y': 'growY 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'pop': 'pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
       },
       keyframes: {
         fadeIn: {
@@ -59,6 +65,27 @@ const config: Config = {
         pageIn: {
           from: { opacity: '0', transform: 'translateY(6px)' },
           to: { opacity: '1', transform: 'none' },
+        },
+        slideFromRightSoft: {
+          from: { opacity: '0', transform: 'translateX(18px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        slideFromLeftSoft: {
+          from: { opacity: '0', transform: 'translateX(-18px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        growX: {
+          from: { transform: 'scaleX(0)' },
+          to: { transform: 'scaleX(1)' },
+        },
+        growY: {
+          from: { transform: 'scaleY(0)' },
+          to: { transform: 'scaleY(1)' },
+        },
+        pop: {
+          '0%': { opacity: '0', transform: 'scale(0.6)' },
+          '70%': { opacity: '1', transform: 'scale(1.06)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
         slideFromRight: {
           from: { opacity: '0', transform: 'translateX(28px)' },

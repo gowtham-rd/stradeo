@@ -29,7 +29,7 @@ export default function TopicCard({ topic, count, accuracy, done, compact }: Pro
         <div className={`text-[11px] text-stradeo-inkdim ${compact ? 'truncate' : ''}`}>{topic.it} · {count} {t(lang, 'questions')}</div>
         {accuracy !== null && (
           <div className="h-[3px] rounded bg-stradeo-surface2 mt-1.5 max-w-[120px]">
-            <div className={`h-full rounded transition-all duration-400 ${accuracy >= 90 ? 'bg-stradeo-green' : accuracy >= 50 ? 'bg-stradeo-accent' : 'bg-stradeo-accent2'}`}
+            <div className={`h-full rounded transition-[width] duration-500 animate-grow-x origin-bar-x ${accuracy >= 90 ? 'bg-stradeo-green' : accuracy >= 50 ? 'bg-stradeo-accent' : 'bg-stradeo-accent2'}`}
               style={{ width: `${accuracy}%` }} />
           </div>
         )}

@@ -104,6 +104,7 @@ export default function HomePage() {
         <div className="text-[13px] font-semibold text-stradeo-inkdim uppercase tracking-[1.5px] mb-3 mt-5">
           {t(lang, 'topicsTitle')}
         </div>
+        <div className="stagger">
         {TOPICS.map(topic => (
           <TopicCard
             key={topic.id}
@@ -113,6 +114,7 @@ export default function HomePage() {
             done={seenCount(topic.id)}
           />
         ))}
+        </div>
       </div>
     </div>
   )

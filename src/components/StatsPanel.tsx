@@ -54,7 +54,7 @@ export default function StatsPanel() {
               <div key={i} className="flex-1 relative">
                 {/* Bar: green = correct (bottom), red = wrong (top); the top 14px stays free for the count */}
                 <div className="absolute inset-x-0 bottom-0 top-[14px]">
-                  <div className="absolute inset-x-0 bottom-0 flex flex-col-reverse rounded-[4px] overflow-hidden bg-stradeo-accent2/25 transition-[height] duration-500"
+                  <div className="absolute inset-x-0 bottom-0 flex flex-col-reverse rounded-[4px] overflow-hidden bg-stradeo-accent2/25 animate-grow-y origin-bar-y transition-[height] duration-500"
                     style={{ height: d.total ? `${Math.max(pct, 3)}%` : 2 }}>
                     <div className="w-full bg-stradeo-green transition-[height] duration-500" style={{ height: `${acc * 100}%` }} />
                   </div>

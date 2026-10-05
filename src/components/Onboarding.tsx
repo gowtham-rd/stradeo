@@ -71,11 +71,11 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           {step === 0 && (
             <>
               <h1 className="text-[23px] leading-tight font-bold tracking-tight mt-1.5">{t(lang, 'introTitle')}</h1>
-              <div className="mt-4 short:mt-3 grid gap-2.5">
+              <div className="mt-4 short:mt-3 grid gap-2.5 stagger">
                 <Fact icon={<IconStack size={22} />} tone="text-stradeo-blue bg-stradeo-blue/10" value={TOTAL_QUESTIONS.toLocaleString(lang)} label={t(lang, 'introQuestions')} />
                 <Fact icon={<IconTopics size={22} />} tone="text-stradeo-brandorange bg-stradeo-brandorange/10" value="25" label={t(lang, 'introTopics')} />
               </div>
-              <div className="mt-2.5 grid grid-cols-3 gap-2.5">
+              <div className="mt-2.5 grid grid-cols-3 gap-2.5 stagger">
                 {([[IconExam, 'examSim', 'text-stradeo-ink bg-stradeo-surface2'], [IconTip, 'readinessCard', 'text-stradeo-green bg-stradeo-green/10'], [IconReview, 'smartReview', 'text-stradeo-blue bg-stradeo-blue/10']] as const).map(([I, key, tone]) => (
                   <div key={key} className="flex flex-col items-center gap-2 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 px-2 py-2.5 text-center">
                     <span className={`flex h-10 w-10 items-center justify-center rounded-[10px] ${tone}`}><I size={18} /></span>
@@ -89,7 +89,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           {step === 1 && (
             <>
               <h1 className="text-[23px] leading-tight font-bold tracking-tight mt-1.5">{t(lang, 'examTitle')}</h1>
-              <div className="mt-4 grid grid-cols-3 gap-2.5">
+              <div className="mt-4 grid grid-cols-3 gap-2.5 stagger">
                 <Tile icon={<IconExam size={20} />} tone="text-stradeo-ink bg-stradeo-surface2" value={String(EXAM_QUESTIONS)} label={t(lang, 'examQuestions')} />
                 <Tile icon={<IconTimer size={20} />} tone="text-stradeo-blue bg-stradeo-blue/10" value={String(EXAM_DURATION / 60)} label={t(lang, 'examMinutes')} />
                 <Tile icon={<IconCross size={16} />} tone="text-stradeo-accent2 bg-stradeo-accent2/10" value={String(MAX_ERRORS)} label={t(lang, 'examErrors')} />

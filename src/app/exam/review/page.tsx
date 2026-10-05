@@ -129,7 +129,7 @@ function ResultsInner() {
             {shownScore}<span className="text-[26px] text-stradeo-inkfaint">/{total}</span>
           </div>
           <div className="pb-1.5">
-            <div className={`inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-[13px] font-bold uppercase tracking-[1px] animate-rise ${passed ? 'bg-stradeo-green/[0.12] text-stradeo-green' : 'bg-stradeo-accent2/[0.12] text-stradeo-accent2'}`}>
+            <div className={`inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-[13px] font-bold uppercase tracking-[1px] animate-pop [animation-delay:700ms] ${passed ? 'bg-stradeo-green/[0.12] text-stradeo-green' : 'bg-stradeo-accent2/[0.12] text-stradeo-accent2'}`}>
               {passed ? <IconFinish size={14} /> : <IconCross size={11} />}{t(lang, passed ? 'passed' : 'failed')}
             </div>
             <div className="text-[13px] text-stradeo-inkdim mt-1.5">
@@ -175,10 +175,12 @@ function ResultsInner() {
           <h2 className="mb-2 flex items-baseline gap-2 text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">
             {t(lang, key)} <span className={`font-mono ${tone}`}>{list.length}</span>
           </h2>
+          <div className="stagger">
           {list.map(r => (
             <ResultRow key={r.i} n={r.i + 1} q={r.q} ua={r.ua} ok={r.ok}
               open={openRow === r.i} onToggle={() => setOpenRow(o => (o === r.i ? null : r.i))} />
           ))}
+          </div>
         </section>
       ))}
 

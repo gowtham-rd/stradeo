@@ -21,7 +21,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <main className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
+      <main className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] stagger">
         <h1 className="text-[22px] font-bold mb-5 inline-flex items-center gap-2.5"><IconSettings size={20} />{t(lang, 'settings')}</h1>
 
         {/* Name + Appearance: side by side on wider screens, stacked on phones */}
