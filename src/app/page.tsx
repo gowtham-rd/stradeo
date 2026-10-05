@@ -24,6 +24,7 @@ import HomeCards from '@/components/HomeCards'
 import Onboarding from '@/components/Onboarding'
 import TodayPlan from '@/components/TodayPlan'
 import ExamHistoryCard from '@/components/ExamHistoryCard'
+import ExamReady from '@/components/ExamReady'
 
 // How long each home card stays before the next slides in.
 const HOME_CARD_MS = 2500
@@ -81,6 +82,9 @@ export default function HomePage() {
           { label: t(lang, 'stats'), content: <StatsPanel /> },
           { label: t(lang, 'examHistory'), content: <ExamHistoryCard /> },
         ]} />
+
+        {/* Am I ready? Last five practice exams */}
+        <ExamReady />
 
         {/* Exam Button */}
         <Link

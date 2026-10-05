@@ -12,6 +12,7 @@ import { t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
 import ShareResult from '@/components/ShareResult'
+import PassBurst from '@/components/PassBurst'
 import ExamHistoryChart from '@/components/ExamHistoryChart'
 import { useCountUp } from '@/lib/useCountUp'
 import { IconExam, IconFinish, IconCross, IconHistory, IconHome, IconChevronDown } from '@/components/icons'
@@ -36,6 +37,8 @@ function ResultsInner() {
   const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading')
   const [openRow, setOpenRow] = useState<number | null>(null)
   const [showCorrect, setShowCorrect] = useState(false)
+  // Just finished (this tab, last few minutes) and not celebrated yet → pass moment.
+  const [fresh, setFresh] = useState(false)
 
   const exams = progress.exams || []
 
@@ -51,6 +54,10 @@ function ResultsInner() {
         if (!atParam || r.at === atParam) {
           setResult({ at: r.at ?? 0, secs: r.secs ?? null, questions: r.questions, answers: r.questions.map((_, i) => r.answers[i]) })
           setState('ready')
+          try {
+            const k = `stradeo-celebrated-${r.at}`
+            if (r.at && Date.now() - r.at < 10 * 60_000 && !sessionStorage.getItem(k)) { setFresh(true); sessionStorage.setItem(k, '1') }
+          } catch { /* storage blocked: no celebration */ }
           return
         }
       }
@@ -84,6 +91,9 @@ function ResultsInner() {
   const score = rows.filter(r => r.ok).length
   const errors = total - score
   const passed = errors <= MAX_ERRORS
+  const celebrate = fresh && passed
+  // First pass ever: this is the only passed exam in the history.
+  const firstPass = celebrate && exams.filter(e => e.total - e.score <= MAX_ERRORS && e.at !== result?.at).length === 0
   const shownScore = Math.round(useCountUp(state === 'ready' ? score : 0, 900))
   const mistakes = rows.filter(r => !r.ok && r.ua !== undefined)
   const unanswered = rows.filter(r => r.ua === undefined)
@@ -120,7 +130,7 @@ function ResultsInner() {
   return (
     <div className="max-w-[640px] mx-auto px-4 pt-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] animate-page-in">
       {/* Score */}
-      <section className="rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5 mb-3">
+      <section className={`rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-5 mb-3 ${celebrate ? 'pass-glow' : ''}`}>
         <div className="flex items-center justify-between mb-3">
           <div className="text-[11px] font-bold uppercase tracking-[2px] text-stradeo-inkdim">{t(lang, 'results')}</div>
           <div className="text-[12px] text-stradeo-inkfaint">{dateLabel}</div>
@@ -130,14 +140,21 @@ function ResultsInner() {
             {shownScore}<span className="text-[26px] text-stradeo-inkfaint">/{total}</span>
           </div>
           <div className="pb-1.5">
-            <div className={`inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-[13px] font-bold uppercase tracking-[1px] animate-pop [animation-delay:700ms] ${passed ? 'bg-stradeo-green/[0.12] text-stradeo-green' : 'bg-stradeo-accent2/[0.12] text-stradeo-accent2'}`}>
+            <div className={`relative inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-[13px] font-bold uppercase tracking-[1px] animate-pop [animation-delay:700ms] ${celebrate ? 'text-[15px] px-3 py-1.5' : ''} ${passed ? 'bg-stradeo-green/[0.12] text-stradeo-green' : 'bg-stradeo-accent2/[0.12] text-stradeo-accent2'}`}>
               {passed ? <IconFinish size={14} /> : <IconCross size={11} />}{t(lang, passed ? 'passed' : 'failed')}
+              {celebrate && <PassBurst />}
             </div>
             <div className="text-[13px] text-stradeo-inkdim mt-1.5">
-              {errors} {t(lang, 'errors')} · {t(lang, 'max3')}{result.secs != null && <> · {t(lang, 'timeUsed')} <span className="font-mono">{fmtTime(result.secs)}</span></>}
+              {errors} {t(lang, errors === 1 ? 'errorOne' : 'errors')} · {t(lang, 'max3')}{result.secs != null && <> · {t(lang, 'timeUsed')} <span className="font-mono">{fmtTime(result.secs)}</span></>}
             </div>
           </div>
         </div>
+
+        {celebrate && (
+          <p className="mt-3 text-[13px] font-semibold text-stradeo-green animate-fade-in [animation-delay:1100ms]">
+            {t(lang, firstPass ? 'firstPassLine' : 'passLine')}
+          </p>
+        )}
 
         {/* Answer map: one square per question; tap to jump to it below */}
         <div className="grid grid-cols-10 gap-1 mt-4">

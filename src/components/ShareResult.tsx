@@ -35,7 +35,7 @@ export default function ShareResult(props: Omit<CardData, 'labels' | 'locale' | 
     drawCard({
       ...props, dark, locale: LOCALE[lang], name: user?.name || undefined,
       labels: {
-        verdict: t(lang, props.passed ? 'passed' : 'failed'), errors: t(lang, 'errors'), max: t(lang, 'max3'),
+        verdict: t(lang, props.passed ? 'passed' : 'failed'), errors: t(lang, props.marks.filter(m => m !== 'ok').length === 1 ? 'errorOne' : 'errors'), max: t(lang, 'max3'),
         time: t(lang, 'timeUsed'), footer: t(lang, 'shareFooter'),
       },
     }).then(blob => {

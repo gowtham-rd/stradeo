@@ -176,3 +176,20 @@ html.pull-settle .page-shift { transition: transform 0.35s cubic-bezier(0.2, 0.8
    100vh/100dvh page would be up to 40% taller than the screen and always scroll.
    Divide by the zoom so "full height" means the real screen height. */
 .min-h-screen { min-height: calc(100dvh / var(--zoom, 1)); }
+
+/* Pass moment: little square-cut pieces burst out from the verdict. */
+@keyframes burst {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0) scale(0.4); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(1); }
+}
+.burst-piece { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; border-radius: 2px;
+  animation: burst 1s cubic-bezier(0.15, 0.7, 0.3, 1) both; pointer-events: none; }
+/* Pass moment: a green glow that swells and settles around the score card. */
+@keyframes passGlow {
+  0% { box-shadow: 0 0 0 0 rgb(var(--success) / 0); border-color: rgb(var(--line)); }
+  35% { box-shadow: 0 0 0 6px rgb(var(--success) / 0.18), 0 10px 40px rgb(var(--success) / 0.25); border-color: rgb(var(--success) / 0.6); }
+  100% { box-shadow: 0 0 0 0 rgb(var(--success) / 0); border-color: rgb(var(--success) / 0.35); }
+}
+.pass-glow { animation: passGlow 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.8s both; }
+@media (prefers-reduced-motion: reduce) { .burst-piece { display: none; } }
