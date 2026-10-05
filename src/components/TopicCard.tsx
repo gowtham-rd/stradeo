@@ -1,5 +1,7 @@
 'use client'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { lessonRead, LESSON_READ_EVENT } from '@/lib/lessonRead'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { getTopicName, isPrimaryTopic } from '@/lib/topics'
 import { t } from '@/lib/i18n'
@@ -17,6 +19,14 @@ interface Props {
 export default function TopicCard({ topic, count, accuracy, done, compact }: Props) {
   const { lang } = useLanguage()
   const isPri = isPrimaryTopic(topic.id)
+  // Lesson sections read on this device, e.g. "Lesson 2/6".
+  const [lesson, setLesson] = useState<{ n: number; read: number[] } | null>(null)
+  useEffect(() => {
+    const on = () => setLesson(lessonRead(topic.id))
+    on()
+    window.addEventListener(LESSON_READ_EVENT, on)
+    return () => window.removeEventListener(LESSON_READ_EVENT, on)
+  }, [topic.id])
 
   return (
     <Link href={`/topic?id=${topic.id}`}
@@ -26,7 +36,12 @@ export default function TopicCard({ topic, count, accuracy, done, compact }: Pro
       </div>
       <div className="flex-1 min-w-0">
         <div className={`text-sm font-semibold mb-px ${compact ? 'truncate' : ''}`}>{getTopicName(topic.id, lang)}</div>
-        <div className={`text-[11px] text-stradeo-inkdim ${compact ? 'truncate' : ''}`}>{topic.it} · {count} {t(lang, 'questions')}</div>
+        <div className={`text-[11px] text-stradeo-inkdim ${compact ? 'truncate' : ''}`}>
+          {topic.it} · {count} {t(lang, 'questions')}
+          {lesson && lesson.read.length > 0 && (
+            <span className={lesson.read.length >= lesson.n ? 'text-stradeo-green' : 'text-stradeo-ink'}> · {t(lang, 'lessonProgress')} {Math.min(lesson.read.length, lesson.n)}/{lesson.n}</span>
+          )}
+        </div>
         {accuracy !== null && (
           <div className="h-[3px] rounded bg-stradeo-surface2 mt-1.5 max-w-[120px]">
             <div className={`h-full rounded transition-[width] duration-500 animate-grow-x origin-bar-x ${accuracy >= 90 ? 'bg-stradeo-green' : accuracy >= 50 ? 'bg-stradeo-accent' : 'bg-stradeo-accent2'}`}

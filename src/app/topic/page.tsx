@@ -13,6 +13,10 @@ import NavBar from '@/components/NavBar'
 import AdBanner from '@/components/AdBanner'
 import { aiPost } from '@/lib/api'
 import { setLastTopic } from '@/lib/lastTopic'
+import LessonView from '@/components/LessonView'
+
+// New lesson layout: being tried on topic 1 first.
+const NEW_LESSON = new Set([1])
 import { IconStudy, IconQuiz, IconRoadworks, IconWarning, IconTip, IconArrowRight, IconExam } from '@/components/icons'
 
 // Render inline Markdown emphasis (**bold** and *italic*) as real elements.
@@ -146,7 +150,9 @@ function TopicInner() {
               </div>
             )}
 
-            {theory && (
+            {theory && NEW_LESSON.has(tid) && <LessonView tid={tid} theory={theory} />}
+
+            {theory && !NEW_LESSON.has(tid) && (
               <div className="[&>*]:animate-rise [&>*:nth-child(2)]:[animation-delay:60ms] [&>*:nth-child(3)]:[animation-delay:120ms] [&>*:nth-child(4)]:[animation-delay:180ms] [&>*:nth-child(5)]:[animation-delay:240ms] [&>*:nth-child(6)]:[animation-delay:300ms]">
                 {/* Title */}
                 <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">

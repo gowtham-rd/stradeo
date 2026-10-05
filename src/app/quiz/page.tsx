@@ -57,6 +57,8 @@ function QuizInner() {
   const params = useSearchParams()
   const mode = params.get('mode')
   const topicId = params.get('topic') ? Number(params.get('topic')) : null
+  // From a lesson's picture strip: only the questions that use this picture.
+  const imgFilter = params.get('img')
   useEffect(() => { if (topicId) setLastTopic(topicId) }, [topicId])
   const invalidTopic = topicId !== null && !TOPICS.some(x => x.id === topicId)
   const isReview = mode === 'review'
@@ -78,7 +80,10 @@ function QuizInner() {
       const pool = due.length ? due : progress.wrongQuestions
       return shuffle([...pool]).slice(0, 20)
     }
-    if (topicId) return shuffle(await loadTopicQuestions(topicId))
+    if (topicId) {
+      const qs = await loadTopicQuestions(topicId)
+      return shuffle(imgFilter ? qs.filter(q => q.i === imgFilter) : qs)
+    }
     return shuffle(await loadQuestions()).slice(0, 30)
   }
 
@@ -94,7 +99,7 @@ function QuizInner() {
     }, () => { if (!cancelled) { setLoadFailed(true); setLoading(false) } })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReview, topicId, progressLoaded])
+  }, [isReview, topicId, imgFilter, progressLoaded])
 
   // Reset explanation whenever the question changes
   useEffect(() => { setReviewNote(null) }, [state.currentIndex])
