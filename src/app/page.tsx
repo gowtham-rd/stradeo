@@ -173,8 +173,8 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
   }, [loaded, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, unseen, dailyLog])
   const wrapRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
-  // Greeting on one line, and the time-of-day icon filling the space it leaves on the
-  // right: as wide as that space, up to the height of both lines (64px), at least 32px.
+  // Greeting on one line, and the time-of-day icon centred in the space it leaves on
+  // the right: as wide as that space, up to the height of both lines (64px), at least 32px.
   // The heading's font shrinks (26 → 18px) only when the text wouldn't fit beside the
   // smallest icon; the line below wraps before it runs under the icon. Sizes are set
   // on the elements directly; measured again when the web font loads or the width changes.
@@ -194,8 +194,12 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
       if (!(f < cur || f - cur >= 1)) f = cur // grow only by a whole pixel (no rounding back-and-forth)
       h1.style.fontSize = f + 'px'
       const icon = Math.round(Math.max(MIN, Math.min(MAX, W - perPx * f - GAP)))
+      // The icon sits in the middle of the space between the greeting and the edge;
+      // the line below stops a gap before the icon's left side.
+      const space = Math.max(icon, Math.floor(W - perPx * f - GAP))
       wrap.style.setProperty('--hello-icon', icon + 'px')
-      line.style.maxWidth = W - icon - GAP + 'px'
+      wrap.style.setProperty('--hello-space', space + 'px')
+      line.style.maxWidth = Math.floor(W - (space + icon) / 2 - GAP) + 'px'
     }
     fit()
     const family = getComputedStyle(h1).fontFamily
@@ -230,7 +234,7 @@ const HELLO_ICONS: Record<string, typeof IconSun> = { helloMorning: IconSunrise,
 function HelloIcon({ k }: { k: string }) {
   const I = HELLO_ICONS[k] ?? IconSun
   return (
-    <span className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+    <span className="absolute inset-y-0 right-0 w-[var(--hello-space,40px)] flex items-center justify-center pointer-events-none">
       <I className="w-[var(--hello-icon,40px)] h-[var(--hello-icon,40px)] text-stradeo-brandorange animate-fade-in" />
     </span>
   )
