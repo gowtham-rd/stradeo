@@ -176,7 +176,7 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
   // Greeting on one line, and the time-of-day icon centred in the space it leaves on
   // the right: as wide as that space, up to the height of both lines (64px), at least 32px.
   // The heading's font shrinks (26 → 18px) only when the text wouldn't fit beside the
-  // smallest icon; the line below wraps before it runs under the icon. Sizes are set
+  // smallest icon. Sizes are set
   // on the elements directly; measured again when the web font loads or the width changes.
   useLayoutEffect(() => {
     const el = textRef.current, wrap = wrapRef.current
@@ -194,12 +194,22 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
       if (!(f < cur || f - cur >= 1)) f = cur // grow only by a whole pixel (no rounding back-and-forth)
       h1.style.fontSize = f + 'px'
       const icon = Math.round(Math.max(MIN, Math.min(MAX, W - perPx * f - GAP)))
-      // The icon sits in the middle of the space between the greeting and the edge;
-      // the line below stops a gap before the icon's left side.
+      // The icon sits in the middle of the space between the greeting and the edge,
+      // moving right (up to the edge) when the line below needs the room. That line
+      // stays on one line: 15px, down to 12px if needed, then "…".
       const space = Math.max(icon, Math.floor(W - perPx * f - GAP))
+      const lcur = parseFloat(line.style.fontSize) || 15
+      line.style.maxWidth = 'none'
+      const lPerPx = (line.scrollWidth + 1) / lcur
+      const centred = W - (space + icon) / 2
+      const left = Math.round(Math.max(centred, Math.min(W - icon, lPerPx * 15 + GAP)))
       wrap.style.setProperty('--hello-icon', icon + 'px')
-      wrap.style.setProperty('--hello-space', space + 'px')
-      line.style.maxWidth = Math.floor(W - (space + icon) / 2 - GAP) + 'px'
+      wrap.style.setProperty('--hello-left', left + 'px')
+      const room = left - GAP
+      line.style.maxWidth = room + 'px'
+      let lf = Math.max(12, Math.min(15, Math.floor((room / lPerPx) * 2) / 2))
+      if (!(lf < lcur || lf - lcur >= 1)) lf = lcur
+      line.style.fontSize = lf + 'px'
     }
     fit()
     const family = getComputedStyle(h1).fontFamily
@@ -211,18 +221,14 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
     ro.observe(wrap); ro.observe(el)
     return () => { document.fonts?.removeEventListener?.('loadingdone', fit); ro.disconnect() }
   }, [g, name, lang])
-  const days = daysSince(lastStudy)
-  // "Last practice" only when it is a useful nudge (2+ days ago).
-  const when = days === null || days < 2 ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
   const first = name.slice(0, NAME_MAX).replace(/[\s!.?,]+$/, '')
   return (
     <div ref={wrapRef} className="relative mb-4 min-h-[64px]">
       <h1 style={{ fontSize: 26 }} className={`whitespace-nowrap leading-tight font-bold tracking-tight transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
         <span ref={textRef} className="inline-block max-w-full align-bottom truncate">{g ? (first ? `${t(lang, g.hello)}, ${first}!` : `${t(lang, g.hello)}!`) : '\u00a0'}</span>
       </h1>
-      <p className={`text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
+      <p className={`whitespace-nowrap overflow-hidden text-ellipsis text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
         {g ? fill(t(lang, g.line.key), g.line, lang) : '\u00a0'}
-        {g && when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}
       </p>
       {g && <HelloIcon k={g.hello} />}
     </div>
@@ -234,7 +240,7 @@ const HELLO_ICONS: Record<string, typeof IconSun> = { helloMorning: IconSunrise,
 function HelloIcon({ k }: { k: string }) {
   const I = HELLO_ICONS[k] ?? IconSun
   return (
-    <span className="absolute inset-y-0 right-0 w-[var(--hello-space,40px)] flex items-center justify-center pointer-events-none">
+    <span className="absolute inset-y-0 left-[var(--hello-left,calc(100%-40px))] w-[var(--hello-icon,40px)] flex items-center justify-center pointer-events-none">
       <I className="w-[var(--hello-icon,40px)] h-[var(--hello-icon,40px)] text-stradeo-brandorange animate-fade-in" />
     </span>
   )
