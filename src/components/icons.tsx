@@ -255,6 +255,13 @@ export const IconPhone = (p: P) => (
     <path d="M10.5 17h3v1.5h-3z" />
   </Svg>
 )
+// Download: square-cut arrow into a tray.
+export const IconDownload = (p: P) => (
+  <Svg {...p}>
+    <path d="M10.75 2.5h2.5v9.2l3.1-3.1 1.8 1.8L12 16.6 5.85 10.4l1.8-1.8 3.1 3.1z" />
+    <path d="M3 14.5h2.5v4.5h13v-4.5H21v7H3z" />
+  </Svg>
+)
 // Wi-Fi: square dot + two square-cut bands (online).
 export const IconOnline = (p: P) => (
   <Svg {...p}>

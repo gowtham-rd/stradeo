@@ -11,6 +11,7 @@ import { MAX_ERRORS } from '@/lib/constants'
 import { t } from '@/lib/i18n'
 import type { Question } from '@/types'
 import NavBar from '@/components/NavBar'
+import ShareResult from '@/components/ShareResult'
 import ExamHistoryChart from '@/components/ExamHistoryChart'
 import { useCountUp } from '@/lib/useCountUp'
 import { IconExam, IconFinish, IconCross, IconHistory, IconHome, IconChevronDown } from '@/components/icons'
@@ -151,6 +152,9 @@ function ResultsInner() {
             </button>
           ))}
         </div>
+
+        <ShareResult score={score} total={total} passed={passed} secs={result.secs} at={result.at}
+          marks={rows.map(r => (r.ok ? 'ok' : r.ua === undefined ? 'none' : 'wrong'))} />
       </section>
 
       {/* Past exams */}
