@@ -51,8 +51,9 @@ export default function ConnectionStatus() {
   }, [])
   useEffect(() => {
     if (!note) return
-    const a = setTimeout(() => setLeaving(true), 2200)
-    const b = setTimeout(() => { setNote(null); setLeaving(false) }, 2500)
+    const ms = note.ms ?? 2200
+    const a = setTimeout(() => setLeaving(true), ms)
+    const b = setTimeout(() => { setNote(null); setLeaving(false) }, ms + 300)
     return () => { clearTimeout(a); clearTimeout(b) }
   }, [note])
 

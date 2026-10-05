@@ -11,6 +11,7 @@ import QuestionText from '@/components/QuestionText'
 import SignImage, { preloadImages } from '@/components/SignImage'
 import { PULL_GUARD_ATTR, PULL_EVENT } from '@/components/PullToRefresh'
 import { IconCross, IconChevronLeft, IconChevronRight, IconWarning, IconFinish } from '@/components/icons'
+import { toast } from '@/lib/toast'
 
 const initialState: ExamState = { questions: [], answers: {}, submitted: false, endTime: 0 }
 
@@ -106,7 +107,7 @@ export default function ExamPage() {
     const tick = () => {
       const r = Math.max(0, Math.round((state.endTime - Date.now()) / 1000))
       setRemaining(r)
-      if (r <= 0) submit()
+      if (r <= 0) submit(true)
     }
     tick()
     const id = setInterval(tick, 1000)
@@ -176,11 +177,16 @@ export default function ExamPage() {
     router.push('/')
   }
 
-  function submit() {
+  function submit(timeUp = false) {
     const s = stateRef.current
     if (s.submitted || submittedRef.current) return
     submittedRef.current = true
     dispatch({ type: 'SUBMIT' })
+    // Time ran out: hand it in as it is and say so (like the real exam).
+    if (timeUp) {
+      setConfirmSubmit(false); setConfirmLeave(false)
+      toast({ tone: 'error', title: t(lang, 'timeUp'), note: t(lang, 'timeUpNote'), ms: 5000 })
+    }
     const secs = EXAM_DURATION - Math.max(0, Math.round((s.endTime - Date.now()) / 1000))
     // Answers count towards progress; the exam joins the history.
     const rec = recordExam(s.questions, s.answers, secs)
@@ -215,7 +221,13 @@ export default function ExamPage() {
     )
   }
 
-  const lowTime = remaining < 120
+  // Time left drives the clock and the bar under the header: green → yellow →
+  // orange → red, with a soft pulse in the last minute.
+  const left = remaining / EXAM_DURATION
+  const band = remaining <= 60 ? 'red' : remaining <= 180 ? 'orange' : left <= 0.5 ? 'yellow' : 'green'
+  const barColor = { green: 'bg-stradeo-green', yellow: 'bg-stradeo-accent', orange: 'bg-stradeo-brandorange', red: 'bg-stradeo-accent2' }[band]
+  const clock = { green: 'bg-stradeo-surface2 text-stradeo-ink', yellow: 'bg-stradeo-accent/[0.12] text-stradeo-ink', orange: 'bg-stradeo-brandorange/[0.14] text-stradeo-brandorange', red: 'bg-stradeo-accent2/[0.14] text-stradeo-accent2 time-glow' }[band]
+  const allAnswered = answeredCount === total
   const q = state.questions[current]
   const imgUrl = getImageUrl(q.i)
   const isLast = current === total - 1
@@ -224,7 +236,11 @@ export default function ExamPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header: question number · timer · exit, then the numbered strip */}
-      <div className="sticky top-0 z-20 bg-stradeo-nav backdrop-blur-[20px] border-b border-stradeo-line">
+      <div className="sticky top-0 z-20 bg-stradeo-nav backdrop-blur-[20px] border-b border-stradeo-line relative">
+        {/* Time bar: empties as the exam runs, colour follows the time left */}
+        <div className="absolute inset-x-0 bottom-[-1px] h-[3px] bg-stradeo-surface2" role="progressbar" aria-label={fmt(remaining)} aria-valuemin={0} aria-valuemax={EXAM_DURATION} aria-valuenow={remaining}>
+          <div className={`h-full ${barColor} transition-[width,background-color] duration-1000 ease-linear ${band === 'red' ? 'time-glow' : ''}`} style={{ width: `${left * 100}%` }} />
+        </div>
         <div className="max-w-[640px] mx-auto px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2.5">
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
@@ -234,11 +250,11 @@ export default function ExamPage() {
               </div>
             </div>
             <div role="timer" aria-label={fmt(remaining)}
-              className={`h-10 px-3 flex items-center rounded-[10px] font-mono text-lg tabular-nums ${lowTime ? 'bg-stradeo-accent2/[0.12] text-stradeo-accent2' : 'bg-stradeo-surface2 text-stradeo-ink'}`}>
+              className={`h-10 px-3 flex items-center rounded-[10px] font-mono text-lg tabular-nums transition-colors duration-700 ${clock}`}>
               {fmt(remaining)}
             </div>
             <button onClick={() => setConfirmLeave('button')} aria-label={t(lang, 'exitExam')}
-              className="h-10 px-3 rounded-[10px] border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink hover:border-stradeo-ink text-sm font-semibold inline-flex items-center gap-1.5">
+              className="h-10 px-3 rounded-[10px] border border-stradeo-accent2/30 bg-stradeo-accent2/[0.08] text-stradeo-accent2 hover:bg-stradeo-accent2/[0.14] text-sm font-semibold inline-flex items-center gap-1.5">
               <IconCross size={11} /><span className="hidden min-[380px]:inline">{t(lang, 'exitExam')}</span>
             </button>
           </div>
@@ -292,17 +308,23 @@ export default function ExamPage() {
             </button>
           ))}
         </div>
-        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[1fr_58px_1fr] gap-2 items-center">
+        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[1fr_84px_1fr] gap-2 items-center">
           <button onClick={() => go(current - 1)} disabled={current === 0} aria-label={t(lang, 'prev')}
             className="h-12 w-full min-w-0 px-1.5 text-[15px] rounded-[10px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center justify-center gap-1 disabled:opacity-35 disabled:active:scale-100">
             <IconChevronLeft size={12} /><span className="truncate">{t(lang, 'prev')}</span>
           </button>
-          {/* Answered count; doubles as a Submit button before the last question */}
-          <button onClick={() => setConfirmSubmit(true)} disabled={isLast}
-            className="h-12 flex flex-col items-center justify-center rounded-[10px] text-stradeo-inkdim hover:text-stradeo-ink disabled:active:scale-100">
-            <span className="text-[13px] leading-none"><span className="font-mono text-stradeo-ink">{answeredCount}</span>/{total}</span>
-            {!isLast && <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.5px] leading-none">{t(lang, 'submitExam')}</span>}
-          </button>
+          {/* Submit (with the answered count): turns solid yellow once every question is answered */}
+          {/* (On the last question the big button on the right is Submit, so this just counts.) */}
+          {isLast ? (
+            <div className="h-12 flex items-center justify-center text-[13px] font-mono text-stradeo-inkdim"><span className="font-bold text-stradeo-ink">{answeredCount}</span>/{total}</div>
+          ) : (
+            <button onClick={() => setConfirmSubmit(true)}
+              className={`h-12 flex flex-col items-center justify-center rounded-[10px] border transition-colors duration-300 ${
+                allAnswered ? 'border-stradeo-brand bg-stradeo-brand text-stradeo-onbrand' : 'border-stradeo-line bg-stradeo-bg2 text-stradeo-ink hover:border-stradeo-ink'}`}>
+              <span className="text-[13px] leading-none font-mono"><span className="font-bold">{answeredCount}</span>/{total}</span>
+              <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.5px] leading-none"><IconFinish size={10} />{t(lang, 'submitShort')}</span>
+            </button>
+          )}
           {isLast ? (
             <button onClick={() => setConfirmSubmit(true)}
               className="h-12 w-full min-w-0 px-2 text-[15px] rounded-[10px] concentric-br bg-stradeo-brand text-stradeo-onbrand font-bold inline-flex items-center justify-center gap-2">

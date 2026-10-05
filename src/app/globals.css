@@ -193,3 +193,10 @@ html.pull-settle .page-shift { transition: transform 0.35s cubic-bezier(0.2, 0.8
 }
 .pass-glow { animation: passGlow 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.8s both; }
 @media (prefers-reduced-motion: reduce) { .burst-piece { display: none; } }
+
+/* Exam clock in the last minute: a soft red pulse. */
+@keyframes timeGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--danger) / 0); }
+  50% { box-shadow: 0 0 12px 1px rgb(var(--danger) / 0.5); }
+}
+.time-glow { animation: timeGlow 1.4s ease-in-out infinite; }
