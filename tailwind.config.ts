@@ -124,6 +124,6 @@ const config: Config = {
   },
   plugins: [
     // `short:` — short screens (iPhone SE in Safari with its toolbars): tighter onboarding/login.
-    plugin(({ addVariant }) => addVariant('short', '@media (max-height: 600px)')),],
+    plugin(({ addVariant }) => { addVariant('short', '@media (max-height: 600px)'); addVariant('roomy', '@media (min-height: 820px)') }),],
 }
 export default config

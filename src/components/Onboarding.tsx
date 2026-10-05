@@ -7,7 +7,7 @@ import { LANGUAGES, LANG_ENABLED, t } from '@/lib/i18n'
 import { localDay } from '@/lib/plan'
 import type { Language } from '@/types'
 import StradeoMark from './StradeoMark'
-import { IconCalendar, IconCheck, IconChevronLeft, IconArrowRight, IconCross, IconExam, IconReview, IconStack, IconTimer, IconTip, IconTopics } from './icons'
+import { IconCalendar, IconCheck, IconChevronLeft, IconArrowRight, IconCross, IconExam, IconFinish, IconReview, IconStack, IconTimer, IconTip, IconTopics } from './icons'
 import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { EXAM_DURATION, EXAM_QUESTIONS, MAX_ERRORS } from '@/lib/constants'
 
@@ -71,15 +71,27 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           {step === 0 && (
             <>
               <h1 className="text-[23px] leading-tight font-bold tracking-tight mt-1.5">{t(lang, 'introTitle')}</h1>
-              <div className="mt-4 short:mt-3 grid gap-2.5 stagger">
-                <Fact icon={<IconStack size={22} />} tone="text-stradeo-blue bg-stradeo-blue/10" value={TOTAL_QUESTIONS.toLocaleString(lang)} label={t(lang, 'introQuestions')} />
-                <Fact icon={<IconTopics size={22} />} tone="text-stradeo-brandorange bg-stradeo-brandorange/10" value="25" label={t(lang, 'introTopics')} />
+              <div className="mt-4 short:mt-2 grid grid-cols-2 gap-2.5 stagger">
+                <Fact icon={<IconStack size={18} />} tone="text-stradeo-blue bg-stradeo-blue/10" value={TOTAL_QUESTIONS.toLocaleString(lang)} label={t(lang, 'introQuestions')} />
+                <Fact icon={<IconTopics size={18} />} tone="text-stradeo-brandorange bg-stradeo-brandorange/10" value="25" label={t(lang, 'introTopicsShort')} />
               </div>
-              <div className="mt-2.5 grid grid-cols-3 gap-2.5 stagger">
-                {([[IconExam, 'examSim', 'text-stradeo-ink bg-stradeo-surface2'], [IconTip, 'readinessCard', 'text-stradeo-green bg-stradeo-green/10'], [IconReview, 'smartReview', 'text-stradeo-blue bg-stradeo-blue/10']] as const).map(([I, key, tone]) => (
-                  <div key={key} className="flex flex-col items-center gap-2 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 px-2 py-2.5 text-center">
-                    <span className={`flex h-10 w-10 items-center justify-center rounded-[10px] ${tone}`}><I size={18} /></span>
-                    <span className="text-[12px] font-semibold leading-tight">{t(lang, key)}</span>
+              <p className="mt-2.5 short:hidden inline-flex items-center gap-1.5 rounded-full bg-stradeo-green/10 px-2.5 py-1 text-[12px] font-semibold text-stradeo-green">
+                <IconCheck size={11} />{t(lang, 'onbOfficial')}
+              </p>
+              {/* What you get: each feature with one line on what it does */}
+              <div className="mt-3 short:mt-2 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 divide-y divide-stradeo-line stagger">
+                {([
+                  [IconExam, 'featExamT', 'featExamD', 'text-stradeo-ink bg-stradeo-surface2'],
+                  [IconTip, 'featWhyT', 'featWhyD', 'text-stradeo-brandorange bg-stradeo-brandorange/10'],
+                  [IconReview, 'featReviewT', 'featReviewD', 'text-stradeo-blue bg-stradeo-blue/10'],
+                  [IconFinish, 'featReadyT', 'featReadyD', 'text-stradeo-green bg-stradeo-green/10'],
+                ] as const).map(([I, title, desc, tone]) => (
+                  <div key={title} className="flex items-center gap-3 px-3.5 py-2 short:py-1 roomy:py-2.5">
+                    <span className={`flex h-8 w-8 roomy:h-9 roomy:w-9 shrink-0 items-center justify-center rounded-[9px] ${tone}`}><I size={16} /></span>
+                    <span className="min-w-0">
+                      <span className="block text-[14px] font-semibold leading-tight">{t(lang, title)}</span>
+                      <span className="hidden roomy:block mt-0.5 text-[12.5px] leading-snug text-stradeo-inkdim">{t(lang, desc)}</span>
+                    </span>
                   </div>
                 ))}
               </div>
@@ -182,12 +194,10 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
 
 function Fact({ icon, tone, value, label }: { icon: React.ReactNode; tone: string; value: string; label: string }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-[14px] border border-stradeo-line bg-stradeo-bg2 px-4 py-3 short:py-2">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] ${tone}`}>{icon}</span>
-      <span className="min-w-0">
-        <span className="block font-mono text-[25px] leading-none tracking-tight">{value}</span>
-        <span className="block mt-1 text-[13px] leading-snug text-stradeo-inkdim">{label}</span>
-      </span>
+    <div className="rounded-[14px] border border-stradeo-line bg-stradeo-bg2 p-3 roomy:p-3.5">
+      <span className={`hidden roomy:flex h-9 w-9 items-center justify-center rounded-[10px] ${tone}`}>{icon}</span>
+      <span className="block roomy:mt-2.5 font-mono text-[24px] leading-none tracking-tight">{value}</span>
+      <span className="block mt-1 text-[12.5px] leading-snug text-stradeo-inkdim">{label}</span>
     </div>
   )
 }
