@@ -9,6 +9,7 @@ import type { Language } from '@/types'
 import StradeoMark from '@/components/StradeoMark'
 import InstallGuide from '@/components/InstallGuide'
 import { IconCheck } from '@/components/icons'
+import Busy from '@/components/Busy'
 
 // Landing page for the invite email. Stradeo is invite-only: the link signs the
 // new tester in, they choose a password, then add Stradeo to their Home Screen
@@ -85,8 +86,8 @@ export default function WelcomePage() {
               <input id="w-pw2" type="password" autoComplete="new-password" required minLength={8} value={pw2} onChange={e => setPw2(e.target.value)} className={`${field} mb-1.5`} />
               <p className="mb-3 text-[12px] text-stradeo-inkfaint">{t(lang, 'pwTooShort')}</p>
               {error && <div className="bg-stradeo-accent2/10 rounded-lg px-3.5 py-2 mb-3 text-[13px] text-stradeo-accent2">{error}</div>}
-              <button type="submit" disabled={saving} className="w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
-                {saving ? '...' : t(lang, 'pwSave')}
+              <button type="submit" disabled={saving} className={`w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold ${saving ? '' : 'disabled:opacity-50'}`}>
+                <Busy busy={saving}>{t(lang, 'pwSave')}</Busy>
               </button>
             </form>
           )}

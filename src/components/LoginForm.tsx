@@ -10,6 +10,7 @@ import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { isStandalone, devicePlatform } from '@/lib/authLink'
 import InstallGuide from './InstallGuide'
 import { IconChevronDown, IconPhone } from './icons'
+import Busy from '@/components/Busy'
 
 export default function LoginForm() {
   const { signIn } = useAuth()
@@ -76,8 +77,8 @@ export default function LoginForm() {
                   placeholder="you@email.com" />
                 {error && <div className="bg-stradeo-accent2/10 rounded-lg px-3.5 py-2.5 mb-4 text-[13px] text-stradeo-accent2">{error}</div>}
                 <button type="submit" disabled={loading}
-                  className="w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
-                  {loading ? '...' : t(lang, 'pwSendLink')}
+                  className={`w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold ${loading ? '' : 'disabled:opacity-50'}`}>
+                  <Busy busy={loading}>{t(lang, 'pwSendLink')}</Busy>
                 </button>
               </form>
             )}
@@ -111,8 +112,8 @@ export default function LoginForm() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold disabled:opacity-50">
-            {loading ? '...' : t(lang, 'loginBtn')}
+            className={`w-full py-3 rounded-[10px] bg-stradeo-brand text-stradeo-onbrand text-base font-bold ${loading ? '' : 'disabled:opacity-50'}`}>
+            <Busy busy={loading}>{t(lang, 'loginBtn')}</Busy>
           </button>
           <button type="button" onClick={() => { setMode('forgot'); setError('') }}
             className="mt-3 w-full text-center text-[13px] font-semibold text-stradeo-blue hover:underline">
