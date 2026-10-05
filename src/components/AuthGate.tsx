@@ -1,4 +1,5 @@
 'use client'
+import { useOnline } from '@/lib/useOnline'
 import { useEffect, ReactNode } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -34,7 +35,9 @@ export default function AuthGate({ children }: { children: ReactNode }) {
 function ProgressStatus() {
   const { loadError, saveError, retryLoad } = useProgress()
   const { lang } = useLanguage()
-  if (!loadError && !saveError) return null
+  const online = useOnline()
+  // While offline the connection pill at the top says it; no second banner.
+  if (!loadError && (!saveError || !online)) return null
   return (
     <div role="alert" className="fixed inset-x-0 bottom-0 z-[200] p-3 flex justify-center pointer-events-none">
       <div className="pointer-events-auto max-w-[640px] w-full flex items-center gap-3 rounded-[10px] border border-stradeo-accent2/30 bg-stradeo-bg2 px-4 py-3 text-[13px] text-stradeo-ink">

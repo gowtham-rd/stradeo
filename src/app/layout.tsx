@@ -12,6 +12,7 @@ import AuthGate from '@/components/AuthGate'
 import AuthLinkRouter from '@/components/AuthLinkRouter'
 import ServiceWorker from '@/components/ServiceWorker'
 import PullToRefresh from '@/components/PullToRefresh'
+import ConnectionStatus from '@/components/ConnectionStatus'
 import { noFlashTextSize } from '@/lib/textSize'
 import StartupImages from '@/components/StartupImages'
 
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <AuthGate>{children}</AuthGate>
                 <ServiceWorker />
                 <PullToRefresh />
+                <ConnectionStatus />
               </ProgressProvider>
             </LanguageProvider>
           </AuthProvider>

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { t } from '@/lib/i18n'
-import StradeoMark from './StradeoMark'
+import { IconRefresh } from './icons'
 
 const THRESHOLD = 72 // px of pull (after resistance) that triggers
 const MAX = 110
@@ -103,7 +103,11 @@ export default function PullToRefresh() {
     : ready ? t(lang, 'releaseRefresh') : t(lang, 'pullRefresh')
   const visible = state !== 'idle' || pull > 0
 
-  // Same look as the splash screen: the Stradeo tile with its little loading bar.
+  // A round chip with the refresh arrow: it turns as you pull, goes orange when a
+  // release will refresh (red on the exam, where it exits), and spins while loading.
+  const tone = guarded && ready ? 'text-stradeo-accent2 border-stradeo-accent2/40'
+    : ready || state === 'refreshing' ? 'text-stradeo-brandorange border-stradeo-brandorange/40'
+    : 'text-stradeo-ink border-stradeo-line'
   return (
     <div aria-hidden={!visible} role="status"
       className="pointer-events-none fixed inset-x-0 z-0 flex flex-col items-center"
@@ -113,17 +117,14 @@ export default function PullToRefresh() {
         opacity: visible ? Math.min(1, Math.max(0, (pull - 20) / 30)) : 0,
         transition: state === 'pulling' ? 'none' : 'top 0.35s cubic-bezier(0.2,0.8,0.2,1), opacity 0.3s',
       }}>
-      <span className="block transition-transform duration-150"
-        style={{ transform: `scale(${state === 'refreshing' ? 1 : 0.7 + 0.3 * progress}) rotate(${state === 'refreshing' ? 0 : (1 - progress) * -12}deg)` }}>
-        <StradeoMark size={30} />
+      <span className={`flex h-9 w-9 items-center justify-center rounded-full border bg-stradeo-bg2 shadow-[0_4px_14px_rgb(0_0_0/0.12)] transition-colors duration-150 ${tone}`}
+        style={{ transform: `scale(${state === 'refreshing' ? 1 : 0.75 + 0.25 * progress})` }}>
+        <span className={`flex ${state === 'refreshing' ? 'animate-spin-slow' : ''}`}
+          style={state === 'refreshing' ? undefined : { transform: `rotate(${progress * 300 - 60}deg)` }}>
+          <IconRefresh size={18} />
+        </span>
       </span>
-      <span className="mt-1.5 block h-1 w-10 overflow-hidden rounded bg-stradeo-surface2">
-        {state === 'refreshing'
-          ? <span className="block h-full w-full rounded bg-stradeo-ink" style={{ animation: 'loadslide 0.9s ease-in-out infinite' }} />
-          : <span className={`block h-full rounded transition-colors ${guarded && ready ? 'bg-stradeo-accent2' : ready ? 'bg-stradeo-brandorange' : 'bg-stradeo-ink'}`}
-              style={{ width: `${progress * 100}%` }} />}
-      </span>
-      {label && <span className="mt-1 text-[11px] font-semibold leading-4 text-stradeo-inkdim whitespace-nowrap">{label}</span>}
+      {label && <span className="mt-1.5 text-[11px] font-semibold leading-4 text-stradeo-inkdim whitespace-nowrap">{label}</span>}
     </div>
   )
 }

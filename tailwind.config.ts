@@ -47,9 +47,14 @@ const config: Config = {
         'rise': 'rise 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'grow-x': 'growX 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'grow-y': 'growY 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
+        'conn-in': 'connIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'pop': 'pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
       },
       keyframes: {
+        connIn: {
+          from: { opacity: '0', transform: 'translateY(-14px) scale(0.92)' },
+          to: { opacity: '1', transform: 'none' },
+        },
         fadeIn: {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },

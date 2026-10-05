@@ -255,6 +255,28 @@ export const IconPhone = (p: P) => (
     <path d="M10.5 17h3v1.5h-3z" />
   </Svg>
 )
+// Refresh: square-cut circular arrow (pull to refresh).
+export const IconRefresh = (p: P) => (
+  <Svg {...p}>
+    <path d="M19.5 12A7.5 7.5 0 1 1 17.3 6.7" fill="none" stroke="currentColor" strokeWidth="2.75" />
+    <path d="M21.5 2.5V10.5H13.5z" />
+  </Svg>
+)
+// Wi-Fi: square dot + two square-cut bands (online).
+export const IconOnline = (p: P) => (
+  <Svg {...p}>
+    <path d="M10.25 17.5h3.5V21h-3.5z" />
+    <path d="M7.4 14.4A6.5 6.5 0 0 1 16.6 14.4M3.85 10.85A11.5 11.5 0 0 1 20.15 10.85" fill="none" stroke="currentColor" strokeWidth="2.75" />
+  </Svg>
+)
+// Offline: the same Wi-Fi mark, faded, with a slash through it.
+export const IconOffline = (p: P) => (
+  <Svg {...p}>
+    <path d="M10.25 17.5h3.5V21h-3.5z" />
+    <path d="M7.4 14.4A6.5 6.5 0 0 1 16.6 14.4M3.85 10.85A11.5 11.5 0 0 1 20.15 10.85" fill="none" stroke="currentColor" strokeWidth="2.75" opacity="0.4" />
+    <path d="M3.5 2l18.5 18.5-1.9 1.9L1.6 3.9z" />
+  </Svg>
+)
 export const ICONS = {
   exam: IconExam,
   review: IconReview,
