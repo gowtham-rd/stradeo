@@ -87,7 +87,7 @@ export default function ResultRow({ n, q, ua, ok, open, onToggle }: {
                     <div className="mt-0.5 text-[13px] font-bold text-stradeo-ink">{word(q.a)}</div>
                   </div>
                 </div>
-                <WhyBox question={q} className="mt-3" />
+                <WhyBox question={q} className="mt-3" result={ok ? 'right' : 'wrong'} />
                 <ReportQuestion key={questionKey(q)} question={q} />
               </div>
             </div>

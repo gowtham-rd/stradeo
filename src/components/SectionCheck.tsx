@@ -79,7 +79,7 @@ export default function SectionCheck({ pool, onDone }: { pool: Question[]; onDon
           </div>
           {answer !== null && (
             <>
-              <WhyBox question={q} className="mt-2.5" tone={answer === q.a ? 'plain' : 'orange'} />
+              <WhyBox question={q} className="mt-2.5" result={answer === q.a ? 'right' : 'wrong'} verdict />
               <button type="button" onClick={next}
                 className="mt-2.5 flex h-10 w-full items-center justify-center gap-1.5 rounded-[10px] bg-stradeo-ink text-[13.5px] font-semibold text-stradeo-bg">
                 {idx + 1 >= qs.length ? t(lang, 'checkSeeScore') : t(lang, 'next')} <IconArrowRight size={12} />

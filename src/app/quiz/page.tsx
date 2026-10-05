@@ -214,15 +214,8 @@ function QuizInner() {
             </div>
             </div>
 
-            {/* Correct badge */}
-            {state.answer !== null && state.answer === q.a && (
-              <div className="bg-stradeo-green/[0.06] border border-stradeo-green/[0.12] rounded-[14px] px-4 py-3.5 mb-4 text-center animate-rise">
-                <span className="text-sm text-stradeo-green font-semibold inline-flex items-center gap-1.5"><span className="inline-flex animate-pop"><IconCheck size={14} /></span>{t(lang, 'correctBadge')}</span>
-              </div>
-            )}
-
-            {/* Why: the rule behind the answer (when available), after any answer */}
-            {state.answer !== null && <WhyBox key={`why-${state.currentIndex}`} question={q} className="mb-4" tone={state.answer === q.a ? 'plain' : 'orange'} />}
+            {/* Result + why: green box when right, red when wrong */}
+            {state.answer !== null && <WhyBox key={`why-${state.currentIndex}`} question={q} className="mb-4" result={state.answer === q.a ? 'right' : 'wrong'} verdict />}
 
             {/* Smart Review outcome */}
             {state.answer !== null && reviewNote && (
