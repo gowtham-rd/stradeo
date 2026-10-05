@@ -255,13 +255,6 @@ export const IconPhone = (p: P) => (
     <path d="M10.5 17h3v1.5h-3z" />
   </Svg>
 )
-// Refresh: square-cut circular arrow (pull to refresh).
-export const IconRefresh = (p: P) => (
-  <Svg {...p}>
-    <path d="M19.5 12A7.5 7.5 0 1 1 17.3 6.7" fill="none" stroke="currentColor" strokeWidth="2.75" />
-    <path d="M21.5 2.5V10.5H13.5z" />
-  </Svg>
-)
 // Wi-Fi: square dot + two square-cut bands (online).
 export const IconOnline = (p: P) => (
   <Svg {...p}>
