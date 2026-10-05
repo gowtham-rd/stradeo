@@ -308,10 +308,10 @@ export default function ExamPage() {
             </button>
           ))}
         </div>
-        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[1fr_84px_1fr] gap-2 items-center">
+        <div className="max-w-[640px] mx-auto px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] grid grid-cols-[1fr_68px_1fr] min-[380px]:grid-cols-[1fr_84px_1fr] gap-2 items-center">
           <button onClick={() => go(current - 1)} disabled={current === 0} aria-label={t(lang, 'prev')}
-            className="h-12 w-full min-w-0 px-1.5 text-[15px] rounded-[10px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center justify-center gap-1 disabled:opacity-35 disabled:active:scale-100">
-            <IconChevronLeft size={12} /><span className="truncate">{t(lang, 'prev')}</span>
+            className="h-12 w-full min-w-0 px-1 text-[14px] min-[380px]:text-[15px] rounded-[10px] concentric-bl border border-stradeo-line text-stradeo-ink font-semibold inline-flex items-center justify-center gap-1 disabled:opacity-35 disabled:active:scale-100">
+            <IconChevronLeft size={12} /><span className="truncate min-[380px]:hidden">{t(lang, 'prevShort')}</span><span className="truncate hidden min-[380px]:inline">{t(lang, 'prev')}</span>
           </button>
           {/* Submit (with the answered count): turns solid yellow once every question is answered */}
           {/* (On the last question the big button on the right is Submit, so this just counts.) */}
@@ -322,7 +322,7 @@ export default function ExamPage() {
               className={`h-12 flex flex-col items-center justify-center rounded-[10px] border transition-colors duration-300 ${
                 allAnswered ? 'border-stradeo-brand bg-stradeo-brand text-stradeo-onbrand' : 'border-stradeo-line bg-stradeo-bg2 text-stradeo-ink hover:border-stradeo-ink'}`}>
               <span className="text-[13px] leading-none font-mono"><span className="font-bold">{answeredCount}</span>/{total}</span>
-              <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.5px] leading-none"><IconFinish size={10} />{t(lang, 'submitShort')}</span>
+              <span className="mt-1 inline-flex items-center gap-1 text-[10px] min-[380px]:text-[11px] font-bold uppercase tracking-[0.3px] leading-none"><IconFinish size={10} className="hidden min-[380px]:inline-block" />{t(lang, 'submitShort')}</span>
             </button>
           )}
           {isLast ? (
@@ -333,7 +333,7 @@ export default function ExamPage() {
           ) : (
             <button onClick={() => go(current + 1)}
               className="h-12 w-full min-w-0 px-2 text-[15px] rounded-[10px] concentric-br bg-stradeo-ink text-stradeo-bg font-bold inline-flex items-center justify-center gap-1.5">
-              <span className="truncate">{t(lang, 'next')}</span><IconChevronRight size={14} />
+              <span className="truncate min-[380px]:hidden">{t(lang, 'nextShort')}</span><span className="truncate hidden min-[380px]:inline">{t(lang, 'next')}</span><IconChevronRight size={14} />
             </button>
           )}
         </div>
