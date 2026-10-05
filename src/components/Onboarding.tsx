@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { LANGUAGES, t } from '@/lib/i18n'
+import { LANGUAGES, LANG_ENABLED, t } from '@/lib/i18n'
 import { localDay } from '@/lib/plan'
 import type { Language } from '@/types'
 import StradeoMark from './StradeoMark'
@@ -122,11 +122,11 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
               <p className="text-[14px] text-stradeo-inkdim mt-2">{t(lang, 'setupLangHint')}</p>
               <div role="radiogroup" aria-label={t(lang, 'learnThrough')} className="mt-4 grid grid-cols-2 gap-2.5">
                 {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, label]) => (
-                  <button key={k} role="radio" aria-checked={lang === k} onClick={() => setLang(k)}
-                    className={`relative flex flex-col items-start gap-0.5 rounded-[12px] border p-4 text-left transition-colors ${
-                      lang === k ? 'border-stradeo-ink bg-stradeo-bg2' : 'border-stradeo-line hover:border-stradeo-inkfaint'}`}>
+                  <button key={k} role="radio" aria-checked={lang === k} onClick={() => setLang(k)} disabled={!LANG_ENABLED[k]}
+                    className={`relative flex flex-col items-start gap-0.5 rounded-[12px] border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 disabled:border-dashed ${
+                      lang === k ? 'border-stradeo-ink bg-stradeo-bg2' : 'border-stradeo-line enabled:hover:border-stradeo-inkfaint'}`}>
                     <span className="text-[17px] font-bold">{label}</span>
-                    <span className="text-[12px] text-stradeo-inkdim">{LANG_SUB[k]}</span>
+                    <span className="text-[12px] text-stradeo-inkdim">{LANG_ENABLED[k] ? LANG_SUB[k] : t(lang, 'soonShort')}</span>
                     {lang === k && <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-stradeo-ink text-stradeo-bg"><IconCheck size={11} /></span>}
                   </button>
                 ))}

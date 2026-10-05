@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import StradeoMark from './StradeoMark'
-import { LANGUAGES, t } from '@/lib/i18n'
+import { LANGUAGES, LANG_ENABLED, t } from '@/lib/i18n'
 import type { Language } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
@@ -58,7 +58,8 @@ export default function LoginForm() {
         <div className="flex justify-center gap-1.5 mb-4 short:mb-3">
           {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
             <button key={k} onClick={() => setLang(k)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'}`}
+              disabled={!LANG_ENABLED[k]} title={LANG_ENABLED[k] ? undefined : t(lang, 'soonShort')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-35 disabled:cursor-not-allowed ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim enabled:hover:text-stradeo-ink'}`}
             >{name}</button>
           ))}
         </div>

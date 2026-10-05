@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
-import { LANGUAGES, t, type UIKey } from '@/lib/i18n'
+import { LANGUAGES, LANG_ENABLED, t, type UIKey } from '@/lib/i18n'
 import type { Language } from '@/types'
 import NavBar from '@/components/NavBar'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -44,11 +44,15 @@ export default function SettingsPage() {
         <Section title={t(lang, 'learnThrough')}>
           <div role="radiogroup" aria-label={t(lang, 'learnThrough')} className="grid grid-cols-2 gap-2">
             {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
-              <button key={k} role="radio" aria-checked={lang === k} onClick={() => { if (k !== lang) { setLang(k); toast({ tone: 'ok', title: t(k, 'langChanged'), note: name }) } }}
-                className={`flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-sm font-semibold text-left ${
-                  lang === k ? 'border-stradeo-ink text-stradeo-ink' : 'border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'
+              <button key={k} role="radio" aria-checked={lang === k} disabled={!LANG_ENABLED[k]}
+                onClick={() => { if (k !== lang) { setLang(k); toast({ tone: 'ok', title: t(k, 'langChanged'), note: name }) } }}
+                className={`flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-sm font-semibold text-left disabled:cursor-not-allowed disabled:opacity-45 disabled:border-dashed ${
+                  lang === k ? 'border-stradeo-ink text-stradeo-ink' : 'border-stradeo-line text-stradeo-inkdim enabled:hover:text-stradeo-ink'
                 }`}>
-                {name}
+                <span className="flex flex-col leading-tight">
+                  {name}
+                  {!LANG_ENABLED[k] && <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[1px] text-stradeo-inkfaint">{t(lang, 'soonShort')}</span>}
+                </span>
                 {lang === k && <IconCheck size={14} />}
               </button>
             ))}
@@ -92,7 +96,9 @@ export default function SettingsPage() {
             <span className="font-mono text-[12px] text-stradeo-inkdim hidden min-[360px]:inline">quattroventi.xyz</span>
             <IconArrowRight size={13} />
           </a>
-          <p className="font-mono text-[12px] text-stradeo-inkfaint mt-3">Stradeo · {t(lang, 'appVersion')} {process.env.NEXT_PUBLIC_APP_VERSION}</p>
+          <p className="font-mono text-[12px] text-stradeo-inkfaint mt-3">
+            Stradeo · {t(lang, 'appVersion')} {process.env.NEXT_PUBLIC_APP_VERSION} · {t(lang, 'updatedOn')} {new Date(process.env.NEXT_PUBLIC_BUILD_DATE || Date.now()).toLocaleDateString(DATE_LOCALE[lang], { day: 'numeric', month: 'short', year: 'numeric' })}
+          </p>
         </Section>
       </main>
 

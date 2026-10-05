@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import type { Language } from '@/types'
+import { LANG_ENABLED } from '@/lib/i18n'
 
 const STORAGE_KEY = 'stradeo-lang'
 const VALID: Language[] = ['en', 'it', 'ta', 'hi']
@@ -19,7 +20,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as Language | null
-      if (saved && VALID.includes(saved)) setLangState(saved)
+      // A saved language that's switched off for now (Tamil, Hindi) falls back to English.
+      if (saved && VALID.includes(saved)) setLangState(LANG_ENABLED[saved] ? saved : 'en')
     } catch { /* storage blocked */ }
   }, [])
 
@@ -27,6 +29,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => { document.documentElement.lang = lang }, [lang])
 
   const setLang = useCallback((next: Language) => {
+    if (!LANG_ENABLED[next]) return
     setLangState(next)
     try { localStorage.setItem(STORAGE_KEY, next) } catch { /* storage blocked */ }
   }, [])

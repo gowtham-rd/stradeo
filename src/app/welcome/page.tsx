@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { LANGUAGES, t } from '@/lib/i18n'
+import { LANGUAGES, LANG_ENABLED, t } from '@/lib/i18n'
 import { isStandalone } from '@/lib/authLink'
 import type { Language } from '@/types'
 import StradeoMark from '@/components/StradeoMark'
@@ -61,7 +61,8 @@ export default function WelcomePage() {
           <div className="flex justify-center gap-1.5 mb-4">
             {(Object.entries(LANGUAGES) as [Language, string][]).map(([k, name]) => (
               <button key={k} type="button" onClick={() => setLang(k)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim hover:text-stradeo-ink'}`}>{name}</button>
+                disabled={!LANG_ENABLED[k]} title={LANG_ENABLED[k] ? undefined : t(lang, 'soonShort')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-35 disabled:cursor-not-allowed ${lang === k ? 'bg-stradeo-ink text-stradeo-bg' : 'border border-stradeo-line text-stradeo-inkdim enabled:hover:text-stradeo-ink'}`}>{name}</button>
             ))}
           </div>
         )}

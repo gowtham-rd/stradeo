@@ -7,8 +7,12 @@ import type { Question } from '@/types'
 import { IconRoadworks } from './icons'
 
 // The question text with an "Italiano | English" switch that swaps the text in
-// place. Without a translation yet, tapping the other language shows a short
+// place. The choice is remembered, so the next question opens the same way.
+// Without a translation yet, tapping the other language shows a short
 // "coming soon" note and stays on Italian. Hidden when learning through Italian.
+const MODE_KEY = 'stradeo-qtext-mode'
+const savedMode = (): 'it' | 'tr' => { try { return localStorage.getItem(MODE_KEY) === 'tr' ? 'tr' : 'it' } catch { return 'it' } }
+const saveMode = (m: 'it' | 'tr') => { try { localStorage.setItem(MODE_KEY, m) } catch { /* storage blocked */ } }
 export default function QuestionText({ question, className = 'text-[17px] leading-relaxed' }: { question: Question; className?: string }) {
   const { lang } = useLanguage()
   const [mode, setMode] = useState<'it' | 'tr'>('it')
@@ -18,11 +22,19 @@ export default function QuestionText({ question, className = 'text-[17px] leadin
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
+  // Open in the language chosen last time (if this question has a translation).
+  useEffect(() => {
+    if (lang === 'it' || savedMode() !== 'tr') return
+    let alive = true
+    getTranslation(question, lang).then(tr => { if (alive && tr) { setTranslation(tr); setMode('tr') } })
+    return () => { alive = false }
+  }, [question, lang])
+
   async function choose(next: 'it' | 'tr') {
     if (next === mode) return
-    if (next === 'it') { setMode('it'); return }
+    if (next === 'it') { setMode('it'); saveMode('it'); return }
     const tr = translation ?? await getTranslation(question, lang)
-    if (tr) { setTranslation(tr); setMode('tr'); return }
+    if (tr) { setTranslation(tr); setMode('tr'); saveMode('tr'); return }
     setSoon(true)
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => setSoon(false), 3500)
