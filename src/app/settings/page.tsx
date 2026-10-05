@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
@@ -209,14 +210,23 @@ function ExamDateEditor() {
 function ResetDialog({ onClose }: { onClose: () => void }) {
   const { lang } = useLanguage()
   const { resetProgress } = useProgress()
+  const { updateProfile } = useAuth()
+  const router = useRouter()
   const [typed, setTyped] = useState('')
   const [state, setState] = useState<'idle' | 'working' | 'done' | 'error'>('idle')
   const word = t(lang, 'resetWord')
   const ok = typed.trim().toUpperCase() === word.toUpperCase()
 
+  // A full fresh start: progress, exam date and on-device study state go, and the
+  // app opens on the welcome/setup screens again. Theme, text size and language stay.
   async function confirm() {
     setState('working')
-    setState((await resetProgress()) ? 'done' : 'error')
+    if (!(await resetProgress())) { setState('error'); return }
+    const { error } = await updateProfile({ onboarded: false, examDate: null })
+    if (error) { setState('error'); return }
+    try { ['stradeo-last-topic', 'stradeo-milestones'].forEach(k => localStorage.removeItem(k)) } catch { /* storage blocked */ }
+    toast({ tone: 'ok', title: t(lang, 'resetDone'), note: t(lang, 'resetDoneBody') })
+    router.replace('/')
   }
 
   return (
