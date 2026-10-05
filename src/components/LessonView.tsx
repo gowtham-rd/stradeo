@@ -72,7 +72,7 @@ const wordsOf = (s: string) => s.split(/\s+/).filter(Boolean).length
 // The lesson for one topic, laid out for studying on a phone: the one-line summary
 // and the exam traps first, the pictures from this topic's questions (tap one to
 // practise just those), short key points, then the long explanation as sections
-// you open one at a time. A bar at the bottom shows how far you've read and keeps
+// you open one at a time. A bar at the bottom shows how many sections you've finished and keeps
 // "Practise this topic" in reach.
 export default function LessonView({ tid, theory }: { tid: number; theory: TheoryContent }) {
   const { lang } = useLanguage()
@@ -132,22 +132,6 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
     }, () => {})
     return () => { alive = false }
   }, [tid])
-
-  // How far down the lesson you are, for the bar at the bottom.
-  const endRef = useRef<HTMLDivElement>(null)
-  const [scrolled, setScrolled] = useState(0)
-  useEffect(() => {
-    const on = () => {
-      const el = endRef.current
-      if (!el) return
-      const total = el.getBoundingClientRect().top + window.scrollY - window.innerHeight
-      setScrolled(total <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / total)))
-    }
-    on()
-    window.addEventListener('scroll', on, { passive: true })
-    window.addEventListener('resize', on)
-    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on) }
-  }, [open, allPoints])
 
   const jump = (i: number) => {
     setOpen(i)
@@ -277,7 +261,6 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
           </div>
         </section>
       )}
-      <div ref={endRef} />
 
       {/* Reading progress + practise, always in reach */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stradeo-line bg-stradeo-nav backdrop-blur-[20px] px-4 pt-2.5 pb-[max(10px,env(safe-area-inset-bottom))]">
@@ -285,10 +268,10 @@ export default function LessonView({ tid, theory }: { tid: number; theory: Theor
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between text-[11px] text-stradeo-inkdim">
               <span className="truncate">{getTopicName(tid, lang)}</span>
-              <span className="font-mono">{Math.round(scrolled * 100)}%</span>
+              <span className="font-mono">{Math.min(read.length, sections.length)}/{sections.length} {t(lang, 'sectionsRead')}</span>
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stradeo-surface2">
-              <div className="h-full rounded-full bg-stradeo-brandorange transition-[width] duration-200" style={{ width: `${scrolled * 100}%` }} />
+              <div className={`h-full rounded-full transition-[width] duration-500 ${read.length >= sections.length ? 'bg-stradeo-green' : 'bg-stradeo-brandorange'}`} style={{ width: `${sections.length ? (Math.min(read.length, sections.length) / sections.length) * 100 : 0}%` }} />
             </div>
           </div>
           <Link href={`/quiz?topic=${tid}`} className="flex h-11 shrink-0 items-center gap-2 rounded-[10px] bg-stradeo-brand px-4 text-[14px] font-bold text-stradeo-onbrand">

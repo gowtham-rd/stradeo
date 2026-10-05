@@ -1,6 +1,6 @@
 // Stradeo service worker — makes the app installable and lets practice work offline.
 // Bump VERSION to drop old caches after a release that changes cached files' format.
-const VERSION = 'v22'
+const VERSION = 'v23'
 const SHELL = `stradeo-shell-${VERSION}`
 const DATA = `stradeo-data-${VERSION}`
 // Sign images never change between releases: their own cache, kept across versions.
