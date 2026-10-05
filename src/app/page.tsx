@@ -5,10 +5,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
-import { studyTarget } from '@/lib/plan'
+import { studyTarget, daysUntil, localDay } from '@/lib/plan'
+import { MAX_ERRORS } from '@/lib/constants'
 import { TOPICS, getTopicName } from '@/lib/topics'
 import { t, type UIKey } from '@/lib/i18n'
-import { daysSince, greetingLine } from '@/lib/greeting'
+import { daysSince, salutation, homeLine, reachedMilestones } from '@/lib/greeting'
 import NavBar from '@/components/NavBar'
 import ReadinessScore, { TopicMapCard } from '@/components/ReadinessScore'
 import StatsPanel from '@/components/StatsPanel'
@@ -30,7 +31,7 @@ const HOME_CARD_MS = 2500
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth()
   const { lang } = useLanguage()
-  const { progress, seenCount, getDueReviews, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
+  const { progress, loaded: progressLoaded, seenCount, getDueReviews, getTopicAccuracy, readiness, topicsCovered, streak } = useProgress()
   const [showSplash, setShowSplash] = useState(true)
   const [setupDone, setSetupDone] = useState(false)
 
@@ -59,7 +60,9 @@ export default function HomePage() {
       <NavBar />
       <div className="max-w-[640px] mx-auto px-4 pt-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
         {/* Greeting: name, then a line for the time of day / how it's going */}
-        <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak} />
+        <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak}
+          dueCount={dueCount} examDate={user.examDate} totalDone={progress.totalDone}
+          examPassed={(progress.exams || []).some(e => e.total - e.score <= MAX_ERRORS)} loaded={progressLoaded} />
 
         {/* Exam countdown + today's goal */}
         <TodayPlan />
@@ -120,23 +123,53 @@ export default function HomePage() {
   )
 }
 
-function Greeting({ name, lastStudy, readiness, streak }: { name: string; lastStudy: string | null; readiness: number; streak: number }) {
+function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, loaded }: {
+  loaded: boolean; name: string; lastStudy: string | null; readiness: number; streak: number
+  dueCount: number; examDate: string | null | undefined; totalDone: number; examPassed: boolean
+}) {
   const { lang } = useLanguage()
-  // Time-dependent: computed after mount so server and client markup match.
-  const [line, setLine] = useState<{ key: UIKey; n?: number } | null>(null)
-  useEffect(() => { setLine(greetingLine({ lastStudy, readiness, streak })) }, [lastStudy, readiness, streak])
+  // Time- and device-dependent: computed after mount so server and client markup match.
+  const [g, setG] = useState<{ hello: UIKey; line: { key: UIKey; n?: number } } | null>(null)
+  useEffect(() => {
+    if (!loaded) return // milestones need the saved progress, not the empty start
+    const now = new Date()
+    const today = localDay()
+    // A milestone shows on the day it is first reached, then never again (per device).
+    let shown: Record<string, string> = {}
+    try { shown = JSON.parse(localStorage.getItem(MILESTONES_KEY) || '{}') } catch { /* storage blocked */ }
+    const reached = reachedMilestones({ totalDone, readiness, examPassed })
+    // First time on this device: milestones already reached are recorded silently,
+    // so nobody gets an old "100 questions" note after thousands.
+    const firstVisit = !Object.keys(shown).length
+    // The newest one only (500 beats 100); older unseen ones are recorded silently.
+    const milestone = firstVisit ? null : [...reached].reverse().find(m => !shown[m.id] || shown[m.id] === today) ?? null
+    const next = { ...shown }
+    for (const m of reached) if (!next[m.id]) next[m.id] = m === milestone ? today : '0'
+    if (firstVisit) next._init = today
+    try { localStorage.setItem(MILESTONES_KEY, JSON.stringify(next)) } catch { /* storage blocked */ }
+    setG({
+      hello: salutation(now.getHours()),
+      line: homeLine({ lastStudy, readiness, streak, dueCount, examDaysLeft: daysUntil(examDate, now), milestone, now }),
+    })
+  }, [loaded, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed])
   const days = daysSince(lastStudy)
-  const when = days === null ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
+  // "Last practice" only when it is a useful nudge (2+ days ago).
+  const when = days === null || days < 2 ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
+  const first = name.replace(/[\s!.?,]+$/, '')
   return (
     <div className="mb-4 min-h-[64px]">
-      <h1 className="text-[26px] leading-tight font-bold tracking-tight truncate">{name ? `${name.replace(/[\s!.?,]+$/, '')}!` : 'Ciao!'}</h1>
-      <p className={`text-[15px] text-stradeo-inkdim mt-0.5 transition-opacity duration-300 ${line ? 'opacity-100' : 'opacity-0'}`}>
-        {line ? t(lang, line.key).replace('{n}', String(line.n ?? '')) : '\u00a0'}
-        {when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}
+      <h1 className={`text-[26px] leading-tight font-bold tracking-tight truncate transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
+        {g ? (first ? `${t(lang, g.hello)}, ${first}` : t(lang, g.hello)) : '\u00a0'}
+      </h1>
+      <p className={`text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
+        {g ? t(lang, g.line.key).replace('{n}', String(g.line.n ?? '')) : '\u00a0'}
+        {g && when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}
       </p>
     </div>
   )
 }
+
+const MILESTONES_KEY = 'stradeo-milestones'
 
 function StudyButton() {
   const { lang } = useLanguage()

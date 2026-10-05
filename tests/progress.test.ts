@@ -224,3 +224,18 @@ test('study button: in order, stays until done, then moves on; best gain once al
   // every topic started → biggest gain
   assert.equal(studyTarget({ ...base, last: 3, seen: () => 10, accuracy: () => 60 }), 7)
 })
+
+test('home greeting: salutation by hour, exam day first, milestones, reviews after a break', async () => {
+  const { salutation, homeLine, reachedMilestones } = await import('../src/lib/greeting')
+  assert.equal(salutation(8), 'helloMorning'); assert.equal(salutation(13), 'helloAfternoon')
+  assert.equal(salutation(20), 'helloEvening'); assert.equal(salutation(2), 'helloNight')
+  const now = new Date(2026, 9, 5, 19, 0)
+  const base = { lastStudy: '2026-10-05', readiness: 60, streak: 2, dueCount: 0, examDaysLeft: 20, milestone: null, now }
+  assert.equal(homeLine({ ...base, examDaysLeft: 0 }).key, 'gExamDay')
+  assert.equal(homeLine({ ...base, examDaysLeft: 1 }).key, 'gExamTomorrow')
+  assert.equal(homeLine({ ...base, examDaysLeft: -2 }).key, 'gExamOver')
+  const ms = reachedMilestones({ totalDone: 120, readiness: 50, examPassed: false })
+  assert.deepEqual(ms.map(m => m.id), ['q100'])
+  assert.deepEqual(homeLine({ ...base, milestone: ms[0] }), { key: 'gMilestoneQ', n: 100 })
+  assert.deepEqual(homeLine({ ...base, lastStudy: '2026-10-01', dueCount: 6 }), { key: 'gBackReviews', n: 6 })
+})
