@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/lib/supabase'
 import type { UserSession } from '@/types'
 import type { User } from '@supabase/supabase-js'
+import { NAME_MAX } from '@/lib/constants'
 
 function toSession(u: User | null | undefined): UserSession | null {
   if (!u) return null
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const updateName = async (name: string) => {
-    const clean = name.trim().slice(0, 40)
+    const clean = name.trim().slice(0, NAME_MAX).trim()
     const { data, error } = await supabase.auth.updateUser({ data: { display_name: clean } })
     if (error) return { error: 'connError' }
     const next = toSession(data.user)
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = async (patch: { name?: string; examDate?: string | null; onboarded?: boolean }) => {
     const data: Record<string, unknown> = {}
-    if (patch.name !== undefined) data.display_name = patch.name.trim().slice(0, 40)
+    if (patch.name !== undefined) data.display_name = patch.name.trim().slice(0, NAME_MAX).trim()
     if (patch.examDate !== undefined) data.exam_date = patch.examDate ?? ''
     if (patch.onboarded !== undefined) data.onboarded = patch.onboarded
     const { data: res, error } = await supabase.auth.updateUser({ data })

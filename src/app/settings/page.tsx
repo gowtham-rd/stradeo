@@ -14,6 +14,7 @@ import TextSizeSlider from '@/components/TextSizeSlider'
 import { localDay } from '@/lib/plan'
 import { toast } from '@/lib/toast'
 import { IconCalendar, IconSettings, IconCheck, IconArrowRight, IconWarning, IconRoadworks, IconTranslate } from '@/components/icons'
+import { NAME_MAX } from '@/lib/constants'
 
 const DATE_LOCALE: Record<Language, string> = { en: 'en-GB', it: 'it-IT', ta: 'ta-IN', hi: 'hi-IN' }
 
@@ -150,7 +151,7 @@ function NameEditor() {
     <form onSubmit={save}>
       <label htmlFor="display-name" className="sr-only">{t(lang, 'yourName')}</label>
       <div className="flex gap-2">
-        <input id="display-name" value={value} maxLength={40} autoComplete="nickname"
+        <input id="display-name" value={value} maxLength={NAME_MAX} autoComplete="nickname"
           onChange={e => { setValue(e.target.value); setState('idle') }} enterKeyHint="done"
           className="min-w-0 flex-1 h-8 px-3 rounded-lg border border-stradeo-line bg-stradeo-bg text-stradeo-ink text-sm outline-none focus:border-stradeo-ink" />
         <button type="submit" disabled={!dirty || state === 'saving'}

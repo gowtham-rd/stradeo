@@ -15,3 +15,6 @@ export function dueAfterDays(now: number, days: number): number {
   d.setDate(d.getDate() + days)
   return d.getTime()
 }
+
+/** Longest display name (keeps the Home greeting on one line). */
+export const NAME_MAX = 10

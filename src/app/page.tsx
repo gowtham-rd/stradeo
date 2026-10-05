@@ -1,12 +1,12 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
 import { studyTarget, daysUntil, localDay, dailyGoal } from '@/lib/plan'
-import { MAX_ERRORS } from '@/lib/constants'
+import { MAX_ERRORS, NAME_MAX } from '@/lib/constants'
 import { TOPICS, getTopicName } from '@/lib/topics'
 import { t, type UIKey } from '@/lib/i18n'
 import { daysSince, salutation, homeLine, reachedMilestones, type Line } from '@/lib/greeting'
@@ -171,16 +171,52 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
         goal: dailyGoal(unseen, examDaysLeft), doneToday: dailyLog[today]?.total ?? 0, unseen }),
     })
   }, [loaded, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, unseen, dailyLog])
+  const h1Ref = useRef<HTMLHeadingElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  // Always one line: the font shrinks (26 → 18px) so the text fits beside the icon.
+  // Names are capped at NAME_MAX, so "…" is only a last resort. Set on the element
+  // directly; the icon is sized in em, so it follows.
+  useLayoutEffect(() => {
+    const el = textRef.current, box = h1Ref.current
+    if (!el || !box) return
+    // Text width scales with the font size, so one measurement at the current size
+    // gives the size that fits: text + icon (1em) + 8px gap = the line. Rounded down to
+    // half a pixel, between 18 and 26px. Only the width is watched (a height change
+    // from the new size must not trigger another fit).
+    let lastW = -1
+    const fit = () => {
+      const cur = parseFloat(box.style.fontSize) || 26
+      el.style.flexShrink = '0'
+      const perPx = (el.scrollWidth + 1) / cur
+      el.style.flexShrink = ''
+      const f = Math.floor(((box.clientWidth - 8) / (perPx + 1)) * 2) / 2
+      const next = Math.max(18, Math.min(26, f))
+      // Shrink whenever needed; grow only by a whole pixel or more (no back-and-forth
+      // from rounding).
+      if (next < cur || next - cur >= 1) box.style.fontSize = next + 'px'
+    }
+    fit()
+    const family = getComputedStyle(box).fontFamily
+    document.fonts?.load(`700 26px ${family}`).then(fit, () => {})
+    // Again when a web font finishes loading (the fallback font has other widths)
+    // and when the screen width changes.
+    document.fonts?.addEventListener?.('loadingdone', fit)
+    // The text's own width changes too when the web font swaps in.
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) if (e.target === el || e.contentRect.width !== lastW) { if (e.target === box) lastW = e.contentRect.width; fit(); return }
+    })
+    ro.observe(box); ro.observe(el)
+    return () => { document.fonts?.removeEventListener?.('loadingdone', fit); ro.disconnect() }
+  }, [g, name, lang])
   const days = daysSince(lastStudy)
   // "Last practice" only when it is a useful nudge (2+ days ago).
   const when = days === null || days < 2 ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
-  const first = name.replace(/[\s!.?,]+$/, '')
+  const first = name.slice(0, NAME_MAX).replace(/[\s!.?,]+$/, '')
   return (
     <div className="mb-4 min-h-[64px]">
-      <h1 className={`text-[26px] leading-tight font-bold tracking-tight truncate transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
-        {g && (() => { const I = { helloMorning: IconSunrise, helloAfternoon: IconSun, helloEvening: IconSunset, helloNight: IconMoon }[g.hello as string] ?? IconSun
-          return <I size={24} className="text-stradeo-brandorange mr-2 align-[-0.12em]" /> })()}
-        {g ? (first ? `${t(lang, g.hello)}, ${first}!` : `${t(lang, g.hello)}!`) : '\u00a0'}
+      <h1 ref={h1Ref} style={{ fontSize: 26 }} className={`flex items-center gap-2 whitespace-nowrap leading-tight font-bold tracking-tight transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
+        <span ref={textRef} className="min-w-0 truncate">{g ? (first ? `${t(lang, g.hello)}, ${first}!` : `${t(lang, g.hello)}!`) : '\u00a0'}</span>
+        {g && <HelloIcon k={g.hello} />}
       </h1>
       <p className={`text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
         {g ? fill(t(lang, g.line.key), g.line, lang) : '\u00a0'}
@@ -191,6 +227,11 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
 }
 
 const MILESTONES_KEY = 'stradeo-milestones'
+const HELLO_ICONS: Record<string, typeof IconSun> = { helloMorning: IconSunrise, helloAfternoon: IconSun, helloEvening: IconSunset, helloNight: IconMoon }
+function HelloIcon({ k }: { k: string }) {
+  const I = HELLO_ICONS[k] ?? IconSun
+  return <I className="shrink-0 w-[1em] h-[1em] text-stradeo-brandorange" />
+}
 // Puts the line's numbers in, formatted for the language (7,106 / 7.106).
 const fill = (text: string, l: Line, lang: string) => {
   const f = (v?: number) => (v === undefined ? '' : new Intl.NumberFormat(lang).format(v))

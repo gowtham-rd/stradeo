@@ -9,7 +9,7 @@ import type { Language } from '@/types'
 import StradeoMark from './StradeoMark'
 import { IconCalendar, IconCheck, IconChevronLeft, IconArrowRight, IconCross, IconExam, IconFinish, IconReview, IconStack, IconTimer, IconTip, IconTopics } from './icons'
 import { TOTAL_QUESTIONS } from '@/lib/questionCounts'
-import { EXAM_DURATION, EXAM_QUESTIONS, MAX_ERRORS } from '@/lib/constants'
+import { EXAM_DURATION, EXAM_QUESTIONS, MAX_ERRORS, NAME_MAX } from '@/lib/constants'
 
 const STEPS = 5 // two info screens, then name, language, exam date
 
@@ -24,7 +24,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
   const [dir, setDir] = useState<1 | -1>(1)
   // Suggest a name from the email ("luca.rossi@…" → "Luca"), capitalised.
   const fromEmail = (user?.email?.split('@')[0] || '').split(/[._\-+0-9]/)[0]
-  const [name, setName] = useState(user?.name || (fromEmail ? fromEmail[0].toUpperCase() + fromEmail.slice(1) : ''))
+  const [name, setName] = useState((user?.name || (fromEmail ? fromEmail[0].toUpperCase() + fromEmail.slice(1) : '')).slice(0, NAME_MAX))
   const [date, setDate] = useState(user?.examDate || '')
   const [unknown, setUnknown] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -122,7 +122,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
             <form onSubmit={e => { e.preventDefault(); if (canContinue) go(3) }}>
               <h1 className="text-[23px] leading-tight font-bold tracking-tight mt-1.5">{t(lang, 'setupNameTitle')}</h1>
               <p className="text-[14px] text-stradeo-inkdim mt-2">{t(lang, 'setupNameHint')}</p>
-              <input value={name} onChange={e => setName(e.target.value)} maxLength={40} autoComplete="nickname" enterKeyHint="next"
+              <input value={name} onChange={e => setName(e.target.value)} maxLength={NAME_MAX} autoComplete="nickname" enterKeyHint="next"
                 aria-label={t(lang, 'yourName')}
                 className="mt-4 w-full h-14 px-4 rounded-[12px] border border-stradeo-line bg-stradeo-bg2 text-[18px] font-semibold outline-none focus:border-stradeo-ink" />
             </form>
