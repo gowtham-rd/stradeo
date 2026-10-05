@@ -40,13 +40,14 @@ export default function ResultRow({ n, q, ua, ok, open, onToggle }: {
       <button type="button" onClick={onToggle} aria-expanded={open}
         className="flex w-full items-center gap-3 p-3 text-left active:scale-100">
         <span className={`flex h-7 min-w-[28px] items-center justify-center rounded-[8px] font-mono text-[12px] ${badge}`}>{n}</span>
-        {img
+        {/* Thumbnail and question text only while closed: opened, they show in full below */}
+        {img && !open
           ? <img src={img} alt="" loading="lazy" decoding="async" className="h-10 w-10 shrink-0 rounded-[6px] border border-stradeo-line bg-white object-contain" />
           : null}
         <span className="min-w-0 flex-1">
-          <span lang="it" className="block text-[14px] leading-snug line-clamp-2">{q.q}</span>
+          {!open && <span lang="it" className="block text-[14px] leading-snug">{q.q}</span>}
           {/* your answer → correct answer */}
-          <span className="mt-1 flex items-center gap-1.5 text-[11px] font-bold tracking-[0.5px]">
+          <span className={`${open ? '' : 'mt-1'} flex items-center gap-1.5 text-[11px] font-bold tracking-[0.5px]`}>
             {ok ? (
               <span className="inline-flex items-center gap-1 text-stradeo-green"><IconCheck size={10} />{word(ua)}</span>
             ) : (
@@ -63,8 +64,8 @@ export default function ResultRow({ n, q, ua, ok, open, onToggle }: {
 
       {/* Explanation on mistakes, visible without opening */}
       {!ok && why && !open && (
-        <p className="-mt-1 px-3 pb-3 pl-[52px] text-[13px] leading-snug text-stradeo-inkdim line-clamp-2">
-          <IconTip size={12} className="mr-1 text-stradeo-brandorange" />{why}
+        <p className="-mt-1 flex gap-1.5 px-3 pb-3 pl-[52px] text-[13px] leading-snug text-stradeo-inkdim">
+          <IconTip size={12} className="mt-[3px] shrink-0 text-stradeo-accent2" /><span>{why}</span>
         </p>
       )}
 

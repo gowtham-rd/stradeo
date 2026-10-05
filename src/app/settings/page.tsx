@@ -93,8 +93,8 @@ export default function SettingsPage() {
             <span className="flex-1 min-w-0 text-sm font-bold text-stradeo-ink">Hashtag Labs</span>
             <IconArrowRight size={13} />
           </a>
-          <p className="font-mono text-[12px] text-stradeo-inkfaint mt-3">
-            Stradeo · {t(lang, 'appVersion')} {process.env.NEXT_PUBLIC_APP_VERSION} · {t(lang, 'updatedOn')} {new Date(process.env.NEXT_PUBLIC_BUILD_DATE || Date.now()).toLocaleDateString(DATE_LOCALE[lang], { day: 'numeric', month: 'short', year: 'numeric' })}
+          <p className="mt-3 whitespace-nowrap overflow-hidden text-ellipsis font-mono text-[11px] text-stradeo-inkfaint">
+            Stradeo v{process.env.NEXT_PUBLIC_APP_VERSION} · {t(lang, 'updatedOn')} {new Date(process.env.NEXT_PUBLIC_BUILD_DATE || Date.now()).toLocaleDateString(DATE_LOCALE[lang], { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
         </Section>
       </main>
