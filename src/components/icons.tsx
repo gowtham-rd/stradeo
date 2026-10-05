@@ -319,3 +319,20 @@ export default function Icon({ name, ...p }: P & { name: IconName }) {
   const C = ICONS[name]
   return <C {...p} />
 }
+
+// ── Time of day (Home greeting) ──
+const rays = (cx: number, cy: number, r: number, angles: number[]) => angles.map(a => {
+  return <rect key={a} x={cx - 1} y={cy - r - 3.2} width={2} height={3.2} transform={`rotate(${a} ${cx} ${cy})`} />
+})
+export const IconSun = (p: P) => (
+  <Svg {...p}><circle cx="12" cy="12" r="4.2" />{rays(12, 12, 6.2, [0, 45, 90, 135, 180, 225, 270, 315])}</Svg>
+)
+export const IconSunrise = (p: P) => (
+  <Svg {...p}><path d="M6.5 17a5.5 5.5 0 0 1 11 0z" />{rays(12, 17, 7.4, [-90, -45, 0, 45, 90])}<rect x="2" y="19" width="20" height="2" /></Svg>
+)
+export const IconSunset = (p: P) => (
+  <Svg {...p}><path d="M6.5 15a5.5 5.5 0 0 1 11 0z" /><rect x="2" y="16.5" width="20" height="2" /><rect x="5" y="20" width="14" height="2" /></Svg>
+)
+export const IconMoon = (p: P) => (
+  <Svg {...p}><path d="M14.5 3a8.5 8.5 0 1 0 6.5 13.9A7 7 0 0 1 14.5 3z" /></Svg>
+)

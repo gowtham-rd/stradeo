@@ -19,21 +19,30 @@ function timeOfDay(h: number): UIKey {
   return 'gNight'
 }
 
-/** The line under the name: situation first (new, long break, late night, ready),
- *  otherwise a line for the time of day, mixed with streak / almost-there nudges.
- *  Stable for a given day and hour, so it doesn't change between renders. */
-export function greetingLine(o: { lastStudy: string | null; readiness: number; streak: number; now?: Date }): { key: UIKey; n?: number } {
+export type Line = { key: UIKey; n?: number; m?: number }
+
+/** The everyday line under the name, built from real numbers: today's goal, what's
+ *  left of it, days to the exam, readiness. Situations first (new, long break, late
+ *  night, goal done, goal under way, ready), otherwise one of a few lines chosen by
+ *  day and hour, so it varies but doesn't change between renders. */
+export function greetingLine(o: {
+  lastStudy: string | null; readiness: number; streak: number
+  goal: number; doneToday: number; unseen: number; examDaysLeft: number | null; now?: Date
+}): Line {
   const now = o.now ?? new Date()
   const days = daysSince(o.lastStudy, now)
   const h = now.getHours()
-  if (days === null) return { key: 'gNew' }
-  if (days >= 7) return { key: 'gBack' }
+  if (days === null && o.doneToday === 0) return { key: 'gNew', n: o.goal, m: o.unseen }
+  if (days !== null && days >= 7) return { key: 'gBack' }
   if (h < 5) return { key: 'gLateNight' }
-  if (o.readiness >= 90) return { key: 'gReady' }
-  const seed = now.getDate() + h
-  if (o.streak >= 3 && seed % 3 === 0) return { key: 'gStreak', n: o.streak }
-  if (o.readiness >= 75 && seed % 3 === 1) return { key: 'gClose' }
-  return { key: timeOfDay(h) }
+  if (o.doneToday >= o.goal) return { key: 'gGoalDone', n: o.goal }
+  if (o.doneToday > 0) return { key: 'gToGo', n: o.goal - o.doneToday }
+  if (o.readiness >= 90) return { key: 'gReady', n: o.readiness }
+  const pool: Line[] = [{ key: timeOfDay(h), n: o.goal }]
+  if (o.streak >= 3) pool.push({ key: 'gStreak', n: o.streak })
+  if (o.examDaysLeft !== null && o.examDaysLeft > 1 && o.unseen > 0) pool.push({ key: 'gCountdown', n: o.examDaysLeft, m: o.unseen })
+  if (o.readiness >= 75) pool.push({ key: 'gClose', n: o.readiness })
+  return pool[(now.getDate() + h) % pool.length]
 }
 
 // ── Home greeting v2: "Good evening, Marco" + the one line that matters today ──
@@ -59,8 +68,9 @@ export function reachedMilestones(o: { totalDone: number; readiness: number; exa
  *  milestone, a return after a break, then the everyday lines. */
 export function homeLine(o: {
   lastStudy: string | null; readiness: number; streak: number; dueCount: number
-  examDaysLeft: number | null; milestone: Milestone | null; now?: Date
-}): { key: UIKey; n?: number } {
+  examDaysLeft: number | null; milestone: Milestone | null
+  goal: number; doneToday: number; unseen: number; now?: Date
+}): Line {
   const now = o.now ?? new Date()
   const days = daysSince(o.lastStudy, now)
   if (o.examDaysLeft === 0) return { key: 'gExamDay' }
@@ -68,5 +78,5 @@ export function homeLine(o: {
   if (o.examDaysLeft !== null && o.examDaysLeft < 0) return { key: 'gExamOver' }
   if (o.milestone) return { key: o.milestone.key, n: o.milestone.n }
   if (days !== null && days >= 2 && o.dueCount > 0) return { key: 'gBackReviews', n: o.dueCount }
-  return greetingLine({ lastStudy: o.lastStudy, readiness: o.readiness, streak: o.streak, now })
+  return greetingLine({ ...o, now })
 }

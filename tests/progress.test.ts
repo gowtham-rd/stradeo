@@ -230,7 +230,7 @@ test('home greeting: salutation by hour, exam day first, milestones, reviews aft
   assert.equal(salutation(8), 'helloMorning'); assert.equal(salutation(13), 'helloAfternoon')
   assert.equal(salutation(20), 'helloEvening'); assert.equal(salutation(2), 'helloNight')
   const now = new Date(2026, 9, 5, 19, 0)
-  const base = { lastStudy: '2026-10-05', readiness: 60, streak: 2, dueCount: 0, examDaysLeft: 20, milestone: null, now }
+  const base = { lastStudy: '2026-10-05', readiness: 60, streak: 2, dueCount: 0, examDaysLeft: 20, milestone: null, now, goal: 30, doneToday: 0, unseen: 5000 }
   assert.equal(homeLine({ ...base, examDaysLeft: 0 }).key, 'gExamDay')
   assert.equal(homeLine({ ...base, examDaysLeft: 1 }).key, 'gExamTomorrow')
   assert.equal(homeLine({ ...base, examDaysLeft: -2 }).key, 'gExamOver')
@@ -238,4 +238,23 @@ test('home greeting: salutation by hour, exam day first, milestones, reviews aft
   assert.deepEqual(ms.map(m => m.id), ['q100'])
   assert.deepEqual(homeLine({ ...base, milestone: ms[0] }), { key: 'gMilestoneQ', n: 100 })
   assert.deepEqual(homeLine({ ...base, lastStudy: '2026-10-01', dueCount: 6 }), { key: 'gBackReviews', n: 6 })
+})
+
+test('home greeting: lines carry real numbers (goal, left today, countdown, readiness)', async () => {
+  const { homeLine } = await import('../src/lib/greeting')
+  const now = new Date(2026, 9, 5, 21, 0)
+  const base = { lastStudy: '2026-10-04', readiness: 60, streak: 1, dueCount: 0, examDaysLeft: null, milestone: null, now, goal: 30, doneToday: 0, unseen: 5000 }
+  // brand new: total questions and today's goal
+  assert.deepEqual(homeLine({ ...base, lastStudy: null, unseen: 7106 }), { key: 'gNew', n: 30, m: 7106 })
+  // part-way through today, then done
+  assert.deepEqual(homeLine({ ...base, doneToday: 12 }), { key: 'gToGo', n: 18 })
+  assert.deepEqual(homeLine({ ...base, doneToday: 34 }), { key: 'gGoalDone', n: 30 })
+  // ready
+  assert.deepEqual(homeLine({ ...base, readiness: 93 }), { key: 'gReady', n: 93 })
+  // nothing special: the evening line with the goal
+  assert.deepEqual(homeLine(base), { key: 'gEvening', n: 30 })
+  // with an exam date the countdown joins the rotation
+  const seen = new Set<string>()
+  for (let h = 6; h < 22; h++) seen.add(homeLine({ ...base, examDaysLeft: 24, now: new Date(2026, 9, 5, h) }).key)
+  assert.ok(seen.has('gCountdown'))
 })

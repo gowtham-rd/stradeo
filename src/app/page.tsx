@@ -5,11 +5,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import { TOPIC_COUNTS, TOTAL_QUESTIONS } from '@/lib/questionCounts'
-import { studyTarget, daysUntil, localDay } from '@/lib/plan'
+import { studyTarget, daysUntil, localDay, dailyGoal } from '@/lib/plan'
 import { MAX_ERRORS } from '@/lib/constants'
 import { TOPICS, getTopicName } from '@/lib/topics'
 import { t, type UIKey } from '@/lib/i18n'
-import { daysSince, salutation, homeLine, reachedMilestones } from '@/lib/greeting'
+import { daysSince, salutation, homeLine, reachedMilestones, type Line } from '@/lib/greeting'
 import NavBar from '@/components/NavBar'
 import ReadinessScore, { TopicMapCard } from '@/components/ReadinessScore'
 import StatsPanel from '@/components/StatsPanel'
@@ -17,7 +17,7 @@ import TopicCard from '@/components/TopicCard'
 import AdBanner from '@/components/AdBanner'
 import SplashScreen from '@/components/SplashScreen'
 import LoginForm from '@/components/LoginForm'
-import { IconExam, IconReview, IconStudy } from '@/components/icons'
+import { IconExam, IconReview, IconStudy, IconSun, IconSunrise, IconSunset, IconMoon } from '@/components/icons'
 import { getLastTopic } from '@/lib/lastTopic'
 import { nextBestTopic } from '@/lib/progress'
 import HomeCards from '@/components/HomeCards'
@@ -74,7 +74,8 @@ export default function HomePage() {
         {/* Greeting: name, then a line for the time of day / how it's going */}
         <Greeting name={user.name || user.email?.split('@')[0] || ''} lastStudy={progress.lastStudy} readiness={readiness} streak={streak}
           dueCount={dueCount} examDate={user.examDate} totalDone={progress.totalDone}
-          examPassed={(progress.exams || []).some(e => e.total - e.score <= MAX_ERRORS)} loaded={progressLoaded} />
+          examPassed={(progress.exams || []).some(e => e.total - e.score <= MAX_ERRORS)} loaded={progressLoaded}
+          unseen={totalRemaining} dailyLog={progress.dailyLog} />
 
         {/* Exam countdown + today's goal */}
         <TodayPlan />
@@ -138,17 +139,19 @@ export default function HomePage() {
   )
 }
 
-function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, loaded }: {
+function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, loaded, unseen, dailyLog }: {
   loaded: boolean; name: string; lastStudy: string | null; readiness: number; streak: number
   dueCount: number; examDate: string | null | undefined; totalDone: number; examPassed: boolean
+  unseen: number; dailyLog: Record<string, { total: number }>
 }) {
   const { lang } = useLanguage()
   // Time- and device-dependent: computed after mount so server and client markup match.
-  const [g, setG] = useState<{ hello: UIKey; line: { key: UIKey; n?: number } } | null>(null)
+  const [g, setG] = useState<{ hello: UIKey; line: Line } | null>(null)
   useEffect(() => {
     if (!loaded) return // milestones need the saved progress, not the empty start
     const now = new Date()
     const today = localDay()
+    const examDaysLeft = daysUntil(examDate, now)
     // A milestone shows on the day it is first reached, then never again (per device).
     let shown: Record<string, string> = {}
     try { shown = JSON.parse(localStorage.getItem(MILESTONES_KEY) || '{}') } catch { /* storage blocked */ }
@@ -164,9 +167,10 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
     try { localStorage.setItem(MILESTONES_KEY, JSON.stringify(next)) } catch { /* storage blocked */ }
     setG({
       hello: salutation(now.getHours()),
-      line: homeLine({ lastStudy, readiness, streak, dueCount, examDaysLeft: daysUntil(examDate, now), milestone, now }),
+      line: homeLine({ lastStudy, readiness: Math.round(readiness), streak, dueCount, examDaysLeft, milestone, now,
+        goal: dailyGoal(unseen, examDaysLeft), doneToday: dailyLog[today]?.total ?? 0, unseen }),
     })
-  }, [loaded, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed])
+  }, [loaded, lastStudy, readiness, streak, dueCount, examDate, totalDone, examPassed, unseen, dailyLog])
   const days = daysSince(lastStudy)
   // "Last practice" only when it is a useful nudge (2+ days ago).
   const when = days === null || days < 2 ? null : new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-days, 'day')
@@ -174,10 +178,12 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
   return (
     <div className="mb-4 min-h-[64px]">
       <h1 className={`text-[26px] leading-tight font-bold tracking-tight truncate transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
+        {g && (() => { const I = { helloMorning: IconSunrise, helloAfternoon: IconSun, helloEvening: IconSunset, helloNight: IconMoon }[g.hello as string] ?? IconSun
+          return <I size={24} className="text-stradeo-brandorange mr-2 align-[-0.12em]" /> })()}
         {g ? (first ? `${t(lang, g.hello)}, ${first}` : t(lang, g.hello)) : '\u00a0'}
       </h1>
       <p className={`text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
-        {g ? t(lang, g.line.key).replace('{n}', String(g.line.n ?? '')) : '\u00a0'}
+        {g ? fill(t(lang, g.line.key), g.line, lang) : '\u00a0'}
         {g && when && <span className="text-stradeo-inkfaint"> · {t(lang, 'lastPractice')}: {when}</span>}
       </p>
     </div>
@@ -185,6 +191,11 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
 }
 
 const MILESTONES_KEY = 'stradeo-milestones'
+// Puts the line's numbers in, formatted for the language (7,106 / 7.106).
+const fill = (text: string, l: Line, lang: string) => {
+  const f = (v?: number) => (v === undefined ? '' : new Intl.NumberFormat(lang).format(v))
+  return text.replace('{n}', f(l.n)).replace('{m}', f(l.m))
+}
 
 function StudyButton() {
   const { lang } = useLanguage()
