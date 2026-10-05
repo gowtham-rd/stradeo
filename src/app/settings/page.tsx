@@ -90,11 +90,7 @@ export default function SettingsPage() {
           <a href="https://quattroventi.xyz" target="_blank" rel="noopener"
             className="mt-2 flex items-center gap-3 rounded-[10px] border border-stradeo-line px-4 py-3 hover:border-stradeo-ink">
             <HashtagMark size={36} />
-            <span className="flex-1 min-w-0">
-              <span className="block text-[12px] text-stradeo-inkdim">{t(lang, 'madeBy')}</span>
-              <span className="block text-sm font-bold text-stradeo-ink">Hashtag Labs</span>
-            </span>
-            <span className="font-mono text-[12px] text-stradeo-inkdim hidden min-[360px]:inline">quattroventi.xyz</span>
+            <span className="flex-1 min-w-0 text-sm font-bold text-stradeo-ink">Hashtag Labs</span>
             <IconArrowRight size={13} />
           </a>
           <p className="font-mono text-[12px] text-stradeo-inkfaint mt-3">
