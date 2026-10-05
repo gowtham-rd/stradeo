@@ -1,6 +1,6 @@
 // Stradeo service worker — makes the app installable and lets practice work offline.
 // Bump VERSION to drop old caches after a release that changes cached files' format.
-const VERSION = 'v16'
+const VERSION = 'v17'
 const SHELL = `stradeo-shell-${VERSION}`
 const DATA = `stradeo-data-${VERSION}`
 // Sign images never change between releases: their own cache, kept across versions.
@@ -82,7 +82,8 @@ self.addEventListener('fetch', event => {
     event.respondWith(caches.open(DATA).then(async cache => {
       const hit = (await cache.match(req)) || (await caches.match(req))
       if (hit && url.pathname.startsWith('/images/signs/')) return hit // signs don't change
-      const refresh = fetch(req).then(res => { if (res.ok) cache.put(req, res.clone()); return res })
+      // Revalidate with the server (not the browser's own cache), so updates arrive.
+      const refresh = fetch(req, { cache: 'no-cache' }).then(res => { if (res.ok) cache.put(req, res.clone()); return res })
       if (hit) { refresh.catch(() => {}); return hit }
       return refresh
     }))

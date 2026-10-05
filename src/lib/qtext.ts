@@ -10,13 +10,19 @@ type TopicFile = Record<string, Entry>
 
 const cache = new Map<string, Promise<TopicFile | null>>()
 
+// Each release asks for the files under a new address (?v=<build date>), so a
+// phone never keeps an older copy — or an old "not found" — from a previous release.
+const RELEASE = encodeURIComponent(process.env.NEXT_PUBLIC_BUILD_DATE || '')
+
 function loadTopic(lang: Language, topic: number): Promise<TopicFile | null> {
   const key = `${lang}/${topic}`
   let p = cache.get(key)
   if (!p) {
-    p = fetch(`/data/i18n/${lang}/${topic}.json`)
+    p = fetch(`/data/i18n/${lang}/${topic}.json?v=${RELEASE}`)
       .then(r => (r.ok ? (r.json() as Promise<TopicFile>) : null))
       .catch(() => null)
+      // Don't remember a miss (offline, or not published yet): try again next time.
+      .then(f => { if (!f) cache.delete(key); return f })
     cache.set(key, p)
   }
   return p
