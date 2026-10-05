@@ -9,6 +9,7 @@ import { getLesson } from '@/lib/lessons'
 import { questionsForSections } from '@/lib/sectionMatch'
 import { lessonRead, markSectionRead } from '@/lib/lessonRead'
 import SectionCheck from './SectionCheck'
+import { sectionsOf, trapsOf } from '@/lib/lessonParse'
 import type { Question, TheoryContent } from '@/types'
 import { IconTip, IconWarning, IconChevronDown, IconArrowRight, IconQuiz, IconCross, IconCheck } from './icons'
 
@@ -40,31 +41,6 @@ function Rich({ text }: { text: string }) {
     if (part.startsWith('*') && part.endsWith('*') && part.length > 2) return <em key={i}>{part.slice(1, -1)}</em>
     return <span key={i}>{calmCaps(part, String(i))}</span>
   })}</>
-}
-
-/** "**Heading**\n\nparagraph…" blocks → [{ title, paras }]. */
-function sectionsOf(details: string) {
-  const out: { title: string; paras: string[] }[] = []
-  for (const block of details.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)) {
-    const head = block.match(/^\*\*([^*]+)\*\*\s*$/)
-    if (head) out.push({ title: head[1].trim(), paras: [] })
-    else if (/^\*\*([^*]+)\*\*\n/.test(block)) {
-      const [, title, rest] = block.match(/^\*\*([^*]+)\*\*\n([\s\S]*)$/)!
-      out.push({ title: title.trim(), paras: [rest.trim()] })
-    } else {
-      if (!out.length) out.push({ title: '', paras: [] })
-      out[out.length - 1].paras.push(block)
-    }
-  }
-  return out.filter(s => s.paras.length)
-}
-
-/** ⚠ "statement" — FALSE. The real rule… → { claim, verdict, fact } */
-function trapsOf(traps: string) {
-  return traps.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
-    const m = line.replace(/^⚠\s*/, '').match(/^["“«](.+?)["”»]\s*[—–-]\s*([^.!]+)[.!]\s*([\s\S]*)$/)
-    return m ? { claim: m[1], verdict: m[2].trim(), fact: m[3].trim() } : { claim: '', verdict: '', fact: line.replace(/^⚠\s*/, '') }
-  })
 }
 
 const wordsOf = (s: string) => s.split(/\s+/).filter(Boolean).length

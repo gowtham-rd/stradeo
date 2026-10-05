@@ -14,23 +14,7 @@ import AdBanner from '@/components/AdBanner'
 import { aiPost } from '@/lib/api'
 import { setLastTopic } from '@/lib/lastTopic'
 import LessonView from '@/components/LessonView'
-
-// New lesson layout: being tried on topic 1 first.
-const NEW_LESSON = new Set([1])
-import { IconStudy, IconQuiz, IconRoadworks, IconWarning, IconTip, IconArrowRight, IconExam } from '@/components/icons'
-
-// Render inline Markdown emphasis (**bold** and *italic*) as real elements.
-function renderMD(text: string) {
-  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-bold text-stradeo-ink">{part.slice(2, -2)}</strong>
-    }
-    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-      return <em key={i}>{part.slice(1, -1)}</em>
-    }
-    return part
-  })
-}
+import { IconStudy, IconQuiz, IconRoadworks, IconArrowRight, IconExam } from '@/components/icons'
 
 function TopicInner() {
   const params = useSearchParams()
@@ -150,64 +134,8 @@ function TopicInner() {
               </div>
             )}
 
-            {theory && NEW_LESSON.has(tid) && <LessonView tid={tid} theory={theory} />}
+            {theory && <LessonView tid={tid} theory={theory} />}
 
-            {theory && !NEW_LESSON.has(tid) && (
-              <div className="[&>*]:animate-rise [&>*:nth-child(2)]:[animation-delay:60ms] [&>*:nth-child(3)]:[animation-delay:120ms] [&>*:nth-child(4)]:[animation-delay:180ms] [&>*:nth-child(5)]:[animation-delay:240ms] [&>*:nth-child(6)]:[animation-delay:300ms]">
-                {/* Title */}
-                <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
-                  <h3 className="text-xl font-bold text-stradeo-ink m-0 leading-snug">{theory.title}</h3>
-                </div>
-
-                {/* Key Points */}
-                {theory.keypoints && (
-                  <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-3">{t(lang, 'keyPoints')}</div>
-                    {theory.keypoints.split('\n').filter(l => l.trim()).map((line, i) => (
-                      <div key={i} className="flex gap-2.5 mb-2 items-start">
-                        <span className="text-stradeo-inkfaint text-sm mt-px">•</span>
-                        <p className="m-0 text-sm leading-relaxed">{renderMD(line.replace(/^[•·\-]\s*/, ''))}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Details */}
-                {theory.details && (
-                  <div className="bg-stradeo-bg2 border border-stradeo-line rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-3">{t(lang, 'explained')}</div>
-                    {theory.details.split('\n\n').filter(p => p.trim()).map((para, i) => (
-                      <p key={i} className={`text-sm leading-[1.7] text-stradeo-inkdim ${i > 0 ? 'mt-3' : ''}`}>{renderMD(para)}</p>
-                    ))}
-                  </div>
-                )}
-
-                {/* Traps */}
-                {theory.traps && (
-                  <div className="bg-stradeo-accent/[0.06] border border-stradeo-accent/20 rounded-[14px] p-5 mb-3.5">
-                    <div className="text-xs font-semibold text-stradeo-accent uppercase tracking-[1px] mb-3 flex items-center gap-2"><IconWarning size={14} />{t(lang, 'examTraps')}</div>
-                    {theory.traps.split('\n').filter(l => l.trim()).map((line, i) => (
-                      <div key={i} className="flex gap-2.5 mb-2 items-start">
-                        <IconWarning size={13} className="text-stradeo-accent mt-1" />
-                        <p className="m-0 text-sm leading-relaxed text-stradeo-ink">{renderMD(line.replace(/^[⚠·\-]\s*/, ''))}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Remember */}
-                {theory.remember && (
-                  <div className="bg-stradeo-surface2 rounded-[14px] p-[18px] mb-3.5 text-center">
-                    <div className="text-xs font-semibold text-stradeo-inkdim uppercase tracking-[1px] mb-2 flex items-center justify-center gap-2"><IconTip size={14} className="text-stradeo-brandorange" />{t(lang, 'remember')}</div>
-                    <p className="m-0 text-[15px] font-semibold leading-relaxed text-stradeo-ink">{renderMD(theory.remember)}</p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <button onClick={() => setMode('quiz')}
-                  className="flex w-full py-3.5 rounded-[10px] items-center justify-center gap-2 bg-stradeo-brand text-stradeo-onbrand text-[15px] font-bold mt-2"><IconQuiz size={15} />{t(lang, 'startQuiz')} <IconArrowRight size={15} /></button>
-              </div>
-            )}
           </div>
         )}
 
