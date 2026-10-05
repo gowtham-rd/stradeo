@@ -180,7 +180,7 @@ function Greeting({ name, lastStudy, readiness, streak, dueCount, examDate, tota
       <h1 className={`text-[26px] leading-tight font-bold tracking-tight truncate transition-opacity duration-300 ${g ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
         {g && (() => { const I = { helloMorning: IconSunrise, helloAfternoon: IconSun, helloEvening: IconSunset, helloNight: IconMoon }[g.hello as string] ?? IconSun
           return <I size={24} className="text-stradeo-brandorange mr-2 align-[-0.12em]" /> })()}
-        {g ? (first ? `${t(lang, g.hello)}, ${first}` : t(lang, g.hello)) : '\u00a0'}
+        {g ? (first ? `${t(lang, g.hello)}, ${first}!` : `${t(lang, g.hello)}!`) : '\u00a0'}
       </h1>
       <p className={`text-[15px] leading-snug text-stradeo-inkdim mt-1 ${g ? 'animate-fade-in [animation-delay:120ms]' : 'opacity-0'}`}>
         {g ? fill(t(lang, g.line.key), g.line, lang) : '\u00a0'}
