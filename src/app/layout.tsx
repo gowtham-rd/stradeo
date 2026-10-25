@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import '@fontsource/titillium-web/400.css'
-import '@fontsource/titillium-web/600.css'
-import '@fontsource/titillium-web/700.css'
+import '@fontsource-variable/manrope'
 import '@fontsource/jetbrains-mono/400.css'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'

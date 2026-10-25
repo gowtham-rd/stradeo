@@ -7,7 +7,7 @@
    - One yellow thing per view (the main action).
    - Status colours are separate from brand: warning is orange, never yellow.
    - Cards are border-only, no shadows. Radius 6 / 8 / 10 / 14.
-   - Titillium Web 400/600/700 (no 500), JetBrains Mono for numbers and data.
+   - Manrope 400/600/700, JetBrains Mono for numbers and data.
    Colours are RGB channels so Tailwind opacity modifiers work (e.g. bg-stradeo-green/10). */
 
 :root {
@@ -77,7 +77,7 @@ html {
 body {
   background-color: rgb(var(--bg));
   color: rgb(var(--ink));
-  font-family: 'Titillium Web', system-ui, sans-serif;
+  font-family: 'Manrope Variable', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
 }

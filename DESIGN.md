@@ -10,7 +10,7 @@ The landing page (quattroventi.xyz) is the reference. If something here and the 
 3. **Status colours are separate from the brand.** Correct/paid = green, warning/due soon = orange, wrong/overdue = red, info = blue. Warning is orange, never yellow.
 4. **Cards are border-only.** 1px border, no shadows, no gradients.
 5. **Radius scale:** 6 (chips, small buttons) · 8 (inputs, controls) · 10 (buttons, inner boxes) · 14 (cards, tiles). Nothing else.
-6. **Type:** Titillium Web 400 / 600 / 700 only (no 500, no 800). JetBrains Mono for numbers: scores, money, times, counts, IDs.
+6. **Type:** Manrope 400 / 600 / 700 only. JetBrains Mono for numbers: scores, money, times, counts, IDs.
 7. **Theme:** a Light / Auto / Dark switch on every app, defaulting to Auto (follows the device).
 8. **Emphasis is ink, not colour.** A selected tab, chip or answer is shown with the ink colour (black in light, off-white in dark), not with orange or blue.
 9. **Base size 16px.** Controls are 40px high (comfortable) or 32px (compact tools).

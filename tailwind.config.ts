@@ -27,7 +27,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['"Titillium Web"', 'system-ui', 'sans-serif'],
+        sans: ['"Manrope Variable"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       // One motion language: ease-out curve, 160 / 240 / 360 ms (see globals.css).

@@ -25,7 +25,7 @@ const LIGHT: typeof DARK = {
   ok: '#1F8A4C', bad: '#C0262D', none: '#C2540A', brand: '#FFD600', orange: '#FF7A00', glow: '1C', tint: '1F',
 }
 let C = DARK
-const SANS = '"Titillium Web", system-ui, sans-serif'
+const SANS = '"Manrope Variable", system-ui, sans-serif'
 const MONO = '"JetBrains Mono", ui-monospace, monospace'
 export const W = 1080, H = 1350
 
