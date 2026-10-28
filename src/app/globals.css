@@ -7,7 +7,7 @@
    - One yellow thing per view (the main action).
    - Status colours are separate from brand: warning is orange, never yellow.
    - Cards are border-only, no shadows. Radius 6 / 8 / 10 / 14.
-   - Manrope 400/600/700, JetBrains Mono for numbers and data.
+   - Manrope everywhere; numbers (font-mono) use Manrope with tabular figures.
    Colours are RGB channels so Tailwind opacity modifiers work (e.g. bg-stradeo-green/10). */
 
 :root {
@@ -200,3 +200,6 @@ html.pull-settle .page-shift { transition: transform 0.35s cubic-bezier(0.2, 0.8
   50% { box-shadow: 0 0 12px 1px rgb(var(--danger) / 0.5); }
 }
 .time-glow { animation: timeGlow 1.4s ease-in-out infinite; }
+
+/* Numbers and data: Manrope with fixed-width digits, so timers and counts don't jump. */
+.font-mono { font-variant-numeric: tabular-nums; }

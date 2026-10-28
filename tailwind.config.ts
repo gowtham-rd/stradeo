@@ -28,7 +28,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['"Manrope Variable"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        // Numbers use Manrope too, with tabular figures (see globals.css), so digits don't jump.
+        mono: ['"Manrope Variable"', 'system-ui', 'sans-serif'],
       },
       // One motion language: ease-out curve, 160 / 240 / 360 ms (see globals.css).
       animation: {

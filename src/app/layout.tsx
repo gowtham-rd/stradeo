@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import '@fontsource-variable/manrope'
-import '@fontsource/jetbrains-mono/400.css'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'

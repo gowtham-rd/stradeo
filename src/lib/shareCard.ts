@@ -26,7 +26,7 @@ const LIGHT: typeof DARK = {
 }
 let C = DARK
 const SANS = '"Manrope Variable", system-ui, sans-serif'
-const MONO = '"JetBrains Mono", ui-monospace, monospace'
+const MONO = SANS // numbers in Manrope too (the app's one typeface)
 export const W = 1080, H = 1350
 
 const rr = (x: CanvasRenderingContext2D, X: number, Y: number, w: number, h: number, r: number) => {
@@ -80,10 +80,10 @@ export async function drawCard(d: CardData): Promise<Blob> {
 
   // Score.
   y = 560
-  x.font = `400 260px ${MONO}`; x.fillStyle = tone
+  x.font = `700 260px ${MONO}`; x.fillStyle = tone
   const s = String(d.score); x.fillText(s, P - 10, y)
   const sw = x.measureText(s).width
-  x.font = `400 110px ${MONO}`; x.fillStyle = C.faint; x.fillText(`/${d.total}`, P - 10 + sw + 8, y)
+  x.font = `600 110px ${MONO}`; x.fillStyle = C.faint; x.fillText(`/${d.total}`, P - 10 + sw + 8, y)
 
   // Errors · max · time.
   const errs = d.marks.filter(m => m !== 'ok').length
